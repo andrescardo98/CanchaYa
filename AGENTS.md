@@ -25,7 +25,7 @@ CanchaYa/
 |---|---|
 | `README.md` | Visión, alcance, roles, stack y cronograma del proyecto. |
 | `AGENTS.md` | Reglas y convenciones para agentes. Se actualiza cada vez que cambia la estructura del repositorio. |
-| `CLAUDE.md` | Importa `AGENTS.md` y define la convención de mensajes de commit (Conventional Commits). |
+| `CLAUDE.md` | Solo importa `AGENTS.md` con `@AGENTS.md`; no se le agrega contenido propio. |
 | `.claude/` | Configuración de Claude Code del repositorio: skills, y más adelante agentes y comandos. |
 | `.github/pull_request_template.md` | Plantilla de los pull request: contexto, tipo de cambio e instrucciones de prueba. |
 | `architecture/projects/` | Aquí van los proyectos de código (backend, frontend, infraestructura). Todavía no se ha creado ninguno. |
@@ -39,6 +39,24 @@ CanchaYa/
 5. **Historias de usuario**: el backlog oficial es el del Tallaje del producto (38 HU). Todo cambio funcional debe poder trazarse a una HU y a sus criterios de aceptación.
 6. **Mensajes**: los textos que ve el usuario salen del catálogo de mensajes por su código (`ERR/EXI/INF/CNF-<OBJ>-nn`). No se escriben textos sueltos en el código fuente.
 7. **Estructura**: si agregas, mueves o eliminas carpetas de primer o segundo nivel, actualiza la sección «Estructura del repositorio» de este archivo en el mismo cambio.
+
+## Mensajes de commit
+
+Los mensajes de commit siguen [Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/):
+
+```
+<tipo>(<alcance opcional>): <descripción>
+
+[cuerpo opcional]
+
+[pie opcional]
+```
+
+- **Tipos**: `feat` (nueva funcionalidad), `fix` (corrección de error), `refactor`, `test`, `docs`, `style`, `perf`, `build`, `ci`, `chore`, `revert`.
+- **Alcance**: el módulo o contexto afectado, en minúsculas, por ejemplo `reservas`, `escenarios`, `identidad`, `ubicacion`, `frontend`, `infra`.
+- **Descripción**: en español, en imperativo, en minúscula y sin punto final, de máximo 72 caracteres. Por ejemplo: `feat(reservas): validar el límite de 2 horas por día`.
+- **Cuerpo**: explica el qué y el porqué. Cita la HU o la decisión cuando aplique (`HU21`, `D10`).
+- **Cambios que rompen compatibilidad**: agrega `!` después del tipo o del alcance (`feat(api)!: ...`) y un pie `BREAKING CHANGE: <detalle>`.
 
 ## Pull requests
 
