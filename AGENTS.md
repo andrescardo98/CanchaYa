@@ -11,13 +11,13 @@ CanchaYa/
 ├── README.md                       # Descripción del proyecto
 ├── AGENTS.md                       # Este archivo: guía para agentes
 ├── CLAUDE.md                       # Remite a AGENTS.md
+├── .claude/
+│   └── skills/
+│       └── pull-request/
+│           └── SKILL.md            # Skill que llena la plantilla de pull request
 ├── .github/
 │   └── pull_request_template.md    # Plantilla de pull request
 └── architecture/
-    ├── .claude/
-    │   └── skills/
-    │       └── pull-request/
-    │           └── SKILL.md        # Skill que llena la plantilla de pull request
     └── projects/                   # Proyectos de la aplicación (vacío por ahora)
 ```
 
@@ -26,8 +26,8 @@ CanchaYa/
 | `README.md` | Visión, alcance, roles, stack y cronograma del proyecto. |
 | `AGENTS.md` | Reglas y convenciones para agentes. Se actualiza cada vez que cambia la estructura del repositorio. |
 | `CLAUDE.md` | Solo importa `AGENTS.md`; no se le agrega contenido propio. |
+| `.claude/` | Configuración de Claude Code del repositorio: skills, y más adelante agentes y comandos. |
 | `.github/pull_request_template.md` | Plantilla de los pull request: contexto, tipo de cambio e instrucciones de prueba. |
-| `architecture/.claude/` | Configuración de Claude Code para el trabajo de arquitectura y desarrollo: skills, y más adelante agentes y comandos. |
 | `architecture/projects/` | Aquí van los proyectos de código (backend, frontend, infraestructura). Todavía no se ha creado ninguno. |
 
 ## Reglas para agentes
@@ -43,5 +43,5 @@ CanchaYa/
 ## Pull requests
 
 - Todo pull request usa la plantilla `.github/pull_request_template.md`.
-- Para llenarla, usa el skill `pull-request` (`architecture/.claude/skills/pull-request/SKILL.md`). El skill lee el diff, identifica la HU y escribe instrucciones de prueba que permiten verificar cada criterio de aceptación.
+- Para llenarla, usa el skill `pull-request` (`.claude/skills/pull-request/SKILL.md`). El skill lee el diff, identifica la HU y escribe instrucciones de prueba que permiten verificar cada criterio de aceptación.
 - Nombre de rama sugerido: `<tipo>/HU<nn>-<descripcion-corta>`, por ejemplo `feature/HU21-reservar-franja`.

@@ -92,10 +92,10 @@ CanchaYa/
 ├── README.md
 ├── AGENTS.md                 # Guía para agentes de IA
 ├── CLAUDE.md                 # Remite a AGENTS.md
+├── .claude/                  # Configuración de Claude Code (skills)
 ├── .github/
 │   └── pull_request_template.md
 └── architecture/
-    ├── .claude/              # Configuración de Claude Code (skills)
     └── projects/             # Proyectos de la aplicación (backend, frontend, …)
 ```
 
