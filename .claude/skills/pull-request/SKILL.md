@@ -1,6 +1,6 @@
 ---
 name: pull-request
-description: Llena la plantilla de pull request de CanchaYa (.github/pull_request_template.md) a partir de los cambios de la rama actual — contexto con la HU, tipo de cambio e instrucciones de prueba que verifican cada criterio de aceptación. Úsalo cuando el usuario pida crear, preparar, redactar o describir un pull request (PR), o invoque /pull-request.
+description: Llena la plantilla de pull request de CanchaYa (.github/pull_request_template.md) a partir de los cambios de la rama actual — contexto con la HU, tipo de cambio e instrucciones de prueba que verifican cada criterio de aceptación. Úsalo cuando el usuario pida llenar la plantilla, redactar o describir un pull request (PR), o invoque /pull-request.
 ---
 
 # Skill: pull-request
@@ -11,7 +11,6 @@ Genera la descripción de un pull request de CanchaYa llenando **todas** las sec
 
 - Rama base (por defecto `main`).
 - Número de la HU, si no se puede deducir del nombre de la rama (p. ej. `HU21`).
-- `--crear`: además de redactar, crea el pull request con `gh` (solo si el usuario lo pide).
 
 ## Pasos
 
@@ -68,22 +67,11 @@ Lee `.github/pull_request_template.md` y respeta sus encabezados y su orden. Eli
 - **Pruebas automatizadas**: los comandos que ejecutan las pruebas que agrega o afecta el cambio.
 - **Fuera del alcance de esta verificación**: lo que no se probó y por qué, o «Nada».
 
-### 4. Verificar antes de entregar
+### 4. Verificar la plantilla llena
 
 - No queda ninguna sección vacía ni ningún comentario de la plantilla.
 - Cada criterio de aceptación tiene al menos una fila en la tabla.
 - Los pasos se pueden ejecutar tal cual, sin conocimiento previo.
 - Las reglas citadas coinciden con las decisiones D01–D27 (por ejemplo, franjas de 1 hora en punto, reservas de máximo 2 franjas, cancelación con más de 3 horas, zona horaria America/Bogota).
 
-### 5. Entregar
-
-- Por defecto, escribe la descripción en `.git/PR_BODY.md` (fuera del control de versiones) y muéstrala al usuario.
-- Propón un título con el formato `HU<nn>: <descripción en infinitivo>` (p. ej. `HU21: Reservar una o dos franjas con control de concurrencia`).
-- Solo si el usuario lo pide (o pasa `--crear`), crea el pull request como borrador:
-
-```bash
-git push -u origin HEAD
-gh pr create --draft --base <base> --title "<título>" --body-file .git/PR_BODY.md
-```
-
-Nunca hagas push a `main` ni fuerces el push.
+El resultado es la plantilla llena, en Markdown, lista para pegar en la descripción del pull request.
