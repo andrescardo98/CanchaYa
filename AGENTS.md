@@ -25,7 +25,7 @@ CanchaYa/
 |---|---|
 | `README.md` | Visión, alcance, roles, stack y cronograma del proyecto. |
 | `AGENTS.md` | Reglas y convenciones para agentes. Se actualiza cada vez que cambia la estructura del repositorio. |
-| `CLAUDE.md` | Solo importa `AGENTS.md`; no se le agrega contenido propio. |
+| `CLAUDE.md` | Importa `AGENTS.md` y define la convención de mensajes de commit (Conventional Commits). |
 | `.claude/` | Configuración de Claude Code del repositorio: skills, y más adelante agentes y comandos. |
 | `.github/pull_request_template.md` | Plantilla de los pull request: contexto, tipo de cambio e instrucciones de prueba. |
 | `architecture/projects/` | Aquí van los proyectos de código (backend, frontend, infraestructura). Todavía no se ha creado ninguno. |
