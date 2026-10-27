@@ -110,9 +110,10 @@ Los artefactos de análisis y diseño se mantienen fuera de este repositorio, en
 
 ## Contribuir
 
-1. Crea una rama por historia de usuario: `<tipo>/HU<nn>-<descripcion-corta>`.
-2. Abre el pull request con la plantilla de `.github/`. El skill `pull-request` la llena a partir de los cambios.
-3. Las instrucciones de prueba deben permitir verificar cada criterio de aceptación de la HU.
+1. Crea una rama por historia de usuario: `<tipo>/HU<nn>-<descripcion-corta>`, donde `<tipo>` es un tipo de Conventional Commits (por ejemplo `feat/HU21-reservar-franja`).
+2. Escribe los mensajes de commit con [Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/), por ejemplo `feat(reservas): validar el límite de 2 horas por día`. Las reglas completas están en [AGENTS.md](AGENTS.md#mensajes-de-commit).
+3. Abre el pull request con un título en el mismo formato y con la plantilla de `.github/`. El skill `pull-request` la llena a partir de los cambios.
+4. Las instrucciones de prueba deben permitir verificar cada criterio de aceptación de la HU.
 
 ## Equipo
 

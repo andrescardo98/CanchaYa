@@ -14,15 +14,17 @@ Indica la historia de usuario (HU) o la decisión (Dnn) relacionada y resume lo 
 
 ## Tipo de cambio
 
-<!-- Marca con una x todas las opciones que apliquen. -->
+<!-- Marca con una x todas las opciones que apliquen. Corresponden a los tipos de Conventional Commits usados en los commits de la rama. -->
 
-- [ ] Nueva funcionalidad (implementa una HU o parte de ella)
-- [ ] Corrección de error
-- [ ] Refactorización (sin cambio de comportamiento)
-- [ ] Pruebas (agrega o ajusta pruebas)
-- [ ] Documentación
-- [ ] Infraestructura / CI/CD / configuración
-- [ ] Cambio que rompe compatibilidad (API, base de datos o contrato)
+- [ ] `feat`: nueva funcionalidad (implementa una HU o parte de ella)
+- [ ] `fix`: corrección de error
+- [ ] `refactor`: refactorización (sin cambio de comportamiento)
+- [ ] `perf`: mejora de rendimiento
+- [ ] `test`: agrega o ajusta pruebas
+- [ ] `docs`: documentación
+- [ ] `style`: formato del código (sin cambio de lógica)
+- [ ] `build` / `ci` / `chore`: dependencias, CI/CD, configuración o mantenimiento
+- [ ] `!` / `BREAKING CHANGE`: cambio que rompe compatibilidad (API, base de datos o contrato)
 
 ## Instrucciones de prueba
 

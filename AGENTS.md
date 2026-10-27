@@ -57,9 +57,11 @@ Los mensajes de commit siguen [Conventional Commits](https://www.conventionalcom
 - **Descripción**: en español, en imperativo, en minúscula y sin punto final, de máximo 72 caracteres. Por ejemplo: `feat(reservas): validar el límite de 2 horas por día`.
 - **Cuerpo**: explica el qué y el porqué. Cita la HU o la decisión cuando aplique (`HU21`, `D10`).
 - **Cambios que rompen compatibilidad**: agrega `!` después del tipo o del alcance (`feat(api)!: ...`) y un pie `BREAKING CHANGE: <detalle>`.
+- **Referencia a la HU**: si el commit corresponde a una historia de usuario, agrega el pie `Refs: HU<nn>`.
 
 ## Pull requests
 
 - Todo pull request usa la plantilla `.github/pull_request_template.md`.
 - Para llenarla, usa el skill `pull-request` (`.claude/skills/pull-request/SKILL.md`). El skill lee el diff, identifica la HU y escribe instrucciones de prueba que permiten verificar cada criterio de aceptación.
-- Nombre de rama sugerido: `<tipo>/HU<nn>-<descripcion-corta>`, por ejemplo `feature/HU21-reservar-franja`.
+- Nombre de rama: `<tipo>/HU<nn>-<descripcion-corta>`, donde `<tipo>` es un tipo de Conventional Commits. Por ejemplo `feat/HU21-reservar-franja` o `fix/HU13-validar-horario`. Si no hay HU: `<tipo>/<descripcion-corta>`, por ejemplo `ci/pipeline-backend`.
+- El título del pull request también sigue Conventional Commits, por ejemplo `feat(reservas): reservar una o dos franjas consecutivas`, porque es el mensaje del commit que queda en `main` al hacer *squash merge*.

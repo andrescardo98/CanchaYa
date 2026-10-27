@@ -27,9 +27,11 @@ git diff <base>...HEAD
 
 Si hay cambios sin confirmar, avisa al usuario: el pull request solo incluye lo que está en commits.
 
+Revisa que los mensajes de commit sigan Conventional Commits (sección «Mensajes de commit» de `AGENTS.md`). Si alguno no lo cumple, avísale al usuario y no lo corrijas por tu cuenta.
+
 ### 2. Identificar la historia de usuario
 
-1. Busca el código `HU<nn>` en el nombre de la rama, luego en los mensajes de commit.
+1. Busca el código `HU<nn>` en el nombre de la rama (`<tipo>/HU<nn>-<descripcion>`), luego en el cuerpo o el pie de los commits (`Refs: HU<nn>`).
 2. Si no aparece, pregúntaselo al usuario. Si el cambio no corresponde a una HU (infraestructura, documentación), escribe `No aplica` y explica el motivo en el contexto.
 3. Obtén el título, el release y los **criterios de aceptación** de la HU. Fuentes, en este orden:
    - Lo que el usuario indique en la conversación.
@@ -52,12 +54,9 @@ Lee `.github/pull_request_template.md` y respeta sus encabezados y su orden. Eli
 - Si el cambio aplica una decisión (Dnn) o una regla de negocio (RN-nn), menciónala.
 
 **Tipo de cambio**
-- Marca con `[x]` cada opción que corresponda según el diff. Pistas:
-  - Archivos nuevos de funcionalidad → Nueva funcionalidad.
-  - Solo pruebas → Pruebas.
-  - Solo `.md` o documentación → Documentación.
-  - `Dockerfile`, `docker-compose`, `.github/workflows`, configuración → Infraestructura.
-  - Cambios en contratos de API, migraciones que alteran columnas o datos existentes → Cambio que rompe compatibilidad (explícalo en el contexto).
+- Marca con `[x]` cada opción cuyo tipo aparezca en los commits de la rama. Cada opción de la plantilla corresponde a un tipo de Conventional Commits (`feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `style`, `build`/`ci`/`chore`).
+- Marca «Cambio que rompe compatibilidad» si algún commit lleva `!` o el pie `BREAKING CHANGE:`, y explícalo en el contexto.
+- Contrasta los tipos con el diff: si un commit `docs` cambia código, o hay cambios en contratos de API o migraciones sin `!`, avísale al usuario.
 
 **Instrucciones de prueba** — es la sección más importante: otro agente la va a seguir para verificar el pull request.
 - **Preparación**: comandos exactos para levantar lo necesario (base de datos, backend, frontend), datos de prueba y variables de entorno. Usa los comandos reales del proyecto (revisa `pom.xml`, `package.json`, `docker-compose.yml`); no supongas.
