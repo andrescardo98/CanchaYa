@@ -1,0 +1,34 @@
+# Servicios para desarrollar en local: la base de datos y un buzón de correo falso.
+# Uso:  docker compose up -d      (levanta)
+#       docker compose down       (apaga; los datos se conservan)
+#       docker compose down -v    (apaga y borra los datos)
+# El backend se ejecuta aparte con ./mvnw spring-boot:run (ver architecture/projects/backend/AGENTS.md).
+
+services:
+  # PostgreSQL 16 con PostGIS: la misma versión que se usa en las pruebas, parecida a Supabase (D31).
+  base-datos:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: canchaya
+      POSTGRES_USER: canchaya
+      POSTGRES_PASSWORD: canchaya
+      TZ: America/Bogota
+    ports:
+      - "5434:5432"   # 5434 en el computador, para no chocar con otros PostgreSQL locales
+    volumes:
+      - datos-canchaya:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U canchaya -d canchaya"]
+      interval: 5s
+      retries: 10
+
+  # Mailpit recibe los correos que envía el backend sin mandarlos a nadie.
+  # Se ven en http://localhost:8025. En Render se usa Brevo (D31).
+  correo:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # página para ver los correos
+
+volumes:
+  datos-canchaya:
