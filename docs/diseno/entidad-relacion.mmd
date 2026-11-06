@@ -1,0 +1,120 @@
+erDiagram
+  departamento {
+    UUID id PK
+    CHAR(2) codigo UK
+    VARCHAR(50) nombre UK
+  }
+  ciudad {
+    UUID id PK
+    CHAR(5) codigo UK
+    UUID departamento_id FK,UK
+    VARCHAR(100) nombre UK
+  }
+  usuario {
+    UUID id PK
+    VARCHAR(100) nombre
+    VARCHAR(150) correo_electronico UK
+    CHAR(60) contrasena_hash
+    VARCHAR(10) tipo_documento UK
+    VARCHAR(20) numero_documento UK
+    VARCHAR(15) numero_celular
+    VARCHAR(25) rol
+    TIMESTAMPTZ fecha_registro
+  }
+  tipo_cancha {
+    UUID id PK
+    VARCHAR(5) codigo UK
+    VARCHAR(50) nombre
+    SMALLINT capacidad_jugadores
+  }
+  escenario {
+    UUID id PK
+    VARCHAR(100) nombre
+    VARCHAR(500) descripcion "opcional"
+    VARCHAR(200) direccion
+    UUID ciudad_id FK
+    NUMERIC latitud "8,6"
+    NUMERIC longitud "9,6"
+    GEOGRAPHY ubicacion "calculada"
+    VARCHAR(15) telefono_contacto
+    VARCHAR(150) correo_contacto "opcional"
+    UUID administrador_id FK
+    VARCHAR(10) estado
+  }
+  foto_escenario {
+    UUID id PK
+    UUID escenario_id FK,UK
+    VARCHAR(500) url
+    SMALLINT orden UK
+  }
+  cancha {
+    UUID id PK
+    UUID escenario_id FK,UK
+    UUID tipo_cancha_id FK
+    VARCHAR(50) nombre UK
+    NUMERIC precio_hora "10,2"
+    VARCHAR(10) estado
+  }
+  horario_recurrente {
+    UUID id PK
+    UUID escenario_id FK "no se cruza"
+    VARCHAR(9) dia_semana "no se cruza"
+    TIME hora_inicio
+    TIME hora_fin
+    INT4RANGE rango_horas "calculada, no se cruza"
+  }
+  bloqueo {
+    UUID id PK
+    UUID cancha_id FK "no se cruza"
+    DATE fecha
+    TIME hora_inicio
+    TIME hora_fin
+    TSRANGE rango "calculada, no se cruza"
+    VARCHAR(20) tipo_bloqueo
+    VARCHAR(200) motivo "opcional"
+    UUID creado_por_id FK
+  }
+  encargado_escenario {
+    UUID id PK
+    UUID escenario_id FK,UK
+    UUID usuario_id FK,UK
+    TIMESTAMPTZ fecha_asignacion
+  }
+  reserva {
+    UUID id PK
+    UUID cancha_id FK "no se cruza"
+    UUID jugador_id FK
+    DATE fecha
+    TIME hora_inicio
+    TIME hora_fin
+    TSRANGE rango "calculada, no se cruza"
+    NUMERIC precio "10,2"
+    VARCHAR(10) estado
+    VARCHAR(12) confirmacion_asistencia
+    TIMESTAMPTZ fecha_solicitud_confirmacion "opcional"
+    VARCHAR(25) origen_cancelacion "opcional"
+    VARCHAR(250) motivo_cancelacion "opcional"
+    TIMESTAMPTZ fecha_creacion
+    TIMESTAMPTZ fecha_cancelacion "opcional"
+  }
+  resena {
+    UUID id PK
+    UUID reserva_id FK,UK
+    SMALLINT calificacion
+    VARCHAR(500) comentario "opcional"
+    TIMESTAMPTZ fecha_creacion
+  }
+  departamento ||--o{ ciudad : "agrupa"
+  ciudad ||--o{ escenario : "ubica"
+  usuario ||--o{ escenario : "es propietario de"
+  escenario ||--o{ foto_escenario : "muestra"
+  escenario ||--o{ cancha : "tiene"
+  tipo_cancha ||--o{ cancha : "clasifica"
+  escenario ||--o{ horario_recurrente : "atiende en"
+  escenario ||--o{ encargado_escenario : "asigna"
+  usuario ||--o{ encargado_escenario : "es encargado en"
+  cancha ||--o{ bloqueo : "se bloquea en"
+  usuario ||--o{ bloqueo : "crea"
+  cancha ||--o{ reserva : "se reserva en"
+  usuario ||--o{ reserva : "hace"
+  reserva ||--o| resena : "recibe"

@@ -71,6 +71,6 @@ Lee `.github/pull_request_template.md` y respeta sus encabezados y su orden. Eli
 - No queda ninguna sección vacía ni ningún comentario de la plantilla.
 - Cada criterio de aceptación tiene al menos una fila en la tabla.
 - Los pasos se pueden ejecutar tal cual, sin conocimiento previo.
-- Las reglas citadas coinciden con las decisiones D01–D27 (por ejemplo, franjas de 1 hora en punto, reservas de máximo 2 franjas, cancelación con más de 3 horas, zona horaria America/Bogota).
+- Las reglas citadas coinciden con las decisiones D01–D36 de `docs/decisiones.md` (por ejemplo, franjas de 1 hora en punto, reservas de máximo 2 franjas, cancelación con más de 3 horas, zona horaria America/Bogota).
 
 El resultado es la plantilla llena, en Markdown, lista para pegar en la descripción del pull request.

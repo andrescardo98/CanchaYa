@@ -1,0 +1,17 @@
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# Python (scripts/)
+__pycache__/
+*.pyc
+
+# Editores y sistema operativo
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+desktop.ini

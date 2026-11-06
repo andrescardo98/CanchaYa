@@ -48,26 +48,27 @@ El backlog tiene 38 historias de usuario (113 puntos) en tres releases.
 - Si un correo falla, la operación no se revierte: se registra el error y no se reintenta.
 - Todas las fechas y horas se calculan con la hora del servidor en `America/Bogota` (UTC-5).
 
-Las reglas completas están en las decisiones D01–D27 (`decisiones.md`), que son la fuente de verdad del proyecto.
+Las reglas completas están en las decisiones D01–D36 ([docs/decisiones.md](docs/decisiones.md)), que son la fuente de verdad del proyecto.
 
-## Stack tecnológico (propuesto)
+## Stack tecnológico
 
-La justificación final se documenta en la fase de diseño arquitectónico.
+Definido en el diseño arquitectónico: alternativa ALT-01 (D30) y plataforma tecnológica (D31). El detalle está en [docs/arquitectura/](docs/arquitectura/).
 
 | Capa | Tecnología |
 |---|---|
-| Backend | Java 21 + Spring Boot |
-| Frontend | Angular, con diseño responsivo |
-| Base de datos | PostgreSQL + PostGIS |
-| Arquitectura | Hexagonal + DDD |
-| Seguridad | JWT con el rol en el token; contraseñas con bcrypt; permisos validados en el servidor |
+| Backend | Java 21 + Spring Boot, un solo backend organizado por módulos (monolito modular) |
+| Frontend | Angular, con diseño responsivo; mapas con Leaflet y OpenStreetMap |
+| Base de datos | PostgreSQL + PostGIS en Supabase (plan gratuito); migraciones con Flyway |
+| Fotos | Supabase Storage |
+| Arquitectura | Hexagonal + DDD; límites entre módulos revisados con ArchUnit |
+| Seguridad | Spring Security con JWT (rol en el token); contraseñas con bcrypt; sin puerta de enlace (D32) |
 | Identificadores | UUID generados en el servidor |
-| Correo | Proveedor SMTP |
-| Despliegue | Docker en un hosting de bajo costo (Render o Railway) |
+| Correo | SMTP de Brevo por el puerto 2525 |
+| Despliegue | Docker en Render (Web Service para el backend, Static Site para el frontend); UptimeRobot revisa la verificación de estado cada 5 minutos |
 
-**Contextos delimitados:** Identidad y acceso, Escenarios y canchas, Reservas, Reputación y Ubicación.
+**Módulos (contextos delimitados):** Identidad y acceso, Ubicación, Escenarios y canchas, Reservas y Reputación.
 
-**Decisiones técnicas abiertas:** control de concurrencia optimista o pesimista (se decide con un spike), actualización de la disponibilidad en tiempo real, vigencia del token JWT, almacenamiento de fotos y frecuencia de la tarea programada.
+**Pendientes técnicos:** spike de control de concurrencia (RT-03, antes de HU21), frecuencia de la tarea programada (PAR-RES-11) y prueba del puerto 2525 de Brevo en el Sprint 1.
 
 ## Cronograma
 
@@ -92,9 +93,11 @@ CanchaYa/
 ├── README.md
 ├── AGENTS.md                 # Guía para agentes de IA
 ├── CLAUDE.md                 # Remite a AGENTS.md
-├── .claude/                  # Configuración de Claude Code (skills)
+├── .claude/                  # Configuración de Claude Code (permisos y skills)
 ├── .github/
 │   └── pull_request_template.md
+├── docs/                     # Documentación del trabajo de grado en texto
+├── scripts/                  # Utilidades (exportar la documentación)
 └── architecture/
     └── projects/             # Proyectos de la aplicación (backend, frontend, …)
 ```
@@ -103,10 +106,12 @@ El detalle de cada carpeta está en [AGENTS.md](AGENTS.md).
 
 ## Documentación del proyecto
 
-Los artefactos de análisis y diseño se mantienen fuera de este repositorio, en la carpeta de documentos del trabajo de grado:
+Los artefactos de análisis y diseño se mantienen en Excel, en la carpeta de documentos del trabajo de grado. La carpeta [docs/](docs/README.md) tiene una copia en texto para consultarlos mientras se programa:
 
-- **Artefactos estratégicos:** visión, mapa de impacto y Project Canvas, modelo de procesos (BPMN), modelo de dominio enriquecido, Event Storming, mapa de historias, tallaje del producto, plan de liberaciones y especificación funcional (catálogos de mensajes y parámetros, aspectos generales y prototipos).
-- **Artefactos técnicos:** drivers arquitectónicos, tácticas, alternativas de solución, arquetipo y plataforma tecnológica.
+- **Artefactos estratégicos:** decisiones, historias de usuario con sus criterios de aceptación, modelo de dominio enriquecido y especificación funcional (catálogos de mensajes y parámetros, aspectos generales).
+- **Artefactos técnicos:** drivers arquitectónicos, tácticas, arquetipo, plataforma tecnológica y diseño detallado (clases, componentes y modelo entidad relación).
+
+La copia se regenera con `python scripts/exportar_docs.py` cada vez que cambia un Excel.
 
 ## Contribuir
 
