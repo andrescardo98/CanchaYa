@@ -1,0 +1,274 @@
+classDiagram
+  direction TB
+  namespace Identidad_y_acceso {
+    class Rol {
+      <<enumeration>>
+      JUGADOR
+      ADMINISTRADOR_CANCHA
+      ADMINISTRADOR_SISTEMA
+    }
+    class TipoDocumento {
+      <<enumeration>>
+      CC
+      CE
+      TI
+      PASAPORTE
+      NIT
+      -Pattern patron
+      +validarNumero(numeroDocumento) boolean
+    }
+    class Usuario {
+      -UUID id
+      -String nombre
+      -String correoElectronico
+      -String contrasenaHash
+      -TipoDocumento tipoDocumento
+      -String numeroDocumento
+      -String numeroCelular
+      -Rol rol
+      -OffsetDateTime fechaRegistro
+      +registrar(nombre, correoElectronico, contrasenaHash, …) Usuario$
+      +validarContrasena(contrasena) void$
+      +actualizarPerfil(solicitante, nombre, correoElectronico, …) void
+      +tieneRol(rol) boolean
+    }
+    class Solicitante {
+      <<record>>
+      -UUID usuarioId
+      -Rol rol
+      +tieneRol(rol) boolean
+    }
+  }
+  namespace Ubicacion {
+    class Departamento {
+      -UUID id
+      -String codigo
+      -String nombre
+    }
+    class Ciudad {
+      -UUID id
+      -String codigo
+      -UUID departamentoId
+      -String nombre
+    }
+  }
+  namespace Escenarios_y_canchas {
+    class EstadoEscenario {
+      <<enumeration>>
+      ACTIVO
+      INACTIVO
+    }
+    class EstadoCancha {
+      <<enumeration>>
+      DISPONIBLE
+      INACTIVA
+    }
+    class DiaSemana {
+      <<enumeration>>
+      LUNES
+      MARTES
+      MIERCOLES
+      JUEVES
+      VIERNES
+      SABADO
+      DOMINGO
+      +desde(dia) DiaSemana$
+    }
+    class TipoBloqueo {
+      <<enumeration>>
+      MANTENIMIENTO
+      TORNEO
+      USO_PROPIO
+      RESERVA_PRESENCIAL
+    }
+    class TipoCancha {
+      -UUID id
+      -String codigo
+      -String nombre
+      -short capacidadJugadores
+      +registrar(codigo, nombre, capacidadJugadores, …) TipoCancha$
+      +modificar(codigo, nombre, capacidadJugadores, …) void
+      +validarEliminacion(solicitante, tieneCanchasAsociadas) void
+    }
+    class Escenario {
+      -UUID id
+      -String nombre
+      -String descripcion
+      -String direccion
+      -UUID ciudadId
+      -BigDecimal latitud
+      -BigDecimal longitud
+      -String telefonoContacto
+      -String correoContacto
+      -List~String~ fotos
+      -UUID administradorId
+      -EstadoEscenario estado
+      +registrar(nombre, descripcion, direccion, …) Escenario$
+      +modificar(nombre, descripcion, direccion, …) void
+      +cambiarEstado(nuevoEstado, solicitante, tieneReservasConfirmadasFuturas) void
+      +esPropietario(usuarioId) boolean
+      +estaActivo() boolean
+      +calcularCalificacionPromedio(calificaciones) Optional~BigDecimal~$
+    }
+    class Cancha {
+      -UUID id
+      -UUID escenarioId
+      -UUID tipoCanchaId
+      -String nombre
+      -BigDecimal precioHora
+      -EstadoCancha estado
+      +registrar(escenario, tipoCanchaId, nombre, …) Cancha$
+      +modificar(escenario, tipoCanchaId, nombre, …) void
+      +cambiarEstado(escenario, nuevoEstado, solicitante, …) void
+      +publicarEnBusqueda(escenario, escenarioTieneHorarios) boolean
+      +validarPropietario(escenario, solicitante) void
+      +estaDisponible() boolean
+    }
+    class HorarioRecurrente {
+      -UUID id
+      -UUID escenarioId
+      -DiaSemana diaSemana
+      -LocalTime horaInicio
+      -LocalTime horaFin
+      +definir(escenario, diaSemana, horaInicio, …) HorarioRecurrente$
+      +modificar(escenario, diaSemana, horaInicio, …) void
+      +validarEliminacion(escenario, solicitante, tieneReservasConfirmadasFuturas) void
+      +seCruzaCon(otro) boolean
+      +calcularFranjas(horariosEscenario, fecha, ahora, …) List~Franja~$
+    }
+    class Franja {
+      <<record>>
+      -LocalDate fecha
+      -LocalTime horaInicio
+      -LocalTime horaFin
+      +inicio() LocalDateTime
+      +seCruzaCon(fecha, horaInicio, horaFin) boolean
+    }
+    class Bloqueo {
+      -UUID id
+      -UUID canchaId
+      -LocalDate fecha
+      -LocalTime horaInicio
+      -LocalTime horaFin
+      -TipoBloqueo tipoBloqueo
+      -String motivo
+      -UUID creadoPorId
+      +crear(cancha, escenario, fecha, …) Bloqueo$
+      +validarSolapamiento(fecha, horaInicio, horaFin, …) void$
+      +validarEliminacion(escenario, solicitante, esEncargadoAsignado) void
+      +seCruzaCon(horaInicio, horaFin) boolean
+    }
+    class EncargadoEscenario {
+      -UUID id
+      -UUID escenarioId
+      -UUID usuarioId
+      -OffsetDateTime fechaAsignacion
+      +asignar(escenario, usuarioId, rolUsuario, …) EncargadoEscenario$
+      +validarRetiro(escenario, solicitante) void
+    }
+  }
+  namespace Reservas {
+    class EstadoReserva {
+      <<enumeration>>
+      CONFIRMADA
+      CANCELADA
+      NO_ASISTIO
+    }
+    class ConfirmacionAsistencia {
+      <<enumeration>>
+      PENDIENTE
+      CONFIRMADA
+      NO_REQUERIDA
+    }
+    class OrigenCancelacion {
+      <<enumeration>>
+      JUGADOR
+      ADMINISTRADOR
+      SISTEMA_SIN_CONFIRMACION
+    }
+    class ParametrosReserva {
+      <<record>>
+      -int ventanaReservaDias
+      -int franjasMaximasPorReserva
+      -int horasMaximasPorDia
+      -int reservasActivasMaximas
+      -int horasMinimasCancelacion
+      -int horasAnticipacionConfirmacion
+      -LocalTime horaMinimaConfirmacion
+      -int horasPlazoConfirmacion
+      -int horasPlazoInasistencia
+      -int longitudMaximaJustificacion
+    }
+    class Reserva {
+      -UUID id
+      -UUID canchaId
+      -UUID jugadorId
+      -LocalDate fecha
+      -LocalTime horaInicio
+      -LocalTime horaFin
+      -BigDecimal precio
+      -EstadoReserva estado
+      -ConfirmacionAsistencia confirmacionAsistencia
+      -OffsetDateTime fechaSolicitudConfirmacion
+      -OrigenCancelacion origenCancelacion
+      -String motivoCancelacion
+      -OffsetDateTime fechaCreacion
+      -OffsetDateTime fechaCancelacion
+      +verificarDisponibilidad(fecha, horaInicio, horaFin, …) boolean$
+      +confirmar(canchaId, jugador, fecha, …) Reserva$
+      +cancelar(solicitante, esPropietarioDelEscenario, motivoCancelacion, …) void
+      +marcarNoAsistio(solicitante, esPropietarioOEncargado, ahora, …) void
+      +confirmarAsistencia(solicitante, ahora, parametros) void
+      +registrarSolicitudConfirmacion(ahora, parametros) boolean
+      +cancelarPorFaltaDeConfirmacion(ahora, parametros) boolean
+      -calcularConfirmacionInicial(fecha, horaInicio, ahora, …) ConfirmacionAsistencia$
+      +inicio() LocalDateTime
+      +fin() LocalDateTime
+      +horas() int
+      +estaConfirmada() boolean
+      +fueJugada(ahora) boolean
+    }
+  }
+  namespace Reputacion {
+    class Resena {
+      -UUID id
+      -UUID reservaId
+      -short calificacion
+      -String comentario
+      -OffsetDateTime fechaCreacion
+      +publicar(reservaId, jugadorDeLaReserva, reservaJugada, …) Resena$
+    }
+  }
+  namespace Transversal {
+    class ReglaNegocioException {
+      -String codigoMensaje
+    }
+  }
+  Usuario --> TipoDocumento
+  Usuario --> Rol
+  Ciudad --> Departamento : departamentoId
+  Escenario --> Ciudad : ciudadId
+  Escenario --> Usuario : administradorId
+  Escenario --> EstadoEscenario
+  Cancha --> Escenario : escenarioId
+  Cancha --> TipoCancha : tipoCanchaId
+  Cancha --> EstadoCancha
+  HorarioRecurrente --> Escenario : escenarioId
+  HorarioRecurrente --> DiaSemana
+  Bloqueo --> Cancha : canchaId
+  Bloqueo --> TipoBloqueo
+  Bloqueo --> Usuario : creadoPorId
+  EncargadoEscenario --> Escenario : escenarioId
+  EncargadoEscenario --> Usuario : usuarioId
+  Reserva --> Cancha : canchaId
+  Reserva --> Usuario : jugadorId
+  Reserva --> EstadoReserva
+  Reserva --> ConfirmacionAsistencia
+  Reserva --> OrigenCancelacion
+  Resena --> Reserva : reservaId
+  Solicitante --> Rol
+  HorarioRecurrente ..> Franja : calcula
+  Reserva ..> Franja : usa
+  Reserva ..> ParametrosReserva : usa
+  Reserva ..> ReglaNegocioException : lanza
+  Escenario ..> ReglaNegocioException : lanza
