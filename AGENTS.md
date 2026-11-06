@@ -22,7 +22,7 @@ CanchaYa/
 │       └── backend.yml             # CI: compila y prueba el backend en cada pull request
 ├── docker-compose.yml              # Base de datos (PostGIS) y buzón de correo para desarrollo local
 ├── docs/                           # Documentación del trabajo de grado en texto (generada)
-│   ├── decisiones.md               # D01–D36: fuente de verdad
+│   ├── decisiones.md               # D01–D39: fuente de verdad
 │   ├── historias/                  # Las 38 HU con sus criterios de aceptación
 │   ├── dominio/                    # Modelo de dominio enriquecido, un archivo por objeto
 │   ├── especificacion/             # Catálogos de mensajes y parámetros, aspectos generales
@@ -52,7 +52,7 @@ CanchaYa/
 
 1. **Idioma**: la documentación, los mensajes al usuario, los pull request y los mensajes de commit van en español de Colombia. Los nombres del dominio en el código también van en español (`Reserva`, `horaInicio`), como en el modelo de dominio enriquecido.
 2. **Terminología**: no se usa el término "MVP" ni "Producto Mínimo Viable". Se habla de *el proyecto*, *la aplicación*, *el software* o *la plataforma*.
-3. **Fuente de verdad**: las reglas de negocio están en las decisiones D01–D36 ([docs/decisiones.md](docs/decisiones.md)). Si el código o un artefacto las contradice, mandan las decisiones. Si encuentras una contradicción, repórtala en lugar de resolverla por tu cuenta.
+3. **Fuente de verdad**: las reglas de negocio están en las decisiones D01–D39 ([docs/decisiones.md](docs/decisiones.md)). Si el código o un artefacto las contradice, mandan las decisiones. Si encuentras una contradicción, repórtala en lugar de resolverla por tu cuenta.
 4. **Modelo de dominio**: la referencia oficial es el modelo de dominio enriquecido ([docs/dominio/](docs/dominio/README.md)). Toda entidad lleva un `id` de tipo UUID que genera el servidor, y los atributos se escriben en camelCase. Las políticas de cada responsabilidad se implementan en el dominio, con su número en un comentario o en el nombre de la prueba.
 5. **Historias de usuario**: el backlog oficial es el del Tallaje del producto (38 HU, [docs/historias/](docs/historias/README.md)). Todo cambio funcional debe poder trazarse a una HU y a sus criterios de aceptación (`CAn`).
 6. **Mensajes**: los textos que ve el usuario salen del catálogo de mensajes por su código (`ERR/EXI/INF/CNF-<OBJ>-nn`, [docs/especificacion/mensajes.md](docs/especificacion/mensajes.md)). No se escriben textos sueltos en el código fuente.
@@ -76,8 +76,24 @@ Resumen de [docs/arquitectura/arquetipo.md](docs/arquitectura/arquetipo.md) (hoj
   | Reputación | `co.edu.uco.canchaya.reputacion` | Simplificada | Identidad, Reservas, Escenarios |
   | Transversal | `co.edu.uco.canchaya.transversal` | — | Piezas compartidas: `ReglaNegocioException`, envío de correo |
 
-- **Partes de cada módulo**, de adentro hacia afuera: dominio → aplicación (un caso de uso por comando del Event Storming) → puertos → adaptadores de entrada (REST, tarea programada) y de salida (base de datos, correo, fotos). Las clases del dominio van en `<paquete del módulo>.domain`. Los nombres de los demás paquetes se fijan en el diagrama de paquetes; mientras no exista, pregunta antes de crear uno nuevo.
-- **El dominio no depende de Spring, de la base de datos ni de ninguna librería externa.**
+- **Partes de cada módulo**, de adentro hacia afuera: dominio → aplicación (un caso de uso por comando del Event Storming) → puertos → adaptadores de entrada (REST, tarea programada) y de salida (base de datos, correo, fotos). Paquetes de cada módulo (D39):
+
+  ```
+  co.edu.uco.canchaya.<modulo>
+  ├── domain                    # Objetos del dominio enriquecido y sus políticas
+  ├── application
+  │   ├── port
+  │   │   ├── in                # Contratos de los casos de uso: los invocan los controladores y los otros módulos (ConsultaUsuarios…)
+  │   │   └── out               # Contratos que necesitan los casos de uso: persistencia, correo, fotos
+  │   └── usecase               # Implementaciones de los casos de uso
+  └── infrastructure
+      ├── rest                  # Controladores y datos de entrada y salida
+      ├── persistence           # Entidades JPA, repositorios y conversión al dominio
+      └── security              # Solo en identidad: JWT y Spring Security
+  ```
+
+  Si hace falta un paquete que no está aquí, pregunta antes de crearlo.
+- **El dominio no depende de Spring, de la base de datos ni de ninguna librería externa**, tampoco en los módulos de hexagonal simplificada: la clase que se guarda (con JPA) va aparte en `infrastructure.persistence` (D39).
 - **Entre módulos solo se usan los puertos de entrada** que cada uno ofrece (`ConsultaUsuarios`, `ConsultaUbicacion`, `ConsultaCanchas`, `ConsultaEscenarios`, `ConsultaReservas`). Nunca el dominio, los adaptadores ni las tablas de otro módulo. `ConsultaReservasFuturas` la define Escenarios y la implementa Reservas (D08). Estas reglas se revisan con pruebas de ArchUnit.
 - **Concurrencia de reservas** (D29, D36): restricción de exclusión en la base de datos, turno por cancha con `ConsultaCanchas.tomarTurno(canchaId)` dentro de la transacción y actualización condicional para confirmar asistencia y cancelar automáticamente.
 - **Correos** (D15): se envían después de guardar. Si fallan, la operación no se revierte: se registra el error y no se reintenta.
