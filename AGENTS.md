@@ -17,7 +17,10 @@ CanchaYa/
 │       └── pull-request/
 │           └── SKILL.md            # Skill que llena la plantilla de pull request
 ├── .github/
-│   └── pull_request_template.md    # Plantilla de pull request
+│   ├── pull_request_template.md    # Plantilla de pull request
+│   └── workflows/
+│       └── backend.yml             # CI: compila y prueba el backend en cada pull request
+├── docker-compose.yml              # Base de datos (PostGIS) y buzón de correo para desarrollo local
 ├── docs/                           # Documentación del trabajo de grado en texto (generada)
 │   ├── decisiones.md               # D01–D36: fuente de verdad
 │   ├── historias/                  # Las 38 HU con sus criterios de aceptación
@@ -28,7 +31,8 @@ CanchaYa/
 ├── scripts/
 │   └── exportar_docs.py            # Regenera docs/ a partir de los Excel
 └── architecture/
-    └── projects/                   # Proyectos de la aplicación (vacío por ahora)
+    └── projects/
+        └── backend/                # Java 21 + Spring Boot (Maven). Tiene su propio AGENTS.md
 ```
 
 | Ruta | Para qué sirve |
@@ -38,9 +42,11 @@ CanchaYa/
 | `CLAUDE.md` | Solo importa `AGENTS.md` con `@AGENTS.md`; no se le agrega contenido propio. |
 | `.claude/` | Configuración de Claude Code del repositorio: permisos y skills, y más adelante agentes. |
 | `.github/pull_request_template.md` | Plantilla de los pull request: contexto, tipo de cambio e instrucciones de prueba. |
+| `.github/workflows/` | Integración continua (GitHub Actions). Un pull request con la CI en rojo no se une. |
+| `docker-compose.yml` | Servicios para desarrollar en local: PostgreSQL con PostGIS (puerto 5434) y Mailpit (correos en <http://localhost:8025>). |
 | `docs/` | Copia en Markdown de los artefactos del trabajo de grado. **No se edita a mano**: se regenera con `scripts/exportar_docs.py`. La excepción es `docs/README.md`. |
 | `scripts/` | Utilidades del repositorio que no son parte de la aplicación. |
-| `architecture/projects/` | Aquí van los proyectos de código (backend, frontend, infraestructura). Todavía no se ha creado ninguno. |
+| `architecture/projects/` | Proyectos de código. `backend/` ya existe; sus comandos y reglas están en [su AGENTS.md](architecture/projects/backend/AGENTS.md). El frontend se agrega después. |
 
 ## Reglas para agentes
 
