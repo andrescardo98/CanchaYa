@@ -1,21 +1,28 @@
 package co.edu.uco.canchaya;
 
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.TimeZone;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class CanchayaBackendApplication {
 
-	/** Zona horaria de la plataforma (D27, PAR-GEN-01). */
+	/** D27 */
 	public static final String ZONA_HORARIA = "America/Bogota";
 
 	public static void main(String[] args) {
-		// Fija la zona antes de arrancar, para que en local y en Render los plazos
-		// (franjas, cancelación, confirmación) se calculen con la hora de Colombia.
 		TimeZone.setDefault(TimeZone.getTimeZone(ZONA_HORARIA));
 		SpringApplication.run(CanchayaBackendApplication.class, args);
+	}
+
+	/** Se inyecta en lugar de llamar a now() para que las pruebas puedan fijar la hora. */
+	@Bean
+	Clock reloj() {
+		return Clock.system(ZoneId.of(ZONA_HORARIA));
 	}
 
 }
