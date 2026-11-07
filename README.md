@@ -48,7 +48,7 @@ El backlog tiene 38 historias de usuario (113 puntos) en tres releases.
 - Si un correo falla, la operación no se revierte: se registra el error y no se reintenta.
 - Todas las fechas y horas se calculan con la hora del servidor en `America/Bogota` (UTC-5).
 
-Las reglas completas están en las decisiones D01–D36 ([docs/decisiones.md](docs/decisiones.md)), que son la fuente de verdad del proyecto.
+Las reglas completas están en las decisiones D01–D39 ([docs/decisiones.md](docs/decisiones.md)), que son la fuente de verdad del proyecto.
 
 ## Stack tecnológico
 
