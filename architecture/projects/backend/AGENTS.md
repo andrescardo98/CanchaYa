@@ -32,6 +32,26 @@ En local, la base escucha en el puerto **5434** (no en el 5432) para no chocar c
 
 Los valores reales de Render y Supabase nunca se escriben en el código ni en el repositorio: van como variables secretas de Render (RT-10, D35).
 
+## Paquetes de cada módulo
+
+Se toman del proyecto de referencia del curso ([ucobet-generales-ms](https://github.com/andrescardo98/ucobet-generales-ms)), dentro del paquete de cada módulo (`co.edu.uco.canchaya.<modulo>`). Ejemplo con Identidad y acceso:
+
+```
+identidad/
+├── domain/                                  # Usuario, Rol, TipoDocumento: reglas, sin Spring ni JPA
+├── application/
+│   ├── primaryports/                        # Lo que el módulo ofrece: RegistrarUsuario
+│   ├── secondaryports/                      # Lo que el módulo necesita: RepositorioUsuarios, CifradorContrasena
+│   └── usecase/                             # RegistrarUsuarioCasoUso
+└── infrastructure/
+    ├── primaryadapters/controller/          # Servicios REST
+    └── secondaryadapters/
+        ├── data/                            # Entidad JPA, interfaz Spring Data y adaptador del repositorio
+        └── security/                        # bcrypt
+```
+
+Una diferencia con la referencia: allá la entidad JPA y el `JpaRepository` están en `application/secondaryports`. Aquí van en `infrastructure/secondaryadapters/data`, porque el puerto solo dice *qué* se necesita y no *cómo* se hace (arquetipo, hoja «Estructura del backend»).
+
 ## Reglas
 
 1. **Migraciones**: cada cambio de la base es un archivo nuevo `V<n>__<descripcion>.sql`. Nunca se edita una migración que ya se aplicó en algún ambiente; se crea otra.

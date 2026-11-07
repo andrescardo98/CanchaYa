@@ -55,6 +55,11 @@
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
+		<!-- Solo bcrypt; el starter de seguridad protegería todas las rutas antes de tener login (HU2) -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.postgresql</groupId>
