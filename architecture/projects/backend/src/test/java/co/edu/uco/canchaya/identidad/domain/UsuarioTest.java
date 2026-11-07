@@ -16,10 +16,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 
-/**
- * Reglas del dominio de HU1 (registrarse), sin Spring ni base de datos.
- * Cada prueba cita el criterio de aceptación (CAn) y la política de Usuario que revisa.
- */
 class UsuarioTest {
 
 	private static final String HASH = "$2a$10$abcdefghijklmnopqrstuuabcdefghijklmnopqrstuvwxyz01234";
@@ -50,13 +46,12 @@ class UsuarioTest {
 			assertThat(usuario.getId()).isNotNull();
 			assertThat(usuario.getRol()).isEqualTo(rol);
 			assertThat(usuario.getFechaRegistro()).isEqualTo(AHORA);
-			// Política 5: solo se guarda el hash que llega del cifrador.
+			// Política 5
 			assertThat(usuario.getContrasenaHash()).isEqualTo(HASH);
 		}
 
 		@Test
 		void guardaElCorreoEnMinusculaYSinEspacios() {
-			// Conversación de HU1: la unicidad del correo no distingue mayúsculas (política 1).
 			Usuario usuario = registrar(TipoDocumento.CC, "1036123456", Rol.JUGADOR, false);
 			assertThat(usuario.getCorreoElectronico()).isEqualTo("ana.perez@correo.com");
 			assertThat(usuario.getNombre()).isEqualTo("Ana Pérez");
@@ -64,7 +59,7 @@ class UsuarioTest {
 
 		@Test
 		void cadaRegistroRecibeUnIdentificadorDistinto() {
-			// Política 4: si el id ya existe, el caso de uso pide otro con conNuevoId().
+			// Política 4
 			Usuario usuario = registrar(TipoDocumento.CC, "1036123456", Rol.JUGADOR, false);
 			Usuario otro = usuario.conNuevoId();
 			assertThat(otro.getId()).isNotEqualTo(usuario.getId());
@@ -125,7 +120,6 @@ class UsuarioTest {
 				"PASAPORTE, AB123456", "PASAPORTE, A1B2C3D4E5F6",
 				"NIT, 900123456-7" })
 		void aceptaLosNumerosConElFormatoDelTipo(TipoDocumento tipo, String numero) {
-			// La TI exige rol JUGADOR y autorización; se envían para probar solo el formato.
 			assertThatCode(() -> registrar(tipo, numero, Rol.JUGADOR, true)).doesNotThrowAnyException();
 		}
 
@@ -142,7 +136,6 @@ class UsuarioTest {
 					.satisfies(e -> {
 						ReglaNegocioException error = (ReglaNegocioException) e;
 						assertThat(error.getCodigoMensaje()).isEqualTo("ERR-USU-13");
-						// Parámetros del mensaje: {tipoDocumento} y {formatoEsperado}.
 						assertThat(error.getParametros()).containsExactly(tipo.name(), tipo.getFormatoEsperado());
 					});
 		}
