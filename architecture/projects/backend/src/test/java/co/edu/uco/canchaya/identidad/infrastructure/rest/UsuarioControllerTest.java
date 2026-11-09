@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.identidad.infrastructure.primaryadapters.controller;
+package co.edu.uco.canchaya.identidad.infrastructure.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -29,14 +29,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import co.edu.uco.canchaya.identidad.application.primaryports.ConsultarCorreoDisponible;
-import co.edu.uco.canchaya.identidad.application.primaryports.RegistrarUsuario;
-import co.edu.uco.canchaya.identidad.application.primaryports.RegistrarUsuario.DatosRegistro;
+import co.edu.uco.canchaya.identidad.application.port.in.ConsultarCorreoDisponible;
+import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario;
+import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario.DatosRegistro;
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.TipoDocumento;
 import co.edu.uco.canchaya.identidad.domain.Usuario;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
-import co.edu.uco.canchaya.transversal.infrastructure.primaryadapters.controller.CatalogoMensajes;
+import co.edu.uco.canchaya.transversal.infrastructure.rest.CatalogoMensajes;
 
 @WebMvcTest(UsuarioController.class)
 @Import(CatalogoMensajes.class)

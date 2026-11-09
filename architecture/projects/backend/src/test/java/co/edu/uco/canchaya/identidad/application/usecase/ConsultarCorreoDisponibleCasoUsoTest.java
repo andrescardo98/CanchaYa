@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
 
-import co.edu.uco.canchaya.identidad.application.secondaryports.RepositorioUsuarios;
+import co.edu.uco.canchaya.identidad.application.port.out.RepositorioUsuarios;
 
 class ConsultarCorreoDisponibleCasoUsoTest {
 

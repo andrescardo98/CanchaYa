@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.transversal.infrastructure.primaryadapters.controller;
+package co.edu.uco.canchaya.transversal.infrastructure.rest;
 
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
-import co.edu.uco.canchaya.transversal.infrastructure.primaryadapters.controller.RespuestaError.Mensaje;
+import co.edu.uco.canchaya.transversal.infrastructure.rest.RespuestaError.Mensaje;
 import jakarta.validation.ConstraintViolation;
 
 @RestControllerAdvice

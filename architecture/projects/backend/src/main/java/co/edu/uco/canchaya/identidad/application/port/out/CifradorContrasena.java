@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.identidad.application.secondaryports;
+package co.edu.uco.canchaya.identidad.application.port.out;
 
 public interface CifradorContrasena {
 

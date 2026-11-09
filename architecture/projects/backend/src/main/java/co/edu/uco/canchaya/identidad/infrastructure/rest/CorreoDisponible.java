@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.identidad.infrastructure.primaryadapters.controller;
+package co.edu.uco.canchaya.identidad.infrastructure.rest;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

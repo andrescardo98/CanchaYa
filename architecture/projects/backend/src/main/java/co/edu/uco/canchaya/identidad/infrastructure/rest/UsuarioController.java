@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.identidad.infrastructure.primaryadapters.controller;
+package co.edu.uco.canchaya.identidad.infrastructure.rest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import co.edu.uco.canchaya.identidad.application.primaryports.ConsultarCorreoDisponible;
-import co.edu.uco.canchaya.identidad.application.primaryports.RegistrarUsuario;
+import co.edu.uco.canchaya.identidad.application.port.in.ConsultarCorreoDisponible;
+import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario;
 import co.edu.uco.canchaya.identidad.domain.Usuario;
-import co.edu.uco.canchaya.transversal.infrastructure.primaryadapters.controller.CatalogoMensajes;
+import co.edu.uco.canchaya.transversal.infrastructure.rest.CatalogoMensajes;
 import jakarta.validation.Valid;
 
 @RestController

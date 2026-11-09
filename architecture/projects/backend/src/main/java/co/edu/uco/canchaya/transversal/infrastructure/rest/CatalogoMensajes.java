@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.transversal.infrastructure.primaryadapters.controller;
+package co.edu.uco.canchaya.transversal.infrastructure.rest;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

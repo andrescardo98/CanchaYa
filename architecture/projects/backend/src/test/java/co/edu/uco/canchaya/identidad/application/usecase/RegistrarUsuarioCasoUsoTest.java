@@ -16,9 +16,9 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import co.edu.uco.canchaya.identidad.application.primaryports.RegistrarUsuario.DatosRegistro;
-import co.edu.uco.canchaya.identidad.application.secondaryports.CifradorContrasena;
-import co.edu.uco.canchaya.identidad.application.secondaryports.RepositorioUsuarios;
+import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario.DatosRegistro;
+import co.edu.uco.canchaya.identidad.application.port.out.CifradorContrasena;
+import co.edu.uco.canchaya.identidad.application.port.out.RepositorioUsuarios;
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.TipoDocumento;
 import co.edu.uco.canchaya.identidad.domain.Usuario;

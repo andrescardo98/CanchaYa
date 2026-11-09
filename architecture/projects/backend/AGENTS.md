@@ -37,23 +37,23 @@ Las variables `ADMIN_*` solo se leen la primera vez que se aplica la V2 en una b
 
 ## Paquetes de cada módulo
 
-Se toman del proyecto de referencia del curso ([ucobet-generales-ms](https://github.com/andrescardo98/ucobet-generales-ms)), dentro del paquete de cada módulo (`co.edu.uco.canchaya.<modulo>`). Ejemplo con Identidad y acceso:
+Los fija la decisión D39, dentro del paquete de cada módulo (`co.edu.uco.canchaya.<modulo>`). Ejemplo con Identidad y acceso:
 
 ```
 identidad/
-├── domain/                                  # Usuario, Rol, TipoDocumento: reglas, sin Spring ni JPA
+├── domain/                     # Usuario, Rol, TipoDocumento: reglas, sin Spring ni JPA
 ├── application/
-│   ├── primaryports/                        # Lo que el módulo ofrece: RegistrarUsuario
-│   ├── secondaryports/                      # Lo que el módulo necesita: RepositorioUsuarios, CifradorContrasena
-│   └── usecase/                             # RegistrarUsuarioCasoUso
+│   ├── port/
+│   │   ├── in/                 # Lo que el módulo ofrece: RegistrarUsuario, ConsultarCorreoDisponible
+│   │   └── out/                # Lo que el módulo necesita: RepositorioUsuarios, CifradorContrasena
+│   └── usecase/                # RegistrarUsuarioCasoUso
 └── infrastructure/
-    ├── primaryadapters/controller/          # Servicios REST
-    └── secondaryadapters/
-        ├── data/                            # Entidad JPA, interfaz Spring Data y adaptador del repositorio
-        └── security/                        # bcrypt
+    ├── rest/                   # Controladores y datos de entrada y salida
+    ├── persistence/            # Entidad JPA, interfaz Spring Data y adaptador del repositorio
+    └── security/               # Solo en identidad: bcrypt (y más adelante JWT)
 ```
 
-Una diferencia con la referencia: allá la entidad JPA y el `JpaRepository` están en `application/secondaryports`. Aquí van en `infrastructure/secondaryadapters/data`, porque el puerto solo dice *qué* se necesita y no *cómo* se hace (arquetipo, hoja «Estructura del backend»).
+La entidad JPA va en `infrastructure/persistence` y no en el dominio, porque el puerto solo dice *qué* se necesita y no *cómo* se hace (D39). Las piezas compartidas de `transversal` siguen la misma idea: `domain` para `ReglaNegocioException` e `infrastructure/rest` para el catálogo de mensajes y el manejo de errores.
 
 ## Reglas
 

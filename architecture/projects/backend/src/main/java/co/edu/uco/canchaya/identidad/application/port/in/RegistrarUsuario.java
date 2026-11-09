@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.identidad.application.primaryports;
+package co.edu.uco.canchaya.identidad.application.port.in;
 
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.TipoDocumento;

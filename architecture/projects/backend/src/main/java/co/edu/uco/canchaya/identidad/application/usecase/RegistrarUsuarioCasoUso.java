@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import co.edu.uco.canchaya.identidad.application.primaryports.RegistrarUsuario;
-import co.edu.uco.canchaya.identidad.application.secondaryports.CifradorContrasena;
-import co.edu.uco.canchaya.identidad.application.secondaryports.RepositorioUsuarios;
+import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario;
+import co.edu.uco.canchaya.identidad.application.port.out.CifradorContrasena;
+import co.edu.uco.canchaya.identidad.application.port.out.RepositorioUsuarios;
 import co.edu.uco.canchaya.identidad.domain.Usuario;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 

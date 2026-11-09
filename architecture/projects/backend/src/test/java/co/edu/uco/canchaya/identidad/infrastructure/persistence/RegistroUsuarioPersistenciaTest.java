@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.identidad.infrastructure.secondaryadapters.data;
+package co.edu.uco.canchaya.identidad.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -15,9 +15,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import co.edu.uco.canchaya.TestcontainersConfiguration;
-import co.edu.uco.canchaya.identidad.application.primaryports.RegistrarUsuario;
-import co.edu.uco.canchaya.identidad.application.primaryports.RegistrarUsuario.DatosRegistro;
-import co.edu.uco.canchaya.identidad.application.secondaryports.RepositorioUsuarios;
+import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario;
+import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario.DatosRegistro;
+import co.edu.uco.canchaya.identidad.application.port.out.RepositorioUsuarios;
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.TipoDocumento;
 import co.edu.uco.canchaya.identidad.domain.Usuario;

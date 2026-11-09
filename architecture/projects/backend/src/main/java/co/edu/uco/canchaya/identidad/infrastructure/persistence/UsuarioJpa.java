@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.identidad.infrastructure.secondaryadapters.data;
+package co.edu.uco.canchaya.identidad.infrastructure.persistence;
 
 import java.util.UUID;
 

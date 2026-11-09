@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.transversal.infrastructure.primaryadapters.controller;
+package co.edu.uco.canchaya.transversal.infrastructure.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

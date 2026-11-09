@@ -3,8 +3,8 @@ package co.edu.uco.canchaya.identidad.application.usecase;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import co.edu.uco.canchaya.identidad.application.primaryports.ConsultarCorreoDisponible;
-import co.edu.uco.canchaya.identidad.application.secondaryports.RepositorioUsuarios;
+import co.edu.uco.canchaya.identidad.application.port.in.ConsultarCorreoDisponible;
+import co.edu.uco.canchaya.identidad.application.port.out.RepositorioUsuarios;
 import co.edu.uco.canchaya.identidad.domain.Usuario;
 
 @Service

@@ -1,6 +1,6 @@
-package co.edu.uco.canchaya.identidad.infrastructure.primaryadapters.controller;
+package co.edu.uco.canchaya.identidad.infrastructure.rest;
 
-import co.edu.uco.canchaya.identidad.application.primaryports.RegistrarUsuario.DatosRegistro;
+import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario.DatosRegistro;
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.TipoDocumento;
 import jakarta.validation.constraints.NotBlank;

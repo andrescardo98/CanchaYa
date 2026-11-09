@@ -1,4 +1,4 @@
-package co.edu.uco.canchaya.identidad.infrastructure.secondaryadapters.data;
+package co.edu.uco.canchaya.identidad.infrastructure.persistence;
 
 import java.util.Map;
 import java.util.UUID;
@@ -7,7 +7,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
-import co.edu.uco.canchaya.identidad.application.secondaryports.RepositorioUsuarios;
+import co.edu.uco.canchaya.identidad.application.port.out.RepositorioUsuarios;
 import co.edu.uco.canchaya.identidad.domain.TipoDocumento;
 import co.edu.uco.canchaya.identidad.domain.Usuario;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
