@@ -8,7 +8,7 @@ Esta carpeta trae al repositorio, en texto, los artefactos de análisis y diseñ
 
 | Necesito… | Archivo |
 |---|---|
-| Saber qué regla manda cuando dos documentos no coinciden | [decisiones.md](decisiones.md) (D01–D36, fuente de verdad) |
+| Saber qué regla manda cuando dos documentos no coinciden | [decisiones.md](decisiones.md) (D01–D39, fuente de verdad) |
 | Implementar una historia de usuario | [historias/HUnn.md](historias/README.md): tarjeta, conversación y criterios de aceptación |
 | Atributos, validaciones, combinaciones únicas y políticas de una entidad | [dominio/](dominio/README.md) (modelo de dominio enriquecido) |
 | El texto de un mensaje o de un correo | [especificacion/mensajes.md](especificacion/mensajes.md) (códigos `ERR/EXI/INF/CNF-<OBJ>-nn` y `COR-*`) |

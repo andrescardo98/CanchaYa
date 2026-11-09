@@ -29,8 +29,11 @@ En local, la base escucha en el puerto **5434** (no en el 5432) para no chocar c
 | `PORT` | Puerto HTTP (lo pone Render) | `8080` |
 | `DB_URL` | Conexión JDBC a PostgreSQL | `jdbc:postgresql://localhost:5434/canchaya` |
 | `DB_USUARIO` / `DB_CLAVE` | Credenciales de la base | `canchaya` / `canchaya` |
+| `ADMIN_CORREO` | Correo del administrador del sistema que crea la V2 (RN-16, D39) | `admin@canchaya.local` |
+| `ADMIN_CONTRASENA_HASH` | Hash bcrypt de su contraseña | Hash de `Admin12345` (solo local) |
+| `ADMIN_NUMERO_DOCUMENTO` / `ADMIN_NUMERO_CELULAR` | Su cédula y su celular | `1000000000` / `+573000000000` |
 
-Los valores reales de Render y Supabase nunca se escriben en el código ni en el repositorio: van como variables secretas de Render (RT-10, D35).
+Las variables `ADMIN_*` solo se leen la primera vez que se aplica la V2 en una base; cambiarlas después no modifica al administrador. Los valores reales de Render y Supabase nunca se escriben en el código ni en el repositorio: van como variables secretas de Render (RT-10, D35).
 
 ## Paquetes de cada módulo
 
