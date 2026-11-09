@@ -9,10 +9,9 @@ import org.testcontainers.utility.DockerImageName;
 /**
  * Levanta una base PostgreSQL real con PostGIS en Docker para las pruebas.
  * Es la misma imagen del docker-compose.yml local, así las pruebas revisan
- * las migraciones y las restricciones de la base de verdad (D29).
- */
+ * las migraciones y las restricciones de la base de verdad (D29). */
 @TestConfiguration(proxyBeanMethods = false)
-class TestcontainersConfiguration {
+public class TestcontainersConfiguration {
 
 	static final DockerImageName IMAGEN_POSTGIS =
 			DockerImageName.parse("postgis/postgis:16-3.4").asCompatibleSubstituteFor("postgres");

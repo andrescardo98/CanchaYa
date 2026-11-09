@@ -35,6 +35,26 @@ En local, la base escucha en el puerto **5434** (no en el 5432) para no chocar c
 
 Las variables `ADMIN_*` solo se leen la primera vez que se aplica la V2 en una base; cambiarlas después no modifica al administrador. Los valores reales de Render y Supabase nunca se escriben en el código ni en el repositorio: van como variables secretas de Render (RT-10, D35).
 
+## Paquetes de cada módulo
+
+Los fija la decisión D39, dentro del paquete de cada módulo (`co.edu.uco.canchaya.<modulo>`). Ejemplo con Identidad y acceso:
+
+```
+identidad/
+├── domain/                     # Usuario, Rol, TipoDocumento: reglas, sin Spring ni JPA
+├── application/
+│   ├── port/
+│   │   ├── in/                 # Lo que el módulo ofrece: RegistrarUsuario, ConsultarCorreoDisponible
+│   │   └── out/                # Lo que el módulo necesita: RepositorioUsuarios, CifradorContrasena
+│   └── usecase/                # RegistrarUsuarioCasoUso
+└── infrastructure/
+    ├── rest/                   # Controladores y datos de entrada y salida
+    ├── persistence/            # Entidad JPA, interfaz Spring Data y adaptador del repositorio
+    └── security/               # Solo en identidad: bcrypt (y más adelante JWT)
+```
+
+La entidad JPA va en `infrastructure/persistence` y no en el dominio, porque el puerto solo dice *qué* se necesita y no *cómo* se hace (D39). Las piezas compartidas de `transversal` siguen la misma idea: `domain` para `ReglaNegocioException` e `infrastructure/rest` para el catálogo de mensajes y el manejo de errores.
+
 ## Reglas
 
 1. **Migraciones**: cada cambio de la base es un archivo nuevo `V<n>__<descripcion>.sql`. Nunca se edita una migración que ya se aplicó en algún ambiente; se crea otra.
