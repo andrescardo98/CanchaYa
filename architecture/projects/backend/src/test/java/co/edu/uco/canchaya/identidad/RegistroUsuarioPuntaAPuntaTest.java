@@ -30,7 +30,8 @@ class RegistroUsuarioPuntaAPuntaTest {
 
 	@AfterEach
 	void limpiar() {
-		jdbc.update("delete from usuario");
+		// el admin del sistema lo carga la V2, ese no se borra
+		jdbc.update("delete from usuario where rol <> 'ADMINISTRADOR_SISTEMA'");
 	}
 
 	@Test
@@ -116,7 +117,7 @@ class RegistroUsuarioPuntaAPuntaTest {
 	}
 
 	private int contarUsuarios() {
-		return jdbc.queryForObject("select count(*) from usuario", Integer.class);
+		return jdbc.queryForObject("select count(*) from usuario where rol <> 'ADMINISTRADOR_SISTEMA'", Integer.class);
 	}
 
 	private static String solicitud(String correo, String documento) {

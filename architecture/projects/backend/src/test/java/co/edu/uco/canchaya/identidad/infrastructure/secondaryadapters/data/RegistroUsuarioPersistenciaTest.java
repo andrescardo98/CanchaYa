@@ -40,7 +40,8 @@ class RegistroUsuarioPersistenciaTest {
 
 	@AfterEach
 	void limpiar() {
-		jdbc.update("delete from usuario");
+		// el admin del sistema lo carga la V2, ese no se borra
+		jdbc.update("delete from usuario where rol <> 'ADMINISTRADOR_SISTEMA'");
 	}
 
 	@Test
@@ -86,7 +87,7 @@ class RegistroUsuarioPersistenciaTest {
 		assertThatThrownBy(() -> repositorio.guardar(segundo))
 				.isInstanceOf(ReglaNegocioException.class)
 				.hasMessage("ERR-USU-01");
-		assertThat(jdbc.queryForObject("select count(*) from usuario", Integer.class)).isEqualTo(1);
+		assertThat(jdbc.queryForObject("select count(*) from usuario where rol <> 'ADMINISTRADOR_SISTEMA'", Integer.class)).isEqualTo(1);
 	}
 
 	@Test
@@ -97,7 +98,7 @@ class RegistroUsuarioPersistenciaTest {
 		assertThatThrownBy(() -> repositorio.guardar(segundo))
 				.isInstanceOf(ReglaNegocioException.class)
 				.hasMessage("ERR-USU-02");
-		assertThat(jdbc.queryForObject("select count(*) from usuario", Integer.class)).isEqualTo(1);
+		assertThat(jdbc.queryForObject("select count(*) from usuario where rol <> 'ADMINISTRADOR_SISTEMA'", Integer.class)).isEqualTo(1);
 	}
 
 	private static DatosRegistro datos(String correo, String documento) {
