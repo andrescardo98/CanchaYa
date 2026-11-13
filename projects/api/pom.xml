@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<!-- Clave JWT solo para desarrollo local y pruebas. En Render va como variable secreta JWT_SECRETO (D35). -->
+		<jwt.secreto.local>clave-local-de-desarrollo-no-usar-en-render-0123456789</jwt.secreto.local>
 		<archunit.version>1.4.1</archunit.version>
 	</properties>
 	<dependencies>
@@ -55,10 +57,10 @@
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
-		<!-- Solo bcrypt; el starter de seguridad protegería todas las rutas antes de tener login (HU2) -->
+		<!-- Spring Security: revisa el token JWT en cada petición (RT-06, D32, HU2) -->
 		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-crypto</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
 		</dependency>
 
 		<dependency>
@@ -93,6 +95,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-testcontainers</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -120,6 +127,11 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<environmentVariables>
+						<JWT_SECRETO>${jwt.secreto.local}</JWT_SECRETO>
+					</environmentVariables>
+				</configuration>
 			</plugin>
 			<!-- Las pruebas corren con la zona horaria de la plataforma (D27) -->
 			<plugin>
@@ -127,6 +139,9 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<argLine>-Duser.timezone=America/Bogota</argLine>
+					<environmentVariables>
+						<JWT_SECRETO>${jwt.secreto.local}</JWT_SECRETO>
+					</environmentVariables>
 				</configuration>
 			</plugin>
 		</plugins>

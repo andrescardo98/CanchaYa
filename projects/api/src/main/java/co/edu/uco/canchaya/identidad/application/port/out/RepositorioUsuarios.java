@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.identidad.application.port.out;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import co.edu.uco.canchaya.identidad.domain.TipoDocumento;
@@ -13,6 +14,9 @@ public interface RepositorioUsuarios {
 	boolean existePorDocumento(TipoDocumento tipoDocumento, String numeroDocumento);
 
 	boolean existePorId(UUID id);
+
+	/** El correo debe llegar normalizado (en minúscula). */
+	Optional<Usuario> buscarPorCorreo(String correoElectronico);
 
 	/**
 	 * @throws co.edu.uco.canchaya.transversal.domain.ReglaNegocioException ERR-USU-01 o

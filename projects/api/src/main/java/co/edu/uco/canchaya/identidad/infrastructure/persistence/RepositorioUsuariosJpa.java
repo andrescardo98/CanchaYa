@@ -1,6 +1,7 @@
 package co.edu.uco.canchaya.identidad.infrastructure.persistence;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.hibernate.exception.ConstraintViolationException;
@@ -43,6 +44,11 @@ class RepositorioUsuariosJpa implements RepositorioUsuarios {
 	@Override
 	public boolean existePorId(UUID id) {
 		return jpa.existsById(id);
+	}
+
+	@Override
+	public Optional<Usuario> buscarPorCorreo(String correoElectronico) {
+		return jpa.findByCorreoElectronico(correoElectronico).map(UsuarioEntidad::aDominio);
 	}
 
 	@Override

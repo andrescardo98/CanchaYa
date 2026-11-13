@@ -35,11 +35,12 @@ import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario.DatosR
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.TipoDocumento;
 import co.edu.uco.canchaya.identidad.domain.Usuario;
+import co.edu.uco.canchaya.identidad.infrastructure.security.SeguridadParaPruebas;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 import co.edu.uco.canchaya.transversal.infrastructure.rest.CatalogoMensajes;
 
 @WebMvcTest(UsuarioController.class)
-@Import(CatalogoMensajes.class)
+@Import({ CatalogoMensajes.class, SeguridadParaPruebas.class })
 class UsuarioControllerTest {
 
 	private static final String VALIDO = """
