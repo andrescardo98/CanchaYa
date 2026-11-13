@@ -1,6 +1,6 @@
 # AGENTS.md · Backend
 
-Reglas propias del backend. Las generales (idioma, decisiones, mensajes, commits, arquitectura de módulos) están en el [AGENTS.md de la raíz](../../../AGENTS.md).
+Reglas propias del backend. Las generales (idioma, decisiones, mensajes, commits, arquitectura de módulos) están en el [AGENTS.md de la raíz](../../AGENTS.md).
 
 ## Tecnología
 
@@ -10,7 +10,7 @@ Reglas propias del backend. Las generales (idioma, decisiones, mensajes, commits
 
 ## Comandos
 
-Desde `architecture/projects/backend/`:
+Desde `projects/api/`:
 
 | Para… | Comando |
 |---|---|

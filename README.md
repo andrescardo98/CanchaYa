@@ -98,8 +98,8 @@ CanchaYa/
 │   └── pull_request_template.md
 ├── docs/                     # Documentación del trabajo de grado en texto
 ├── scripts/                  # Utilidades (exportar la documentación)
-└── architecture/
-    └── projects/             # Proyectos de la aplicación (backend, frontend, …)
+└── projects/                 # Proyectos de la aplicación, cada uno con su propia arquitectura
+    └── api/                  # Backend (Java 21 + Spring Boot)
 ```
 
 El detalle de cada carpeta está en [AGENTS.md](AGENTS.md).
