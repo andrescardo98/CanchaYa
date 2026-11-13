@@ -2,12 +2,13 @@
 
 Esta carpeta trae al repositorio, en texto, los artefactos de análisis y diseño del trabajo de grado. Así se pueden consultar mientras se programa, tanto tú como los agentes de IA, sin abrir los Excel.
 
-**Los Excel siguen siendo la fuente.** Todo lo que hay aquí, salvo este archivo, lo genera `scripts/exportar_docs.py`. No lo edites a mano: cambia el Excel y vuelve a ejecutar el script (ver [Cómo actualizar](#cómo-actualizar)).
+**Los Excel siguen siendo la fuente.** Todo lo que hay aquí, salvo este archivo y [proyecto.md](proyecto.md), lo genera `scripts/exportar_docs.py`. No lo edites a mano: cambia el Excel y vuelve a ejecutar el script (ver [Cómo actualizar](#cómo-actualizar)).
 
 ## Qué consultar y cuándo
 
 | Necesito… | Archivo |
 |---|---|
+| Entender el problema, el alcance, los actores y el cronograma | [proyecto.md](proyecto.md) (escrito a mano) |
 | Saber qué regla manda cuando dos documentos no coinciden | [decisiones.md](decisiones.md) (D01–D39, fuente de verdad) |
 | Implementar una historia de usuario | [historias/HUnn.md](historias/README.md): tarjeta, conversación y criterios de aceptación |
 | Atributos, validaciones, combinaciones únicas y políticas de una entidad | [dominio/](dominio/README.md) (modelo de dominio enriquecido) |

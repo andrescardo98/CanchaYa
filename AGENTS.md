@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guía para los agentes de IA (Claude Code u otros) que trabajan en el repositorio de **CanchaYa**. Para el contexto del producto, lee el [README.md](README.md). Para la documentación de análisis y diseño, lee [docs/README.md](docs/README.md): ahí dice qué archivo consultar en cada caso.
+Guía para los agentes de IA (Claude Code u otros) que trabajan en el repositorio de **CanchaYa**. Para el contexto del producto (problema, alcance, actores y cronograma), lee [docs/proyecto.md](docs/proyecto.md); para levantar el proyecto, el [README.md](README.md). Para la documentación de análisis y diseño, lee [docs/README.md](docs/README.md): ahí dice qué archivo consultar en cada caso.
 
 ## Estructura del repositorio
 
@@ -23,6 +23,7 @@ CanchaYa/
 ├── docker-compose.yml              # Base de datos (PostGIS) y buzón de correo para desarrollo local
 ├── docs/                           # Documentación del trabajo de grado en texto (generada)
 │   ├── decisiones.md               # D01–D39: fuente de verdad
+│   ├── proyecto.md                 # Problema, alcance, actores y cronograma (escrito a mano)
 │   ├── historias/                  # Las 38 HU con sus criterios de aceptación
 │   ├── dominio/                    # Modelo de dominio enriquecido, un archivo por objeto
 │   ├── especificacion/             # Catálogos de mensajes y parámetros, aspectos generales
@@ -36,14 +37,14 @@ CanchaYa/
 
 | Ruta | Para qué sirve |
 |---|---|
-| `README.md` | Visión, alcance, roles, stack y cronograma del proyecto. |
+| `README.md` | Información del repositorio: qué es, stack, cómo ejecutarlo en local, despliegue, estructura y cómo contribuir. No lleva alcance, actores ni cronograma: eso va en `docs/proyecto.md`. |
 | `AGENTS.md` | Reglas y convenciones para agentes. Se actualiza cada vez que cambia la estructura del repositorio. |
 | `CLAUDE.md` | Solo importa `AGENTS.md` con `@AGENTS.md`; no se le agrega contenido propio. |
 | `.claude/` | Configuración de Claude Code del repositorio: permisos y skills, y más adelante agentes. |
 | `.github/pull_request_template.md` | Plantilla de los pull request: contexto, tipo de cambio e instrucciones de prueba. |
 | `.github/workflows/` | Integración continua (GitHub Actions). Un pull request con la CI en rojo no se une. |
 | `docker-compose.yml` | Servicios para desarrollar en local: PostgreSQL con PostGIS (puerto 5434) y Mailpit (correos en <http://localhost:8025>). |
-| `docs/` | Copia en Markdown de los artefactos del trabajo de grado. **No se edita a mano**: se regenera con `scripts/exportar_docs.py`. La excepción es `docs/README.md`. |
+| `docs/` | Copia en Markdown de los artefactos del trabajo de grado. **No se edita a mano**: se regenera con `scripts/exportar_docs.py`. Las excepciones son `docs/README.md` y `docs/proyecto.md`, que se escriben a mano. |
 | `scripts/` | Utilidades del repositorio que no son parte de la aplicación. |
 | `projects/` | Proyectos de código, cada uno con su propia arquitectura. `api/` (el backend) ya existe; sus comandos y reglas están en [su AGENTS.md](projects/api/AGENTS.md). El frontend se agrega después. |
 
@@ -56,7 +57,7 @@ CanchaYa/
 5. **Historias de usuario**: el backlog oficial es el del Tallaje del producto (38 HU, [docs/historias/](docs/historias/README.md)). Todo cambio funcional debe poder trazarse a una HU y a sus criterios de aceptación (`CAn`).
 6. **Mensajes**: los textos que ve el usuario salen del catálogo de mensajes por su código (`ERR/EXI/INF/CNF-<OBJ>-nn`, [docs/especificacion/mensajes.md](docs/especificacion/mensajes.md)). No se escriben textos sueltos en el código fuente.
 7. **Parámetros**: los valores del catálogo de parámetros (`PAR-*`, [docs/especificacion/parametros.md](docs/especificacion/parametros.md)) se leen de la configuración, no se escriben fijos en el código. Si un parámetro está «Por definir», pregunta antes de inventar un valor.
-8. **Documentación generada**: no edites los archivos de `docs/` (salvo `docs/README.md`). Si encuentras un error en ellos, el error está en el Excel de origen: repórtalo.
+8. **Documentación generada**: no edites los archivos de `docs/` (salvo `docs/README.md` y `docs/proyecto.md`). Si encuentras un error en ellos, el error está en el Excel de origen: repórtalo.
 9. **Estructura**: si agregas, mueves o eliminas carpetas de primer o segundo nivel, actualiza la sección «Estructura del repositorio» de este archivo en el mismo cambio.
 
 ## Arquitectura del backend
