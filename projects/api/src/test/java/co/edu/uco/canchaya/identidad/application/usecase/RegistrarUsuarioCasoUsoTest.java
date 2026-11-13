@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario.DatosRegistro;
-import co.edu.uco.canchaya.identidad.application.port.out.CifradorContrasena;
 import co.edu.uco.canchaya.identidad.application.port.out.RepositorioUsuarios;
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.TipoDocumento;
@@ -35,8 +35,7 @@ class RegistrarUsuarioCasoUsoTest {
 	@BeforeEach
 	void preparar() {
 		repositorio = new RepositorioEnMemoria();
-		CifradorContrasena cifradorFalso = contrasena -> "hash-de-" + contrasena;
-		casoUso = new RegistrarUsuarioCasoUso(repositorio, cifradorFalso, Clock.fixed(INSTANTE, BOGOTA), 8);
+		casoUso = new RegistrarUsuarioCasoUso(repositorio, new CifradorFalso(), Clock.fixed(INSTANTE, BOGOTA), 8);
 	}
 
 	private static DatosRegistro datos(String correo, TipoDocumento tipo, String numero) {
@@ -122,6 +121,11 @@ class RegistrarUsuarioCasoUsoTest {
 		public boolean existePorId(UUID id) {
 			idsConsultados.add(id);
 			return idsQueChocan-- > 0;
+		}
+
+		@Override
+		public Optional<Usuario> buscarPorCorreo(String correoElectronico) {
+			return guardados.stream().filter(u -> u.getCorreoElectronico().equals(correoElectronico)).findFirst();
 		}
 
 		@Override

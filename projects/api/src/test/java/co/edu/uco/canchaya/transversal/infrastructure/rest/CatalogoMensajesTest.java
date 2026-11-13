@@ -20,6 +20,17 @@ class CatalogoMensajesTest {
 		assertThat(catalogo.texto(codigo)).isNotBlank();
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "ERR-GEN-05", "ERR-USU-06", "ERR-USU-07", "ERR-USU-16" })
+	void tieneLosCodigosNuevosQueCitaLaHu2(String codigo) {
+		assertThat(catalogo.texto(codigo)).isNotBlank();
+	}
+
+	@Test
+	void hu2Ca4ErrUsu06YErrUsu07TienenElMismoTextoParaNoRevelarSiElCorreoExiste() {
+		assertThat(catalogo.texto("ERR-USU-07")).isEqualTo(catalogo.texto("ERR-USU-06"));
+	}
+
 	@Test
 	void reemplazaLosParametrosEnOrdenYConservaLasTildes() {
 		assertThat(catalogo.texto("ERR-USU-13", List.of("CC", "de 6 a 10 dígitos")))

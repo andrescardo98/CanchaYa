@@ -32,6 +32,7 @@ En local, la base escucha en el puerto **5434** (no en el 5432) para no chocar c
 | `ADMIN_CORREO` | Correo del administrador del sistema que crea la V2 (RN-16, D39) | `admin@canchaya.local` |
 | `ADMIN_CONTRASENA_HASH` | Hash bcrypt de su contraseña | Hash de `Admin12345` (solo local) |
 | `ADMIN_NUMERO_DOCUMENTO` / `ADMIN_NUMERO_CELULAR` | Su cédula y su celular | `1000000000` / `+573000000000` |
+| `JWT_SECRETO` | Clave para firmar los tokens de acceso (HU2). Mínimo 32 caracteres | No tiene: `./mvnw spring-boot:run` y las pruebas la toman del `pom.xml`. Sin ella, la aplicación no arranca |
 
 Las variables `ADMIN_*` solo se leen la primera vez que se aplica la V2 en una base; cambiarlas después no modifica al administrador. Los valores reales de Render y Supabase nunca se escriben en el código ni en el repositorio: van como variables secretas de Render (RT-10, D35).
 
@@ -50,7 +51,7 @@ identidad/
 └── infrastructure/
     ├── rest/                   # Controladores y datos de entrada y salida
     ├── persistence/            # Entidad JPA, interfaz Spring Data y adaptador del repositorio
-    └── security/               # Solo en identidad: bcrypt (y más adelante JWT)
+    └── security/               # Solo en identidad: bcrypt, token JWT y límite de intentos (HU2)
 ```
 
 La entidad JPA va en `infrastructure/persistence` y no en el dominio, porque el puerto solo dice *qué* se necesita y no *cómo* se hace (D39). Las piezas compartidas de `transversal` siguen la misma idea: `domain` para `ReglaNegocioException` e `infrastructure/rest` para el catálogo de mensajes y el manejo de errores.

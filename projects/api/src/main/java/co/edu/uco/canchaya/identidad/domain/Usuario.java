@@ -72,6 +72,14 @@ public final class Usuario {
 				contrasenaHash, tipoDocumento, numeroDocumento, numeroCelular, rol, ahora);
 	}
 
+	/** Vuelve a armar un usuario ya guardado, sin repetir las validaciones del registro. */
+	public static Usuario reconstruir(UUID id, String nombre, String correoElectronico, String contrasenaHash,
+			TipoDocumento tipoDocumento, String numeroDocumento, String numeroCelular, Rol rol,
+			OffsetDateTime fechaRegistro) {
+		return new Usuario(id, nombre, correoElectronico, contrasenaHash, tipoDocumento, numeroDocumento,
+				numeroCelular, rol, fechaRegistro);
+	}
+
 	/**
 	 * Política 12. Se llama antes de cifrar, porque después ya no se puede revisar.
 	 *

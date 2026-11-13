@@ -75,6 +75,11 @@ class UsuarioEntidad implements Persistable<UUID> {
 		return entidad;
 	}
 
+	Usuario aDominio() {
+		return Usuario.reconstruir(id, nombre, correoElectronico, contrasenaHash, tipoDocumento, numeroDocumento,
+				numeroCelular, rol, fechaRegistro);
+	}
+
 	@Override
 	public UUID getId() {
 		return id;
