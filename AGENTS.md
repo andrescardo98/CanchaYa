@@ -30,9 +30,8 @@ CanchaYa/
 │   └── diseno/                     # Diagramas de clases, componentes y modelo entidad relación
 ├── scripts/
 │   └── exportar_docs.py            # Regenera docs/ a partir de los Excel
-└── architecture/
-    └── projects/
-        └── backend/                # Java 21 + Spring Boot (Maven). Tiene su propio AGENTS.md
+└── projects/                       # Un proyecto por carpeta, cada uno con su propia arquitectura
+    └── api/                        # Backend: Java 21 + Spring Boot (Maven). Tiene su propio AGENTS.md
 ```
 
 | Ruta | Para qué sirve |
@@ -46,7 +45,7 @@ CanchaYa/
 | `docker-compose.yml` | Servicios para desarrollar en local: PostgreSQL con PostGIS (puerto 5434) y Mailpit (correos en <http://localhost:8025>). |
 | `docs/` | Copia en Markdown de los artefactos del trabajo de grado. **No se edita a mano**: se regenera con `scripts/exportar_docs.py`. La excepción es `docs/README.md`. |
 | `scripts/` | Utilidades del repositorio que no son parte de la aplicación. |
-| `architecture/projects/` | Proyectos de código. `backend/` ya existe; sus comandos y reglas están en [su AGENTS.md](architecture/projects/backend/AGENTS.md). El frontend se agrega después. |
+| `projects/` | Proyectos de código, cada uno con su propia arquitectura. `api/` (el backend) ya existe; sus comandos y reglas están en [su AGENTS.md](projects/api/AGENTS.md). El frontend se agrega después. |
 
 ## Reglas para agentes
 

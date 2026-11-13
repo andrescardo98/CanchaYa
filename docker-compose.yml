@@ -2,7 +2,7 @@
 # Uso:  docker compose up -d      (levanta)
 #       docker compose down       (apaga; los datos se conservan)
 #       docker compose down -v    (apaga y borra los datos)
-# El backend se ejecuta aparte con ./mvnw spring-boot:run (ver architecture/projects/backend/AGENTS.md).
+# El backend se ejecuta aparte con ./mvnw spring-boot:run (ver projects/api/AGENTS.md).
 
 services:
   # PostgreSQL 16 con PostGIS: la misma versión que se usa en las pruebas, parecida a Supabase (D31).
