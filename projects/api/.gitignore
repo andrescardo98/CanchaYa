@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Fotos de escenarios guardadas en local (HU5)
+/fotos-locales/

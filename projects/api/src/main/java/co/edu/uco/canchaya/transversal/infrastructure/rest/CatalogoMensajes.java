@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import co.edu.uco.canchaya.transversal.domain.TextoCatalogo;
+
 @Component
 public class CatalogoMensajes {
 
@@ -44,7 +46,15 @@ public class CatalogoMensajes {
 		}
 		Iterator<?> valores = parametros.iterator();
 		return PARAMETRO.matcher(plantilla).replaceAll(parametro -> Matcher.quoteReplacement(
-				valores.hasNext() ? String.valueOf(valores.next()) : parametro.group()));
+				valores.hasNext() ? valor(valores.next()) : parametro.group()));
+	}
+
+	// Un parámetro TextoCatalogo es otro texto del catálogo, por ejemplo {reglaIncumplida} de ERR-ESC-13
+	private String valor(Object parametro) {
+		if (parametro instanceof TextoCatalogo anidado) {
+			return texto(anidado.clave(), anidado.parametros());
+		}
+		return String.valueOf(parametro);
 	}
 
 	public String nombreCampo(String atributo) {

@@ -33,6 +33,9 @@ En local, la base escucha en el puerto **5434** (no en el 5432) para no chocar c
 | `ADMIN_CONTRASENA_HASH` | Hash bcrypt de su contraseña | Hash de `Admin12345` (solo local) |
 | `ADMIN_NUMERO_DOCUMENTO` / `ADMIN_NUMERO_CELULAR` | Su cédula y su celular | `1000000000` / `+573000000000` |
 | `JWT_SECRETO` | Clave para firmar los tokens de acceso (HU2). Mínimo 32 caracteres | No tiene: `./mvnw spring-boot:run` y las pruebas la toman del `pom.xml`. Sin ella, la aplicación no arranca |
+| `FOTOS_ALMACENAMIENTO` | Dónde se guardan las fotos de los escenarios (HU5): `local` o `supabase`. En Render va `supabase` | `local` (carpeta `fotos-locales/`, servida en `/fotos-locales/`) |
+| `SUPABASE_URL` / `SUPABASE_CLAVE_SERVICIO` / `SUPABASE_BUCKET_FOTOS` | Proyecto de Supabase, clave de servicio y bucket público de las fotos (D31). Se exigen con `supabase` | Vacías |
+| `PAR_ESC_01` a `PAR_ESC_03` | Fotos máximas, peso máximo en MB y formatos admitidos | `5`, `2`, `JPG,PNG` |
 
 Las variables `ADMIN_*` solo se leen la primera vez que se aplica la V2 en una base; cambiarlas después no modifica al administrador. Los valores reales de Render y Supabase nunca se escriben en el código ni en el repositorio: van como variables secretas de Render (RT-10, D35).
 

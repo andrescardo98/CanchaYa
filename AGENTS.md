@@ -89,7 +89,8 @@ Resumen de [docs/arquitectura/arquetipo.md](docs/arquitectura/arquetipo.md) (hoj
   └── infrastructure
       ├── rest                  # Controladores y datos de entrada y salida
       ├── persistence           # Entidades JPA, repositorios y conversión al dominio
-      └── security              # Solo en identidad: JWT y Spring Security
+      ├── security              # Solo en identidad: JWT y Spring Security
+      └── fotos                 # Solo en escenarios: Supabase Storage o carpeta local (HU5)
   ```
 
   Si hace falta un paquete que no está aquí, pregunta antes de crearlo.
