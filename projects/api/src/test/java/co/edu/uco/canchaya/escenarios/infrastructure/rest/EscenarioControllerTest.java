@@ -165,7 +165,7 @@ class EscenarioControllerTest {
 		when(registrarEscenario.ejecutar(any(), any())).thenThrow(new ReglaNegocioException("ERR-ESC-01"));
 
 		enviarComo(peticion(VALIDO), Rol.JUGADOR)
-				.andExpect(status().isUnprocessableContent())
+				.andExpect(status().isForbidden())
 				.andExpect(jsonPath("$.errores[0].codigo").value("ERR-ESC-01"))
 				.andExpect(jsonPath("$.errores[0].mensaje").value("Solo un administrador de cancha puede registrar escenarios."));
 
