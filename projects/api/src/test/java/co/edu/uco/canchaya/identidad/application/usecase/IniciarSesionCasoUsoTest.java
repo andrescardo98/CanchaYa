@@ -153,6 +153,21 @@ class IniciarSesionCasoUsoTest {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
+		public Optional<Usuario> buscarPorId(UUID id) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean existeOtroConCorreo(String correoElectronico, UUID idExcluido) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void actualizar(Usuario usuario) {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 }
