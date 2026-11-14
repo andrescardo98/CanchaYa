@@ -57,12 +57,35 @@ class RepositorioUsuariosJpa implements RepositorioUsuarios {
 			// flush para que la base rechace aquí y no al confirmar la transacción, donde ya no se podría traducir
 			jpa.saveAndFlush(UsuarioEntidad.desde(usuario));
 		} catch (DataIntegrityViolationException e) {
-			String codigo = ERROR_POR_RESTRICCION.get(nombreRestriccion(e));
-			if (codigo == null) {
-				throw e;
-			}
-			throw new ReglaNegocioException(codigo);
+			throw traducir(e, ERROR_POR_RESTRICCION);
 		}
+	}
+
+	@Override
+	public Optional<Usuario> buscarPorId(UUID id) {
+		return jpa.findById(id).map(UsuarioEntidad::aDominio);
+	}
+
+	@Override
+	public boolean existeOtroConCorreo(String correoElectronico, UUID idExcluido) {
+		return jpa.existsByCorreoElectronicoAndIdNot(correoElectronico, idExcluido);
+	}
+
+	/** Si otro usuario guardó el mismo correo al mismo tiempo, la restricción única lo rechaza: ERR-USU-10. */
+	@Override
+	public void actualizar(Usuario usuario) {
+		UsuarioEntidad entidad = jpa.findById(usuario.getId()).orElseThrow(() -> new ReglaNegocioException("ERR-USU-08"));
+		entidad.actualizarPerfilDesde(usuario);
+		try {
+			jpa.saveAndFlush(entidad);
+		} catch (DataIntegrityViolationException e) {
+			throw traducir(e, Map.of("uq_usuario_correo", "ERR-USU-10"));
+		}
+	}
+
+	private static RuntimeException traducir(DataIntegrityViolationException error, Map<String, String> codigos) {
+		String codigo = codigos.get(nombreRestriccion(error));
+		return codigo == null ? error : new ReglaNegocioException(codigo);
 	}
 
 	private static String nombreRestriccion(Throwable error) {

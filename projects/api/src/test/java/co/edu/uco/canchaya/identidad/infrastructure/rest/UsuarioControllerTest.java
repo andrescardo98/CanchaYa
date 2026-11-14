@@ -29,7 +29,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import co.edu.uco.canchaya.identidad.application.port.in.ActualizarPerfil;
 import co.edu.uco.canchaya.identidad.application.port.in.ConsultarCorreoDisponible;
+import co.edu.uco.canchaya.identidad.application.port.in.ConsultarPerfil;
 import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario;
 import co.edu.uco.canchaya.identidad.application.port.in.RegistrarUsuario.DatosRegistro;
 import co.edu.uco.canchaya.identidad.domain.Rol;
@@ -64,6 +66,13 @@ class UsuarioControllerTest {
 
 	@MockitoBean
 	private ConsultarCorreoDisponible consultarCorreoDisponible;
+
+	// HU3: el controlador también los necesita; sus pruebas están en PerfilControllerTest
+	@MockitoBean
+	private ConsultarPerfil consultarPerfil;
+
+	@MockitoBean
+	private ActualizarPerfil actualizarPerfil;
 
 	private ResultActions registrar(String json) throws Exception {
 		return mvc.perform(post("/api/usuarios").contentType(MediaType.APPLICATION_JSON).content(json));

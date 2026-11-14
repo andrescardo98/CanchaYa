@@ -45,10 +45,15 @@ class ManejadorErrores {
 		return ResponseEntity.badRequest().body(new RespuestaError(errores));
 	}
 
+	// Las reglas que no son de datos inválidos llevan su propio código HTTP; las demás, 422
+	private static final Map<String, HttpStatus> ESTADO_POR_CODIGO = Map.of(
+			"ERR-USU-08", HttpStatus.NOT_FOUND, // HU3: no existe el usuario
+			"ERR-USU-09", HttpStatus.FORBIDDEN); // HU3: el perfil es de otro usuario
+
 	@ExceptionHandler(ReglaNegocioException.class)
 	ResponseEntity<RespuestaError> reglaIncumplida(ReglaNegocioException ex) {
 		String codigo = ex.getCodigoMensaje();
-		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
+		return ResponseEntity.status(ESTADO_POR_CODIGO.getOrDefault(codigo, HttpStatus.UNPROCESSABLE_CONTENT))
 				.body(unError(codigo, catalogo.texto(codigo, ex.getParametros())));
 	}
 

@@ -24,4 +24,17 @@ public interface RepositorioUsuarios {
 	 */
 	void guardar(Usuario usuario);
 
+	Optional<Usuario> buscarPorId(UUID id);
+
+	/** Política 10. El correo debe llegar normalizado (en minúscula). */
+	boolean existeOtroConCorreo(String correoElectronico, UUID idExcluido);
+
+	/**
+	 * Guarda los cambios del perfil: nombre, correo, celular y contraseña. Nada más.
+	 *
+	 * @throws co.edu.uco.canchaya.transversal.domain.ReglaNegocioException ERR-USU-10 si otro
+	 *         usuario guardó el mismo correo primero
+	 */
+	void actualizar(Usuario usuario);
+
 }

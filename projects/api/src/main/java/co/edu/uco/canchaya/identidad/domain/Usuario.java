@@ -12,13 +12,14 @@ public final class Usuario {
 	private static final Pattern TIENE_LETRA = Pattern.compile(".*\\p{L}.*");
 	private static final Pattern TIENE_NUMERO = Pattern.compile(".*[0-9].*");
 
+	// nombre, correo, contraseña y celular cambian con actualizarPerfil (HU3); el resto no
 	private final UUID id;
-	private final String nombre;
-	private final String correoElectronico;
-	private final String contrasenaHash;
+	private String nombre;
+	private String correoElectronico;
+	private String contrasenaHash;
 	private final TipoDocumento tipoDocumento;
 	private final String numeroDocumento;
-	private final String numeroCelular;
+	private String numeroCelular;
 	private final Rol rol;
 	private final OffsetDateTime fechaRegistro;
 
@@ -78,6 +79,37 @@ public final class Usuario {
 			OffsetDateTime fechaRegistro) {
 		return new Usuario(id, nombre, correoElectronico, contrasenaHash, tipoDocumento, numeroDocumento,
 				numeroCelular, rol, fechaRegistro);
+	}
+
+	/**
+	 * Responsabilidad «actualizarPerfil». Las políticas 8, 10 y 12 necesitan la base de datos o la
+	 * contraseña sin cifrar y las revisa el caso de uso. La política 11 se cumple por diseño: el
+	 * método no recibe tipo ni número de documento ni rol. Recibe la contraseña ya cifrada (política 5).
+	 *
+	 * @param nuevaContrasenaHash null si el usuario no escribió una nueva contraseña (CA4)
+	 * @throws ReglaNegocioException ERR-USU-09
+	 */
+	public void actualizarPerfil(Solicitante solicitante, String nombre, String correoElectronico,
+			String numeroCelular, String nuevaContrasenaHash) {
+		validarQueEsElMismoUsuario(solicitante);
+		this.nombre = nombre == null ? null : nombre.strip();
+		this.correoElectronico = normalizarCorreo(correoElectronico);
+		this.numeroCelular = numeroCelular;
+		if (nuevaContrasenaHash != null) {
+			this.contrasenaHash = nuevaContrasenaHash;
+		}
+	}
+
+	/**
+	 * Política 9: un usuario solo puede ver y modificar su propio perfil. La usan actualizarPerfil
+	 * y la consulta del perfil que llena el formulario.
+	 *
+	 * @throws ReglaNegocioException ERR-USU-09
+	 */
+	public void validarQueEsElMismoUsuario(Solicitante solicitante) {
+		if (solicitante == null || !id.equals(solicitante.usuarioId())) {
+			throw new ReglaNegocioException("ERR-USU-09");
+		}
 	}
 
 	/**

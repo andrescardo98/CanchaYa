@@ -29,6 +29,12 @@ class CatalogoMensajesTest {
 	}
 
 	@ParameterizedTest
+	@ValueSource(strings = { "EXI-USU-02", "ERR-USU-08", "ERR-USU-09", "ERR-USU-10", "ERR-USU-11" })
+	void tieneLosCodigosNuevosQueCitaLaHu3(String codigo) {
+		assertThat(catalogo.texto(codigo)).isNotBlank();
+	}
+
+	@ParameterizedTest
 	@ValueSource(strings = { "EXI-ESC-01", "ERR-ESC-01", "ERR-ESC-02", "ERR-ESC-03", "ERR-ESC-13" })
 	void tieneLosCodigosNuevosQueCitaLaHu5(String codigo) {
 		assertThat(catalogo.texto(codigo)).isNotBlank();
