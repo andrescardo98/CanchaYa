@@ -13,6 +13,8 @@ interface UsuarioJpa extends JpaRepository<UsuarioEntidad, UUID> {
 
 	Optional<UsuarioEntidad> findByCorreoElectronico(String correoElectronico);
 
+	boolean existsByCorreoElectronicoAndIdNot(String correoElectronico, UUID id);
+
 	boolean existsByTipoDocumentoAndNumeroDocumento(TipoDocumento tipoDocumento, String numeroDocumento);
 
 }

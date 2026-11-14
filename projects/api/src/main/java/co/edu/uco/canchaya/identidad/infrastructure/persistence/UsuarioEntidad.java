@@ -75,6 +75,14 @@ class UsuarioEntidad implements Persistable<UUID> {
 		return entidad;
 	}
 
+	/** HU3: solo los datos que se cambian desde el perfil; el documento y el rol no se tocan (política 11). */
+	void actualizarPerfilDesde(Usuario usuario) {
+		nombre = usuario.getNombre();
+		correoElectronico = usuario.getCorreoElectronico();
+		contrasenaHash = usuario.getContrasenaHash();
+		numeroCelular = usuario.getNumeroCelular();
+	}
+
 	Usuario aDominio() {
 		return Usuario.reconstruir(id, nombre, correoElectronico, contrasenaHash, tipoDocumento, numeroDocumento,
 				numeroCelular, rol, fechaRegistro);

@@ -26,6 +26,12 @@ class CatalogoMensajesTest {
 		assertThat(catalogo.texto(codigo)).isNotBlank();
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "EXI-USU-02", "ERR-USU-08", "ERR-USU-09", "ERR-USU-10", "ERR-USU-11" })
+	void tieneLosCodigosNuevosQueCitaLaHu3(String codigo) {
+		assertThat(catalogo.texto(codigo)).isNotBlank();
+	}
+
 	@Test
 	void hu2Ca4ErrUsu06YErrUsu07TienenElMismoTextoParaNoRevelarSiElCorreoExiste() {
 		assertThat(catalogo.texto("ERR-USU-07")).isEqualTo(catalogo.texto("ERR-USU-06"));
