@@ -48,7 +48,8 @@ class ManejadorErrores {
 	// Las reglas que no son de datos inválidos llevan su propio código HTTP; las demás, 422
 	private static final Map<String, HttpStatus> ESTADO_POR_CODIGO = Map.of(
 			"ERR-USU-08", HttpStatus.NOT_FOUND, // HU3: no existe el usuario
-			"ERR-USU-09", HttpStatus.FORBIDDEN); // HU3: el perfil es de otro usuario
+			"ERR-USU-09", HttpStatus.FORBIDDEN, // HU3: el perfil es de otro usuario
+			"ERR-ESC-01", HttpStatus.FORBIDDEN); // HU5: solo un administrador de cancha registra escenarios
 
 	@ExceptionHandler(ReglaNegocioException.class)
 	ResponseEntity<RespuestaError> reglaIncumplida(ReglaNegocioException ex) {
