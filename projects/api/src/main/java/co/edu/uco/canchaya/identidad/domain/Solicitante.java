@@ -7,4 +7,9 @@ import java.util.UUID;
  * token de acceso. Los demás módulos lo usan para revisar permisos sin conocer la clase Usuario.
  */
 public record Solicitante(UUID usuarioId, Rol rol) {
+
+	public boolean tieneRol(Rol rol) {
+		return this.rol == rol;
+	}
+
 }

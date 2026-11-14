@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import co.edu.uco.canchaya.transversal.domain.TextoCatalogo;
+
 class CatalogoMensajesTest {
 
 	private final CatalogoMensajes catalogo = new CatalogoMensajes();
@@ -30,6 +32,19 @@ class CatalogoMensajesTest {
 	@ValueSource(strings = { "EXI-USU-02", "ERR-USU-08", "ERR-USU-09", "ERR-USU-10", "ERR-USU-11" })
 	void tieneLosCodigosNuevosQueCitaLaHu3(String codigo) {
 		assertThat(catalogo.texto(codigo)).isNotBlank();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "EXI-ESC-01", "ERR-ESC-01", "ERR-ESC-02", "ERR-ESC-03", "ERR-ESC-13" })
+	void tieneLosCodigosNuevosQueCitaLaHu5(String codigo) {
+		assertThat(catalogo.texto(codigo)).isNotBlank();
+	}
+
+	@Test
+	void hu5ArmaErrEsc13ConLaReglaIncumplidaQueTambienSaleDelCatalogo() {
+		assertThat(catalogo.texto("ERR-ESC-13", List.of(new TextoCatalogo("ERR-ESC-13.tamano", "cancha.jpg", 2))))
+				.isEqualTo("Las fotos no cumplen las condiciones: la foto cancha.jpg pesa más de 2 MB. Se permiten "
+						+ "máximo 5 fotos por escenario, en formato JPG o PNG y de hasta 2 MB cada una.");
 	}
 
 	@Test

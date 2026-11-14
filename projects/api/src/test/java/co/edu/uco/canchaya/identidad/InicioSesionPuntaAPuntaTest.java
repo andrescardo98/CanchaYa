@@ -38,8 +38,8 @@ import co.edu.uco.canchaya.TestcontainersConfiguration;
 @AutoConfigureRestTestClient
 class InicioSesionPuntaAPuntaTest {
 
-	// Una ruta que exige sesión. Todavía no tiene controlador, pero la seguridad responde antes.
-	private static final String RUTA_PROTEGIDA = "/api/escenarios";
+	// Una ruta que exige sesión y no tiene controlador: la seguridad responde antes.
+	private static final String RUTA_PROTEGIDA = "/api/ruta-sin-controlador";
 
 	@Autowired
 	private RestTestClient cliente;
@@ -93,7 +93,7 @@ class InicioSesionPuntaAPuntaTest {
 		registrar("ana@correo.com", "1036123456", "JUGADOR");
 		String token = tokenDe("ana@correo.com", "198.51.100.3");
 
-		// 404 porque la ruta aún no existe; lo importante es que la seguridad la dejó pasar (no 401)
+		// 404 porque la ruta no existe; lo importante es que la seguridad la dejó pasar (no 401)
 		cliente.get().uri(RUTA_PROTEGIDA).header("Authorization", "Bearer " + token).exchange()
 				.expectStatus().isNotFound();
 	}
@@ -144,8 +144,11 @@ class InicioSesionPuntaAPuntaTest {
 	void unTokenAlterado_respondeErrGen05() {
 		registrar("ana@correo.com", "1036123456", "JUGADOR");
 		String token = tokenDe("ana@correo.com", "198.51.100.5");
-		// Se cambia la última letra de la firma
-		String alterado = token.substring(0, token.length() - 1) + (token.endsWith("A") ? "B" : "A");
+		// Se cambia una letra del medio de la firma. La última no sirve: en base64url lleva bits de
+		// relleno y a veces cambiarla deja la misma firma (la prueba fallaba 1 de cada 16 veces).
+		int posicion = token.lastIndexOf('.') + 10;
+		char letra = token.charAt(posicion);
+		String alterado = token.substring(0, posicion) + (letra == 'A' ? 'B' : 'A') + token.substring(posicion + 1);
 
 		cliente.get().uri(RUTA_PROTEGIDA).header("Authorization", "Bearer " + alterado).exchange()
 				.expectStatus().isUnauthorized()

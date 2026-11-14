@@ -27,7 +27,7 @@ import co.edu.uco.canchaya.TestcontainersConfiguration;
 class CierreSesionPuntaAPuntaTest {
 
 	// Una ruta que exige sesión. Todavía no tiene controlador, pero la seguridad responde antes.
-	private static final String RUTA_PROTEGIDA = "/api/escenarios";
+	private static final String RUTA_PROTEGIDA = "/api/ruta-sin-controlador";
 
 	@Autowired
 	private RestTestClient cliente;
@@ -35,7 +35,7 @@ class CierreSesionPuntaAPuntaTest {
 	@Test
 	void ca2_despuesDeCerrarSesion_laRutaProtegidaRespondeErrGen05() {
 		String token = iniciarSesion("198.51.100.20");
-		// Con sesión, la seguridad deja pasar (404 porque la ruta aún no existe)
+		// Con sesión, la seguridad deja pasar (404 porque la ruta no existe)
 		cliente.get().uri(RUTA_PROTEGIDA).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange()
 				.expectStatus().isNotFound();
 

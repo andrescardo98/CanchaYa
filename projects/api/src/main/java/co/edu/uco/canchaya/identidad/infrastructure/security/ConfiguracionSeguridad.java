@@ -26,6 +26,8 @@ class ConfiguracionSeguridad {
 						.requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll() // HU1
 						.requestMatchers(HttpMethod.GET, "/api/usuarios/correo-disponible").permitAll() // HU1
 						.requestMatchers(HttpMethod.POST, "/api/sesiones").permitAll() // HU2
+						// Fotos de escenarios en desarrollo local; en Render las sirve Supabase (HU5)
+						.requestMatchers(HttpMethod.GET, "/fotos-locales/**").permitAll()
 						.requestMatchers("/actuator/health").permitAll() // monitor de UptimeRobot (D31)
 						.requestMatchers("/error").permitAll()
 						.anyRequest().authenticated())
