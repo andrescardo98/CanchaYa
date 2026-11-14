@@ -1,5 +1,7 @@
 package co.edu.uco.canchaya.identidad.application.port.out;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,6 +27,14 @@ public interface RepositorioUsuarios {
 	void guardar(Usuario usuario);
 
 	Optional<Usuario> buscarPorId(UUID id);
+
+	/**
+	 * Los que no existen no vienen en la respuesta (HU13). Por defecto busca uno por uno; el
+	 * adaptador de la base lo hace en una sola consulta.
+	 */
+	default List<Usuario> buscarPorIds(Collection<UUID> ids) {
+		return ids.stream().map(this::buscarPorId).flatMap(Optional::stream).toList();
+	}
 
 	/** Política 10. El correo debe llegar normalizado (en minúscula). */
 	boolean existeOtroConCorreo(String correoElectronico, UUID idExcluido);

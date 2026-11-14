@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.ubicacion.application.port.in;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,5 +17,8 @@ public interface ConsultaUbicacion {
 
 	/** Solo las del departamento, ordenadas por nombre (HU5, CA6). */
 	List<Ciudad> listarCiudades(UUID departamentoId);
+
+	/** Las que no existen no vienen en la respuesta (HU13: la ciudad de cada escenario en la lista). */
+	List<Ciudad> buscarCiudades(Collection<UUID> ciudadIds);
 
 }

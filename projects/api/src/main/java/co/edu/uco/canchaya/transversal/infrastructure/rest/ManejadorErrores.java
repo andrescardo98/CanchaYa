@@ -16,6 +16,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 import co.edu.uco.canchaya.transversal.infrastructure.rest.RespuestaError.Mensaje;
@@ -61,6 +62,13 @@ class ManejadorErrores {
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	ResponseEntity<RespuestaError> cuerpoIlegible(HttpMessageNotReadableException ex) {
 		LOG.warn("No se pudo leer el cuerpo de la petición: {}", ex.getMessage());
+		return ResponseEntity.badRequest().body(unError("ERR-GEN-07", catalogo.texto("ERR-GEN-07")));
+	}
+
+	// Un valor de la URL que no se puede leer, por ejemplo un identificador que no es UUID o un estado que no existe
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	ResponseEntity<RespuestaError> parametroIlegible(MethodArgumentTypeMismatchException ex) {
+		LOG.warn("No se pudo leer el parámetro {} de la petición: {}", ex.getName(), ex.getMessage());
 		return ResponseEntity.badRequest().body(unError("ERR-GEN-07", catalogo.texto("ERR-GEN-07")));
 	}
 

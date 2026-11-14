@@ -35,6 +35,10 @@ En local, la base escucha en el puerto **5434** (no en el 5432) para no chocar c
 | `JWT_SECRETO` | Clave para firmar los tokens de acceso (HU2). Mínimo 32 caracteres | No tiene: `./mvnw spring-boot:run` y las pruebas la toman del `pom.xml`. Sin ella, la aplicación no arranca |
 | `FOTOS_ALMACENAMIENTO` | Dónde se guardan las fotos de los escenarios (HU5): `local` o `supabase`. En Render va `supabase` | `local` (carpeta `fotos-locales/`, servida en `/fotos-locales/`) |
 | `SUPABASE_URL` / `SUPABASE_CLAVE_SERVICIO` / `SUPABASE_BUCKET_FOTOS` | Proyecto de Supabase, clave de servicio y bucket público de las fotos (D31). Se exigen con `supabase` | Vacías |
+| `CORREO_HOST` / `CORREO_PUERTO` | Servidor SMTP de los correos (HU13, D15). En Render: `smtp-relay.brevo.com` y `2525` (D31) | `localhost` / `1025` (Mailpit del `docker-compose.yml`) |
+| `CORREO_USUARIO` / `CORREO_CLAVE` | Usuario y clave SMTP de Brevo (secretos en Render) | Vacías |
+| `CORREO_AUTENTICACION` / `CORREO_STARTTLS` | Si el SMTP pide usuario y conexión cifrada. En Render ambas en `true` (RT-11) | `false` / `false` |
+| `CORREO_REMITENTE` | Remitente de los correos. En Brevo debe ser un remitente verificado | `CanchaYa <no-responder@canchaya.local>` |
 | `PAR_ESC_01` a `PAR_ESC_03` | Fotos máximas, peso máximo en MB y formatos admitidos | `5`, `2`, `JPG,PNG` |
 
 Las variables `ADMIN_*` solo se leen la primera vez que se aplica la V2 en una base; cambiarlas después no modifica al administrador. Los valores reales de Render y Supabase nunca se escriben en el código ni en el repositorio: van como variables secretas de Render (RT-10, D35).
@@ -57,7 +61,7 @@ identidad/
     └── security/               # Solo en identidad: bcrypt, token JWT y límite de intentos (HU2)
 ```
 
-La entidad JPA va en `infrastructure/persistence` y no en el dominio, porque el puerto solo dice *qué* se necesita y no *cómo* se hace (D39). Las piezas compartidas de `transversal` siguen la misma idea: `domain` para `ReglaNegocioException` e `infrastructure/rest` para el catálogo de mensajes y el manejo de errores.
+La entidad JPA va en `infrastructure/persistence` y no en el dominio, porque el puerto solo dice *qué* se necesita y no *cómo* se hace (D39). Las piezas compartidas de `transversal` siguen la misma idea: `domain` para `ReglaNegocioException`, `application/port/out` para el puerto `EnvioCorreo`, `infrastructure/rest` para el catálogo de mensajes y el manejo de errores, e `infrastructure/correo` para el adaptador SMTP (HU13).
 
 ## Reglas
 

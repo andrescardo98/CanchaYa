@@ -3,6 +3,7 @@ package co.edu.uco.canchaya.escenarios.domain;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import co.edu.uco.canchaya.identidad.domain.Rol;
@@ -27,7 +28,8 @@ public final class Escenario {
 	private final String correoContacto;
 	private final List<String> fotos;
 	private final UUID administradorId;
-	private final EstadoEscenario estado;
+	// No es final: lo cambia cambiarEstado (HU13)
+	private EstadoEscenario estado;
 
 	private Escenario(UUID id, String nombre, String descripcion, String direccion, UUID ciudadId,
 			BigDecimal latitud, BigDecimal longitud, String telefonoContacto, String correoContacto,
@@ -111,6 +113,41 @@ public final class Escenario {
 	public Escenario conNuevoId() {
 		return new Escenario(UUID.randomUUID(), nombre, descripcion, direccion, ciudadId, latitud, longitud,
 				telefonoContacto, correoContacto, fotos, administradorId, estado);
+	}
+
+	/**
+	 * Responsabilidad «cambiarEstado» (HU13). La política 6 (que exista) la revisa el caso de uso
+	 * antes de llamarlo, y la 15 (el correo al propietario) también, después de guardar (D15).
+	 *
+	 * @param tieneReservasConfirmadasFuturas lo responde el módulo Reservas (D08); solo importa al inactivar
+	 * @throws ReglaNegocioException ERR-ESC-08, ERR-ESC-09 o ERR-ESC-14
+	 */
+	public void cambiarEstado(EstadoEscenario nuevoEstado, Solicitante solicitante,
+			boolean tieneReservasConfirmadasFuturas) {
+		Objects.requireNonNull(nuevoEstado, "nuevoEstado");
+		validarAdministradorSistema(solicitante);
+		// Política 9
+		if (estado == nuevoEstado) {
+			throw new ReglaNegocioException("ERR-ESC-09", new TextoCatalogo("estado." + nuevoEstado.name()));
+		}
+		// Política 14 (RN-17, D08)
+		if (nuevoEstado == EstadoEscenario.INACTIVO && tieneReservasConfirmadasFuturas) {
+			throw new ReglaNegocioException("ERR-ESC-14");
+		}
+		// Política 10 (RN-04): desde aquí estaActivo() decide si el escenario sale en la búsqueda
+		estado = nuevoEstado;
+	}
+
+	/**
+	 * Política 8 (RN-16). Se expone para que el caso de uso la revise antes de buscar el escenario:
+	 * así quien no tiene permiso no puede averiguar qué identificadores existen.
+	 *
+	 * @throws ReglaNegocioException ERR-ESC-08
+	 */
+	public static void validarAdministradorSistema(Solicitante solicitante) {
+		if (solicitante == null || !solicitante.tieneRol(Rol.ADMINISTRADOR_SISTEMA)) {
+			throw new ReglaNegocioException("ERR-ESC-08");
+		}
 	}
 
 	/** RN-05. */
