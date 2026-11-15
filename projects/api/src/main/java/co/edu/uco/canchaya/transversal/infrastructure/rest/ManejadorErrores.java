@@ -50,7 +50,10 @@ class ManejadorErrores {
 	private static final Map<String, HttpStatus> ESTADO_POR_CODIGO = Map.of(
 			"ERR-USU-08", HttpStatus.NOT_FOUND, // HU3: no existe el usuario
 			"ERR-USU-09", HttpStatus.FORBIDDEN, // HU3: el perfil es de otro usuario
-			"ERR-ESC-01", HttpStatus.FORBIDDEN); // HU5: solo un administrador de cancha registra escenarios
+			"ERR-ESC-01", HttpStatus.FORBIDDEN, // HU5: solo un administrador de cancha registra escenarios
+			"ERR-ESC-06", HttpStatus.NOT_FOUND, // HU13: no existe el escenario
+			"ERR-ESC-08", HttpStatus.FORBIDDEN, // HU13: solo el administrador del sistema cambia el estado
+			"ERR-GEN-06", HttpStatus.FORBIDDEN); // HU13: sin permiso para ver la administración de escenarios
 
 	@ExceptionHandler(ReglaNegocioException.class)
 	ResponseEntity<RespuestaError> reglaIncumplida(ReglaNegocioException ex) {

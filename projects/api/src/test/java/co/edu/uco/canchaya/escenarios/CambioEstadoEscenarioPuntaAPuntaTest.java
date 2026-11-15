@@ -195,7 +195,7 @@ class CambioEstadoEscenarioPuntaAPuntaTest {
 	@Test
 	void ca4UnEscenarioQueNoExiste() {
 		cambiar(UUID.randomUUID(), "ACTIVO", tokenAdministrador)
-				.expectStatus().isEqualTo(422)
+				.expectStatus().isNotFound()
 				.expectBody().jsonPath("$.errores[0].codigo").isEqualTo("ERR-ESC-06");
 		verify(servidorCorreo, never()).send(any(MimeMessage.class));
 	}
@@ -205,10 +205,10 @@ class CambioEstadoEscenarioPuntaAPuntaTest {
 		UUID id = escenario("Cancha La 80", "INACTIVO");
 
 		cambiar(id, "ACTIVO", tokenPropietario)
-				.expectStatus().isEqualTo(422)
+				.expectStatus().isForbidden()
 				.expectBody().jsonPath("$.errores[0].codigo").isEqualTo("ERR-ESC-08");
 		cliente.get().uri("/api/escenarios").header("Authorization", "Bearer " + tokenPropietario).exchange()
-				.expectStatus().isEqualTo(422)
+				.expectStatus().isForbidden()
 				.expectBody().jsonPath("$.errores[0].codigo").isEqualTo("ERR-GEN-06");
 
 		assertThat(estadoGuardado(id)).isEqualTo("INACTIVO");

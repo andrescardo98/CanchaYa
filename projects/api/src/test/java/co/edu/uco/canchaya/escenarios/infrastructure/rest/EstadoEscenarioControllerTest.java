@@ -105,7 +105,7 @@ class EstadoEscenarioControllerTest {
 		when(listarEscenarios.ejecutar(any(), any())).thenThrow(new ReglaNegocioException("ERR-GEN-06"));
 
 		mvc.perform(conToken(get("/api/escenarios")))
-				.andExpect(status().isUnprocessableContent())
+				.andExpect(status().isForbidden())
 				.andExpect(jsonPath("$.errores[0].codigo").value("ERR-GEN-06"))
 				.andExpect(jsonPath("$.errores[0].mensaje").value("No tiene permiso para realizar esta acción."));
 	}
@@ -125,15 +125,15 @@ class EstadoEscenarioControllerTest {
 
 	@ParameterizedTest
 	@CsvSource(delimiter = '|', value = {
-			"ERR-ESC-06 | El escenario no existe o no está disponible.", // CA4
-			"ERR-ESC-08 | Solo el administrador del sistema puede activar o inactivar escenarios.", // CA5
-			"ERR-ESC-14 | No se puede inactivar el escenario porque tiene reservas confirmadas futuras en sus canchas." // CA7
+			"ERR-ESC-06 | 404 | El escenario no existe o no está disponible.", // CA4: no existe
+			"ERR-ESC-08 | 403 | Solo el administrador del sistema puede activar o inactivar escenarios.", // CA5: permiso
+			"ERR-ESC-14 | 422 | No se puede inactivar el escenario porque tiene reservas confirmadas futuras en sus canchas." // CA7
 	})
-	void ca4Ca5Ca7LasReglasIncumplidasRespondenSuMensaje(String codigo, String texto) throws Exception {
+	void ca4Ca5Ca7LasReglasIncumplidasRespondenSuMensaje(String codigo, int estadoHttp, String texto) throws Exception {
 		when(cambiarEstado.ejecutar(any(), any(), any())).thenThrow(new ReglaNegocioException(codigo));
 
 		mvc.perform(conToken(cambiar("{\"estado\": \"INACTIVO\"}")))
-				.andExpect(status().isUnprocessableContent())
+				.andExpect(status().is(estadoHttp))
 				.andExpect(jsonPath("$.errores[0].codigo").value(codigo))
 				.andExpect(jsonPath("$.errores[0].mensaje").value(texto));
 	}
