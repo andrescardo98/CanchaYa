@@ -145,7 +145,7 @@ class RegistroEscenarioPuntaAPuntaTest {
 		String token = tokenDeUsuarioNuevo("JUGADOR", "1000000012");
 
 		registrar(token, jpg(100))
-				.expectStatus().isEqualTo(422)
+				.expectStatus().isForbidden()
 				.expectBody().jsonPath("$.errores[0].codigo").isEqualTo("ERR-ESC-01");
 		assertThat(jdbc.queryForObject("select count(*) from escenario", Integer.class)).isZero();
 	}

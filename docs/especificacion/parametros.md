@@ -43,7 +43,7 @@
 | PAR-USU-12 | Tiempo de bloqueo del inicio de sesión | 15 | minutos | Tiempo durante el cual se rechazan los intentos de inicio de sesión de la cuenta o del origen que superó los intentos permitidos. | D28 | Usuario | HU2 | ERR-USU-16 | Sí | Definido |  |
 | PAR-ESC-01 | Fotos máximas por escenario | 5 | fotos | Cantidad máxima de fotos que puede tener un escenario. | D13 | Escenario | HU5, HU8 | ERR-ESC-13 | Sí | Definido |  |
 | PAR-ESC-02 | Tamaño máximo de cada foto | 2 | MB | Peso máximo de cada foto del escenario. | D13 | Escenario | HU5, HU8 | ERR-ESC-13 | Sí | Definido |  |
-| PAR-ESC-03 | Formatos de foto admitidos | JPG, PNG | — | Formatos de imagen aceptados para las fotos del escenario. | D13 | Escenario | HU5, HU8 | ERR-ESC-13 | Sí | Definido | Dónde se guardan las fotos en el hosting es una decisión abierta de la Fase 2. |
+| PAR-ESC-03 | Formatos de foto admitidos | JPG, PNG | — | Formatos de imagen aceptados para las fotos del escenario. | D13 | Escenario | HU5, HU8 | ERR-ESC-13 | Sí | Definido | Las fotos se guardan en Supabase Storage (D31), en un bucket público: cualquiera puede verlas, pero solo el backend las sube y las borra con la clave de servicio. |
 | PAR-ESC-04 | Radio de búsqueda por defecto | 5 | km | Radio con el que se ejecuta la búsqueda si el jugador no elige otro. | D11; D26 | Escenario | HU18 | — | Sí | Definido |  |
 | PAR-ESC-05 | Radio de búsqueda máximo | 30 | km | Radio más amplio que puede elegir el jugador. | D11; D26 | Escenario | HU18 | ERR-GEN-04 | Sí | Definido |  |
 | PAR-ESC-06 | Radio de búsqueda mínimo | 1 | km | Radio más pequeño que puede elegir el jugador. | D26 | Escenario | HU18 | ERR-GEN-04 | Sí | Definido |  |
