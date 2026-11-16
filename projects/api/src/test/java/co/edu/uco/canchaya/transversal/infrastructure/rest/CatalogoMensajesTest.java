@@ -40,6 +40,12 @@ class CatalogoMensajesTest {
 		assertThat(catalogo.texto(codigo)).isNotBlank();
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "EXI-CAN-01", "ERR-CAN-01", "ERR-CAN-02", "ERR-CAN-03", "ERR-CAN-04", "ERR-CAN-05" })
+	void tieneLosCodigosNuevosQueCitaLaHu6(String codigo) {
+		assertThat(catalogo.texto(codigo)).isNotBlank();
+	}
+
 	@Test
 	void hu5ArmaErrEsc13ConLaReglaIncumplidaQueTambienSaleDelCatalogo() {
 		assertThat(catalogo.texto("ERR-ESC-13", List.of(new TextoCatalogo("ERR-ESC-13.tamano", "cancha.jpg", 2))))
