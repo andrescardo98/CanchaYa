@@ -46,6 +46,18 @@ class CatalogoMensajesTest {
 		assertThat(catalogo.texto(codigo)).isNotBlank();
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "EXI-HOR-01", "ERR-HOR-01", "ERR-HOR-02", "ERR-HOR-03", "ERR-HOR-04", "ERR-HOR-13" })
+	void tieneLosCodigosNuevosQueCitaLaHu7(String codigo) {
+		assertThat(catalogo.texto(codigo)).isNotBlank();
+	}
+
+	@Test
+	void hu7ArmaErrHor04ConElDiaQueTambienSaleDelCatalogo() {
+		assertThat(catalogo.texto("ERR-HOR-04", List.of(new TextoCatalogo("dia.MIERCOLES"))))
+				.isEqualTo("El horario se cruza con otro horario ya definido para el miércoles.");
+	}
+
 	@Test
 	void hu5ArmaErrEsc13ConLaReglaIncumplidaQueTambienSaleDelCatalogo() {
 		assertThat(catalogo.texto("ERR-ESC-13", List.of(new TextoCatalogo("ERR-ESC-13.tamano", "cancha.jpg", 2))))
