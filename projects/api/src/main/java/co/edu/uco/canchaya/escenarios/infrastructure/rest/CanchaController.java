@@ -1,0 +1,73 @@
+package co.edu.uco.canchaya.escenarios.infrastructure.rest;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarNombreCanchaDisponible;
+import co.edu.uco.canchaya.escenarios.application.port.in.ListarCanchasEscenario;
+import co.edu.uco.canchaya.escenarios.application.port.in.ListarTiposCancha;
+import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarCancha;
+import co.edu.uco.canchaya.escenarios.domain.Cancha;
+import co.edu.uco.canchaya.identidad.domain.Solicitante;
+import co.edu.uco.canchaya.transversal.infrastructure.rest.CatalogoMensajes;
+import jakarta.validation.Valid;
+
+@RestController
+class CanchaController {
+
+	private final RegistrarCancha registrarCancha;
+	private final ConsultarNombreCanchaDisponible consultarNombreDisponible;
+	private final ListarCanchasEscenario listarCanchas;
+	private final ListarTiposCancha listarTipos;
+	private final CatalogoMensajes catalogo;
+
+	CanchaController(RegistrarCancha registrarCancha, ConsultarNombreCanchaDisponible consultarNombreDisponible,
+			ListarCanchasEscenario listarCanchas, ListarTiposCancha listarTipos, CatalogoMensajes catalogo) {
+		this.registrarCancha = registrarCancha;
+		this.consultarNombreDisponible = consultarNombreDisponible;
+		this.listarCanchas = listarCanchas;
+		this.listarTipos = listarTipos;
+		this.catalogo = catalogo;
+	}
+
+	// HU6, CA1 a CA7
+	@PostMapping("/api/escenarios/{escenarioId}/canchas")
+	ResponseEntity<RespuestaRegistroCancha> registrar(@PathVariable UUID escenarioId,
+			@Valid @RequestBody SolicitudRegistroCancha solicitud, Solicitante solicitante) {
+		Cancha cancha = registrarCancha.ejecutar(solicitud.aDatos(escenarioId), solicitante);
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new RespuestaRegistroCancha("EXI-CAN-01", catalogo.texto("EXI-CAN-01"), cancha.getId()));
+	}
+
+	// HU6, CA1: la lista que se actualiza después de registrar
+	@GetMapping("/api/escenarios/{escenarioId}/canchas")
+	List<RespuestaCancha> listar(@PathVariable UUID escenarioId, Solicitante solicitante) {
+		return listarCanchas.ejecutar(escenarioId, solicitante).stream().map(RespuestaCancha::de).toList();
+	}
+
+	// HU6, CA8
+	@GetMapping("/api/escenarios/{escenarioId}/canchas/nombre-disponible")
+	NombreCanchaDisponible.Respuesta nombreDisponible(@PathVariable UUID escenarioId,
+			@Valid NombreCanchaDisponible.Solicitud solicitud, Solicitante solicitante) {
+		if (consultarNombreDisponible.ejecutar(escenarioId, solicitud.nombre(), solicitante)) {
+			return new NombreCanchaDisponible.Respuesta(true, null, null);
+		}
+		String nombre = solicitud.nombre().strip();
+		return new NombreCanchaDisponible.Respuesta(false, "ERR-CAN-03", catalogo.texto("ERR-CAN-03", List.of(nombre)));
+	}
+
+	// HU6, CA10: solo lectura, sin opciones para crear ni editar
+	@GetMapping("/api/tipos-cancha")
+	List<RespuestaTipoCancha> tiposCancha() {
+		return listarTipos.ejecutar().stream().map(RespuestaTipoCancha::de).toList();
+	}
+
+}

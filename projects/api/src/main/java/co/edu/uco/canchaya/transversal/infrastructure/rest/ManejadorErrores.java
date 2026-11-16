@@ -53,6 +53,8 @@ class ManejadorErrores {
 			"ERR-ESC-01", HttpStatus.FORBIDDEN, // HU5: solo un administrador de cancha registra escenarios
 			"ERR-ESC-06", HttpStatus.NOT_FOUND, // HU13: no existe el escenario
 			"ERR-ESC-08", HttpStatus.FORBIDDEN, // HU13: solo el administrador del sistema cambia el estado
+			"ERR-CAN-01", HttpStatus.NOT_FOUND, // HU6: no existe el escenario de la cancha
+			"ERR-CAN-02", HttpStatus.FORBIDDEN, // HU6: no es el propietario del escenario
 			"ERR-GEN-06", HttpStatus.FORBIDDEN); // HU13: sin permiso para ver la administración de escenarios
 
 	@ExceptionHandler(ReglaNegocioException.class)
