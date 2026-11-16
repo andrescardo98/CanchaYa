@@ -41,8 +41,9 @@ class RegistroCanchaPuntaAPuntaTest {
 
 	@BeforeEach
 	void preparar() {
-		UUID propietario = usuario("Ana Pérez", "ana@correo.com", "1000000071", "ADMINISTRADOR_CANCHA");
-		tokenPropietario = token("ana@correo.com", "203.0.113.71");
+		// Correos propios: InicioSesionPuntaAPuntaTest deja bloqueado a ana@correo.com (D28)
+		UUID propietario = usuario("Ana Pérez", "propietario.hu6@correo.com", "1000000071", "ADMINISTRADOR_CANCHA");
+		tokenPropietario = token("propietario.hu6@correo.com", "203.0.113.71");
 		escenario = UUID.randomUUID();
 		jdbc.update("""
 				insert into escenario (id, nombre, direccion, ciudad_id, latitud, longitud, telefono_contacto,
@@ -116,8 +117,8 @@ class RegistroCanchaPuntaAPuntaTest {
 	// CA4: otro administrador de cancha, que es como queda un encargado de sede
 	@Test
 	void ca4OtroAdministradorDeCanchaRecibe403() {
-		usuario("Luis Gómez", "luis@correo.com", "1000000072", "ADMINISTRADOR_CANCHA");
-		String tokenOtro = token("luis@correo.com", "203.0.113.72");
+		usuario("Luis Gómez", "otro.hu6@correo.com", "1000000072", "ADMINISTRADOR_CANCHA");
+		String tokenOtro = token("otro.hu6@correo.com", "203.0.113.72");
 
 		registrar(tokenOtro, "Cancha 1").expectStatus().isForbidden()
 				.expectBody().jsonPath("$.errores[0].codigo").isEqualTo("ERR-CAN-02");
@@ -126,8 +127,8 @@ class RegistroCanchaPuntaAPuntaTest {
 
 	@Test
 	void ca4UnJugadorRecibe403() {
-		usuario("Sara Ruiz", "sara@correo.com", "1000000073", "JUGADOR");
-		String tokenJugador = token("sara@correo.com", "203.0.113.73");
+		usuario("Sara Ruiz", "jugador.hu6@correo.com", "1000000073", "JUGADOR");
+		String tokenJugador = token("jugador.hu6@correo.com", "203.0.113.73");
 
 		registrar(tokenJugador, "Cancha 1").expectStatus().isForbidden()
 				.expectBody().jsonPath("$.errores[0].codigo").isEqualTo("ERR-CAN-02");
