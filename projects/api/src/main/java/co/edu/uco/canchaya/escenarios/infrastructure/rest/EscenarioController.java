@@ -3,20 +3,30 @@ package co.edu.uco.canchaya.escenarios.infrastructure.rest;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import co.edu.uco.canchaya.escenarios.application.port.in.CambiarEstadoEscenario;
+import co.edu.uco.canchaya.escenarios.application.port.in.ListarEscenariosAdministracion;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarEscenario.FotoAdjunta;
 import co.edu.uco.canchaya.escenarios.domain.Escenario;
+import co.edu.uco.canchaya.escenarios.domain.EstadoEscenario;
 import co.edu.uco.canchaya.identidad.domain.Solicitante;
+import co.edu.uco.canchaya.transversal.domain.TextoCatalogo;
 import co.edu.uco.canchaya.transversal.infrastructure.rest.CatalogoMensajes;
 import jakarta.validation.Valid;
 
@@ -25,10 +35,15 @@ import jakarta.validation.Valid;
 class EscenarioController {
 
 	private final RegistrarEscenario registrarEscenario;
+	private final ListarEscenariosAdministracion listarEscenarios;
+	private final CambiarEstadoEscenario cambiarEstado;
 	private final CatalogoMensajes catalogo;
 
-	EscenarioController(RegistrarEscenario registrarEscenario, CatalogoMensajes catalogo) {
+	EscenarioController(RegistrarEscenario registrarEscenario, ListarEscenariosAdministracion listarEscenarios,
+			CambiarEstadoEscenario cambiarEstado, CatalogoMensajes catalogo) {
 		this.registrarEscenario = registrarEscenario;
+		this.listarEscenarios = listarEscenarios;
+		this.cambiarEstado = cambiarEstado;
 		this.catalogo = catalogo;
 	}
 
@@ -40,6 +55,24 @@ class EscenarioController {
 		Escenario escenario = registrarEscenario.ejecutar(datos.aDatos(adjuntas), solicitante);
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(RespuestaRegistroEscenario.de(escenario, "EXI-ESC-01", catalogo.texto("EXI-ESC-01")));
+	}
+
+	// HU13, CA1: administración de escenarios, con filtro opcional por estado
+	@GetMapping
+	List<RespuestaEscenarioAdministracion> listar(@RequestParam(required = false) EstadoEscenario estado,
+			Solicitante solicitante) {
+		return listarEscenarios.ejecutar(estado, solicitante).stream().map(RespuestaEscenarioAdministracion::de)
+				.toList();
+	}
+
+	// HU13, CA2 a CA8: activar o inactivar
+	@PatchMapping("/{id}/estado")
+	RespuestaCambioEstado cambiarEstado(@PathVariable UUID id, @Valid @RequestBody SolicitudCambioEstado solicitud,
+			Solicitante solicitante) {
+		Escenario escenario = cambiarEstado.ejecutar(id, solicitud.estado(), solicitante);
+		String mensaje = catalogo.texto("EXI-ESC-03", List.of(escenario.getNombre(),
+				new TextoCatalogo("estado." + escenario.getEstado().name())));
+		return new RespuestaCambioEstado("EXI-ESC-03", mensaje, escenario.getId(), escenario.getEstado());
 	}
 
 	private static FotoAdjunta aFoto(MultipartFile archivo) {

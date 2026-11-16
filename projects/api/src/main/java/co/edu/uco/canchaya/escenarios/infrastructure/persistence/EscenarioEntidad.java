@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Persistable;
 
+import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioEscenarios.ResumenEscenario;
 import co.edu.uco.canchaya.escenarios.domain.Escenario;
 import co.edu.uco.canchaya.escenarios.domain.EstadoEscenario;
 import jakarta.persistence.CascadeType;
@@ -16,6 +17,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
@@ -66,6 +68,7 @@ class EscenarioEntidad implements Persistable<UUID> {
 
 	// Tabla foto_escenario: la lista de fotos se guarda aparte, con su posición
 	@OneToMany(mappedBy = "escenario", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OrderBy("orden")
 	private List<FotoEscenarioEntidad> fotos = new ArrayList<>();
 
 	@Transient
@@ -93,6 +96,18 @@ class EscenarioEntidad implements Persistable<UUID> {
 			entidad.fotos.add(new FotoEscenarioEntidad(entidad, urls.get(i), (short) (i + 1)));
 		}
 		return entidad;
+	}
+
+	// Las fotos se cargan aquí: hay que llamarlo dentro de una transacción
+	Escenario aDominio() {
+		return Escenario.reconstruir(id, nombre, descripcion, direccion, ciudadId, latitud, longitud,
+				telefonoContacto, correoContacto, fotos.stream().map(FotoEscenarioEntidad::getUrl).toList(),
+				administradorId, estado);
+	}
+
+	// No toca las fotos, así la lista no las carga
+	ResumenEscenario aResumen() {
+		return new ResumenEscenario(id, nombre, ciudadId, administradorId, estado);
 	}
 
 	@Override

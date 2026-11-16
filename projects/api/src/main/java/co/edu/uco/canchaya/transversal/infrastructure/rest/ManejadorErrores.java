@@ -16,6 +16,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 import co.edu.uco.canchaya.transversal.infrastructure.rest.RespuestaError.Mensaje;
@@ -49,7 +50,10 @@ class ManejadorErrores {
 	private static final Map<String, HttpStatus> ESTADO_POR_CODIGO = Map.of(
 			"ERR-USU-08", HttpStatus.NOT_FOUND, // HU3: no existe el usuario
 			"ERR-USU-09", HttpStatus.FORBIDDEN, // HU3: el perfil es de otro usuario
-			"ERR-ESC-01", HttpStatus.FORBIDDEN); // HU5: solo un administrador de cancha registra escenarios
+			"ERR-ESC-01", HttpStatus.FORBIDDEN, // HU5: solo un administrador de cancha registra escenarios
+			"ERR-ESC-06", HttpStatus.NOT_FOUND, // HU13: no existe el escenario
+			"ERR-ESC-08", HttpStatus.FORBIDDEN, // HU13: solo el administrador del sistema cambia el estado
+			"ERR-GEN-06", HttpStatus.FORBIDDEN); // HU13: sin permiso para ver la administración de escenarios
 
 	@ExceptionHandler(ReglaNegocioException.class)
 	ResponseEntity<RespuestaError> reglaIncumplida(ReglaNegocioException ex) {
@@ -62,6 +66,13 @@ class ManejadorErrores {
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	ResponseEntity<RespuestaError> cuerpoIlegible(HttpMessageNotReadableException ex) {
 		LOG.warn("No se pudo leer el cuerpo de la petición: {}", ex.getMessage());
+		return ResponseEntity.badRequest().body(unError("ERR-GEN-07", catalogo.texto("ERR-GEN-07")));
+	}
+
+	// Un valor de la URL que no se puede leer, por ejemplo un identificador que no es UUID o un estado que no existe
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	ResponseEntity<RespuestaError> parametroIlegible(MethodArgumentTypeMismatchException ex) {
+		LOG.warn("No se pudo leer el parámetro {} de la petición: {}", ex.getName(), ex.getMessage());
 		return ResponseEntity.badRequest().body(unError("ERR-GEN-07", catalogo.texto("ERR-GEN-07")));
 	}
 

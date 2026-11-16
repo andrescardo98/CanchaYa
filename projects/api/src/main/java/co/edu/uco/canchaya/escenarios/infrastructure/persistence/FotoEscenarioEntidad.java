@@ -39,4 +39,8 @@ class FotoEscenarioEntidad {
 		this.orden = orden;
 	}
 
+	String getUrl() {
+		return url;
+	}
+
 }

@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.ubicacion.application.usecase;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +34,11 @@ public class ConsultaUbicacionCasoUso implements ConsultaUbicacion {
 	@Override
 	public List<Ciudad> listarCiudades(UUID departamentoId) {
 		return repositorio.listarCiudades(departamentoId);
+	}
+
+	@Override
+	public List<Ciudad> buscarCiudades(Collection<UUID> ciudadIds) {
+		return ciudadIds.isEmpty() ? List.of() : repositorio.buscarCiudades(ciudadIds);
 	}
 
 }

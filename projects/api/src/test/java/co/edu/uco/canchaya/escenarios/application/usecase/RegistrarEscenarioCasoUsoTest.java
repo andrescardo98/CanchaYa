@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -182,6 +184,28 @@ class RegistrarEscenarioCasoUsoTest {
 			guardados.add(escenario);
 		}
 
+		// Lo que sigue es de la HU13; la HU5 no lo usa
+
+		@Override
+		public Optional<Escenario> buscarPorId(UUID id) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void actualizarEstado(Escenario escenario) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public List<ResumenEscenario> listar(EstadoEscenario estado) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public List<UUID> idsCanchas(UUID escenarioId) {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static final class AlmacenamientoEnMemoria implements AlmacenamientoFotos {
@@ -219,6 +243,11 @@ class RegistrarEscenarioCasoUsoTest {
 
 		@Override
 		public List<Ciudad> listarCiudades(UUID departamentoId) {
+			return List.of();
+		}
+
+		@Override
+		public List<Ciudad> buscarCiudades(Collection<UUID> ciudadIds) {
 			return List.of();
 		}
 

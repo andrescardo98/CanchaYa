@@ -29,6 +29,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 
+import co.edu.uco.canchaya.escenarios.application.port.in.CambiarEstadoEscenario;
+import co.edu.uco.canchaya.escenarios.application.port.in.ListarEscenariosAdministracion;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarEscenario.DatosRegistroEscenario;
 import co.edu.uco.canchaya.escenarios.domain.Escenario;
@@ -63,6 +65,13 @@ class EscenarioControllerTest {
 
 	@MockitoBean
 	private RegistrarEscenario registrarEscenario;
+
+	// Del mismo controlador, de la HU13; sus pruebas están en EstadoEscenarioControllerTest
+	@MockitoBean
+	private ListarEscenariosAdministracion listarEscenarios;
+
+	@MockitoBean
+	private CambiarEstadoEscenario cambiarEstado;
 
 	private static MockMultipartFile datos(String json) {
 		return new MockMultipartFile("datos", "", MediaType.APPLICATION_JSON_VALUE, json.getBytes());

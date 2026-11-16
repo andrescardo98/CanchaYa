@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.ubicacion.application.port.out;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,5 +14,7 @@ public interface RepositorioUbicacion {
 	List<Departamento> listarDepartamentos();
 
 	List<Ciudad> listarCiudades(UUID departamentoId);
+
+	List<Ciudad> buscarCiudades(Collection<UUID> ciudadIds);
 
 }

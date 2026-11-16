@@ -1,5 +1,7 @@
 package co.edu.uco.canchaya.identidad.infrastructure.persistence;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -64,6 +66,11 @@ class RepositorioUsuariosJpa implements RepositorioUsuarios {
 	@Override
 	public Optional<Usuario> buscarPorId(UUID id) {
 		return jpa.findById(id).map(UsuarioEntidad::aDominio);
+	}
+
+	@Override
+	public List<Usuario> buscarPorIds(Collection<UUID> ids) {
+		return jpa.findAllById(ids).stream().map(UsuarioEntidad::aDominio).toList();
 	}
 
 	@Override

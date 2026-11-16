@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.ubicacion.infrastructure.persistence;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +35,11 @@ class RepositorioUbicacionJpa implements RepositorioUbicacion {
 	public List<Ciudad> listarCiudades(UUID departamentoId) {
 		return ciudades.findByDepartamentoIdOrderByNombreAsc(departamentoId).stream().map(CiudadEntidad::aDominio)
 				.toList();
+	}
+
+	@Override
+	public List<Ciudad> buscarCiudades(Collection<UUID> ciudadIds) {
+		return ciudades.findAllById(ciudadIds).stream().map(CiudadEntidad::aDominio).toList();
 	}
 
 }
