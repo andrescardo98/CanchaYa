@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import co.edu.uco.canchaya.identidad.domain.Rol;
@@ -16,6 +17,10 @@ public final class Escenario {
 	private static final int DECIMALES_COORDENADA = 6;
 	private static final BigDecimal LATITUD_MAXIMA = BigDecimal.valueOf(90);
 	private static final BigDecimal LONGITUD_MAXIMA = BigDecimal.valueOf(180);
+	// Precisión y rango del atributo calificacionPromedio del enriquecido
+	private static final int DECIMALES_CALIFICACION = 1;
+	private static final int CALIFICACION_MINIMA = 1;
+	private static final int CALIFICACION_MAXIMA = 5;
 
 	private final UUID id;
 	private final String nombre;
@@ -158,6 +163,31 @@ public final class Escenario {
 	/** RN-04. */
 	public boolean estaActivo() {
 		return estado == EstadoEscenario.ACTIVO;
+	}
+
+	/**
+	 * Responsabilidad «calcularCalificacionPromedio» (HU19), D05: se calcula al consultar y no se
+	 * guarda. La política 6 (que exista el escenario) la revisa el caso de uso.
+	 *
+	 * @param calificaciones las de las reseñas del escenario, que llegan por el puerto
+	 *        ConsultaCalificaciones
+	 * @return el promedio con un decimal, o vacío si no hay calificaciones (nunca cero)
+	 */
+	public static Optional<BigDecimal> calcularCalificacionPromedio(List<Short> calificaciones) {
+		if (calificaciones == null) {
+			return Optional.empty();
+		}
+		// Política 11: solo cuentan las calificaciones de 1 a 5
+		List<Short> validas = calificaciones.stream()
+				.filter(c -> c != null && c >= CALIFICACION_MINIMA && c <= CALIFICACION_MAXIMA)
+				.toList();
+		// Política 12: sin reseñas no se presenta calificación
+		if (validas.isEmpty()) {
+			return Optional.empty();
+		}
+		int suma = validas.stream().mapToInt(Short::intValue).sum();
+		return Optional.of(BigDecimal.valueOf(suma)
+				.divide(BigDecimal.valueOf(validas.size()), DECIMALES_CALIFICACION, RoundingMode.HALF_UP));
 	}
 
 	private static boolean fueraDeRango(BigDecimal valor, BigDecimal maximo) {

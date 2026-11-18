@@ -67,9 +67,11 @@ final class CanchasEnMemoria {
 				throw new UnsupportedOperationException();
 			}
 
+			// HU19: todas las canchas del escenario, también las INACTIVAS
 			@Override
 			public List<UUID> idsCanchas(UUID escenarioId) {
-				throw new UnsupportedOperationException();
+				return canchas.stream().filter(c -> c.getEscenarioId().equals(escenarioId)).map(Cancha::getId)
+						.toList();
 			}
 		};
 	}
