@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import co.edu.uco.canchaya.escenarios.application.port.in.CambiarEstadoEscenario;
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarPerfilEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarEscenariosAdministracion;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarEscenariosAdministracion.EscenarioAdministracion;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarEscenario;
@@ -57,6 +58,10 @@ class EstadoEscenarioControllerTest {
 
 	@MockitoBean
 	private CambiarEstadoEscenario cambiarEstado;
+
+	// Del mismo controlador, de la HU19; sus pruebas están en PerfilEscenarioControllerTest
+	@MockitoBean
+	private ConsultarPerfilEscenario consultarPerfil;
 
 	@MockitoBean
 	private RegistrarEscenario registrarEscenario;

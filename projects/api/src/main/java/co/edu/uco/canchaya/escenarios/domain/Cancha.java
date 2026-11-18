@@ -87,6 +87,21 @@ public final class Cancha {
 		return estado == EstadoCancha.DISPONIBLE;
 	}
 
+	/**
+	 * Responsabilidad «publicarEnBusqueda» (HU19 y HU18), política 11 (RN-04): la cancha se
+	 * muestra si está DISPONIBLE, su escenario está ACTIVO y el escenario tiene al menos un
+	 * horario. El precio por hora siempre existe: {@link #registrar} no deja crear una cancha sin
+	 * él. La política 7 (que exista la cancha) la revisa el caso de uso.
+	 *
+	 * @param escenario el escenario de esta cancha
+	 * @param escenarioTieneHorarios si el escenario tiene al menos un horario recurrente; lo
+	 *        consulta el caso de uso y llega como un valor simple (nota «Datos de otros módulos»
+	 *        de clases.md)
+	 */
+	public boolean publicarEnBusqueda(Escenario escenario, boolean escenarioTieneHorarios) {
+		return estaDisponible() && escenario.estaActivo() && escenarioTieneHorarios;
+	}
+
 	private static String recortar(String texto) {
 		return texto == null ? null : texto.strip();
 	}

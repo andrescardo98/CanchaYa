@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import co.edu.uco.canchaya.escenarios.application.port.in.CambiarEstadoEscenario;
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarPerfilEscenario;
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarPerfilEscenario.PerfilEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarEscenariosAdministracion;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarEscenario.FotoAdjunta;
@@ -37,13 +39,16 @@ class EscenarioController {
 	private final RegistrarEscenario registrarEscenario;
 	private final ListarEscenariosAdministracion listarEscenarios;
 	private final CambiarEstadoEscenario cambiarEstado;
+	private final ConsultarPerfilEscenario consultarPerfil;
 	private final CatalogoMensajes catalogo;
 
 	EscenarioController(RegistrarEscenario registrarEscenario, ListarEscenariosAdministracion listarEscenarios,
-			CambiarEstadoEscenario cambiarEstado, CatalogoMensajes catalogo) {
+			CambiarEstadoEscenario cambiarEstado, ConsultarPerfilEscenario consultarPerfil,
+			CatalogoMensajes catalogo) {
 		this.registrarEscenario = registrarEscenario;
 		this.listarEscenarios = listarEscenarios;
 		this.cambiarEstado = cambiarEstado;
+		this.consultarPerfil = consultarPerfil;
 		this.catalogo = catalogo;
 	}
 
@@ -73,6 +78,17 @@ class EscenarioController {
 		String mensaje = catalogo.texto("EXI-ESC-03", List.of(escenario.getNombre(),
 				new TextoCatalogo("estado." + escenario.getEstado().name())));
 		return new RespuestaCambioEstado("EXI-ESC-03", mensaje, escenario.getId(), escenario.getEstado());
+	}
+
+	// HU19: perfil público del escenario, sin sesión (AG-11). ERR-ESC-06 sale como 404 (ManejadorErrores)
+	@GetMapping("/{id}/perfil")
+	RespuestaPerfilEscenario perfil(@PathVariable UUID id) {
+		PerfilEscenario perfil = consultarPerfil.ejecutar(id);
+		// CA2 (AG-09): sin calificaciones no hay promedio y se informa con INF-RSE-01
+		if (perfil.calificacionPromedio() == null) {
+			return RespuestaPerfilEscenario.de(perfil, "INF-RSE-01", catalogo.texto("INF-RSE-01"));
+		}
+		return RespuestaPerfilEscenario.de(perfil, null, null);
 	}
 
 	private static FotoAdjunta aFoto(MultipartFile archivo) {
