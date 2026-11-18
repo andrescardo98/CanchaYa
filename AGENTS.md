@@ -14,6 +14,8 @@ CanchaYa/
 ├── .claude/
 │   ├── settings.json               # Permisos compartidos de Claude Code
 │   └── skills/
+│       ├── especificar/
+│       │   └── SKILL.md            # Skill que escribe la especificación técnica de una HU
 │       └── pull-request/
 │           └── SKILL.md            # Skill que llena la plantilla de pull request
 ├── .github/
@@ -31,6 +33,9 @@ CanchaYa/
 │   └── diseno/                     # Diagramas de clases, componentes y modelo entidad relación
 ├── scripts/
 │   └── exportar_docs.py            # Regenera docs/ a partir de los Excel
+├── specs/                          # Especificación técnica de cada HU (escrita a mano)
+│   ├── README.md                   # Flujo, plantillas y estado de cada especificación
+│   └── HUnn-<nombre>/              # spec.md (contrato, CA → pruebas, preguntas) y tareas.md
 └── projects/                       # Un proyecto por carpeta, cada uno con su propia arquitectura
     └── api/                        # Backend: Java 21 + Spring Boot (Maven). Tiene su propio AGENTS.md
 ```
@@ -46,6 +51,7 @@ CanchaYa/
 | `docker-compose.yml` | Servicios para desarrollar en local: PostgreSQL con PostGIS (puerto 5434) y Mailpit (correos en <http://localhost:8025>). |
 | `docs/` | Copia en Markdown de los artefactos del trabajo de grado. **No se edita a mano**: se regenera con `scripts/exportar_docs.py`. Las excepciones son `docs/README.md` y `docs/proyecto.md`, que se escriben a mano. |
 | `scripts/` | Utilidades del repositorio que no son parte de la aplicación. |
+| `specs/` | El **cómo** de cada HU: contrato del servicio, diseño por capas, criterios → pruebas, preguntas abiertas y tareas. Se escribe a mano con el skill `especificar` y no repite lo que ya está en `docs/`: lo enlaza. El flujo está en [specs/README.md](specs/README.md). |
 | `projects/` | Proyectos de código, cada uno con su propia arquitectura. `api/` (el backend) ya existe; sus comandos y reglas están en [su AGENTS.md](projects/api/AGENTS.md). El frontend se agrega después. |
 
 ## Reglas para agentes
@@ -104,7 +110,7 @@ Resumen de [docs/arquitectura/arquetipo.md](docs/arquitectura/arquetipo.md) (hoj
 
 El desarrollador debe entender y poder sustentar todo el código. Por eso:
 
-1. **Plan antes que código.** Lee la HU, las hojas del dominio que cita su «Requisito de información», los mensajes y los parámetros que nombra. Propón un plan corto (qué clases, en qué módulo y qué pruebas) y espera la aprobación antes de escribir código.
+1. **Especificación antes que código.** Con el skill `especificar` (`/especificar HUnn`), lee la HU, las hojas del dominio que cita su «Requisito de información», los mensajes y los parámetros que nombra, y escribe `specs/HUnn-<nombre>/spec.md` y `tareas.md`. No escribas código hasta que el desarrollador resuelva las preguntas abiertas y marque la especificación como **Aprobada**. Implementa una tarea de `tareas.md` a la vez y márcala al terminar. Si al implementar algo no coincide con la especificación, corrige primero la especificación.
 2. **Pruebas a partir de los criterios de aceptación.** Cada `CAn` tiene al menos una prueba, y su nombre o comentario cita el criterio.
 3. **Pasos pequeños, por capas:** dominio → caso de uso → persistencia → servicio REST → pantalla. Al terminar cada paso, explícalo antes de seguir.
 4. **Explicaciones en lenguaje sencillo:** primero qué hace y qué problema evita; el término técnico va entre paréntesis. Por ejemplo: «la base de datos rechaza dos reservas que se cruzan (restricción de exclusión)».
