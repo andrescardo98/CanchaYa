@@ -62,3 +62,5 @@ Lo que se ve relacionado pero esta HU no pide (regla 5 de «Cómo trabajar una h
 | HU | Especificación | Estado |
 |---|---|---|
 | HU19 | [HU19-perfil-escenario](HU19-perfil-escenario/spec.md) | Implementada |
+| HU20 | [HU20-consultar-disponibilidad](HU20-consultar-disponibilidad/spec.md) | Aprobada |
+| HU21 | [HU21-reservar-cancha](HU21-reservar-cancha/spec.md) | Aprobada (depende de HU20) |

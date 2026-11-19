@@ -97,7 +97,8 @@ Resumen de [docs/arquitectura/arquetipo.md](docs/arquitectura/arquetipo.md) (hoj
       ├── persistence           # Entidades JPA, repositorios y conversión al dominio
       ├── security              # Solo en identidad: JWT y Spring Security
       ├── fotos                 # Solo en escenarios: Supabase Storage o carpeta local (HU5)
-      └── calificaciones        # Solo en escenarios y TEMPORAL: sin reseñas hasta el Release 3 (HU19)
+      ├── calificaciones        # Solo en escenarios y TEMPORAL: sin reseñas hasta el Release 3 (HU19)
+      └── configuracion         # Solo en reservas: arma ParametrosReserva con los PAR-RES de application.properties (HU20)
   ```
 
   Si hace falta un paquete que no está aquí, pregunta antes de crearlo.

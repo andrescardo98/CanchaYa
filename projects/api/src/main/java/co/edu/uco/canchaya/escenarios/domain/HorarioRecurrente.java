@@ -1,6 +1,10 @@
 package co.edu.uco.canchaya.escenarios.domain;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -73,6 +77,49 @@ public final class HorarioRecurrente {
 		if (solicitante == null || !escenario.esPropietario(solicitante.usuarioId())) {
 			throw new ReglaNegocioException("ERR-HOR-02");
 		}
+	}
+
+	/**
+	 * Responsabilidad «calcularFranjas» (HU20, y HU21 para revalidar). La política 9 (que exista la
+	 * cancha) la revisa el caso de uso antes de llamarlo. Las reservas y los bloqueos no se quitan
+	 * aquí: eso lo hace Reservas con Reserva.verificarDisponibilidad.
+	 *
+	 * @param horariosEscenario  horarios del escenario de la cancha; solo cuentan los del día de la fecha
+	 * @param ahora              fecha y hora actual en America/Bogota (D27)
+	 * @param ventanaReservaDias PAR-RES-01
+	 * @return las franjas de una hora de la fecha, por hora de inicio, sin las que ya empezaron
+	 * @throws ReglaNegocioException ERR-HOR-10 si la fecha es anterior a hoy o posterior a hoy + ventanaReservaDias
+	 */
+	public static List<Franja> calcularFranjas(List<HorarioRecurrente> horariosEscenario, LocalDate fecha,
+			LocalDateTime ahora, int ventanaReservaDias) {
+		Objects.requireNonNull(horariosEscenario, "horariosEscenario");
+		Objects.requireNonNull(fecha, "fecha");
+		Objects.requireNonNull(ahora, "ahora");
+
+		// Política 10 (RN-11). La ventana incluye hoy y hoy + ventanaReservaDias (P6 de HU20)
+		LocalDate hoy = ahora.toLocalDate();
+		if (fecha.isBefore(hoy) || fecha.isAfter(hoy.plusDays(ventanaReservaDias))) {
+			throw new ReglaNegocioException("ERR-HOR-10");
+		}
+
+		DiaSemana dia = DiaSemana.de(fecha.getDayOfWeek());
+		List<Franja> franjas = new ArrayList<>();
+		for (HorarioRecurrente horario : horariosEscenario) {
+			if (horario.diaSemana != dia) {
+				continue;
+			}
+			// Política 11: franjas de una hora en punto, desde el inicio hasta el fin del horario
+			for (LocalTime inicio = horario.horaInicio; inicio.isBefore(horario.horaFin);
+					inicio = inicio.plus(Franja.DURACION)) {
+				Franja franja = new Franja(fecha, inicio, inicio.plus(Franja.DURACION));
+				// Política 12: la que ya empezó no se ofrece
+				if (franja.inicio().isAfter(ahora)) {
+					franjas.add(franja);
+				}
+			}
+		}
+		franjas.sort(Comparator.comparing(Franja::horaInicio));
+		return List.copyOf(franjas);
 	}
 
 	/** Vuelve a armar un horario ya guardado, sin repetir las validaciones. */
