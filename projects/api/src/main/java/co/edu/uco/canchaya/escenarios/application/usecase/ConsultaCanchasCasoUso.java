@@ -55,9 +55,10 @@ public class ConsultaCanchasCasoUso implements ConsultaCanchas {
 
 	@Override
 	public List<Franja> franjasDelDia(UUID canchaId, LocalDate fecha) {
-		// Política 9 de HorarioRecurrente
+		// Política 9 de HorarioRecurrente. Es el respaldo: quien llama ya revisó ERR-RES-01 con
+		// buscarReservable (nota de ERR-HOR-09 en el catálogo de mensajes)
 		Cancha cancha = repositorioCanchas.buscarPorId(canchaId)
-				.orElseThrow(() -> new ReglaNegocioException("ERR-RES-01"));
+				.orElseThrow(() -> new ReglaNegocioException("ERR-HOR-09"));
 		List<HorarioRecurrente> horarios = repositorioHorarios.buscarPorEscenarioYDia(cancha.getEscenarioId(),
 				DiaSemana.de(fecha.getDayOfWeek()));
 		return HorarioRecurrente.calcularFranjas(horarios, fecha, LocalDateTime.now(reloj), ventanaReservaDias);

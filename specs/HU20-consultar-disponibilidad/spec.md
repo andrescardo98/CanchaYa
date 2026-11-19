@@ -1,6 +1,6 @@
 # HU20 · Consultar la disponibilidad de una cancha
 
-**Estado:** Aprobada (18-nov-2026) · **HU:** [HU20](../../docs/historias/HU20.md) · **Módulos:** Reservas (`co.edu.uco.canchaya.reservas`), que arma la disponibilidad, y Escenarios y canchas (`co.edu.uco.canchaya.escenarios`), que entrega las franjas, los bloqueos y el turno de la cancha
+**Estado:** Implementada (18-nov-2026) · **HU:** [HU20](../../docs/historias/HU20.md) · **Módulos:** Reservas (`co.edu.uco.canchaya.reservas`), que arma la disponibilidad, y Escenarios y canchas (`co.edu.uco.canchaya.escenarios`), que entrega las franjas, los bloqueos y el turno de la cancha
 
 Esta especificación define **una sola vez** las piezas que comparte con [HU21](../HU21-reservar-cancha/spec.md): el record `Franja`, `HorarioRecurrente.calcularFranjas`, `Reserva.verificarDisponibilidad`, el record `ParametrosReserva`, el puerto `ConsultaCanchas` (con `bloqueosDelDia` y `tomarTurno`, D36) y la lectura de las reservas confirmadas de una cancha. HU21 las reutiliza y no las vuelve a definir.
 
@@ -128,7 +128,7 @@ public interface ConsultaCanchas {
 	/** Vacío si la cancha no existe, no está DISPONIBLE o su escenario no está ACTIVO (política 1 de Reserva, P2). */
 	Optional<CanchaReservable> buscarReservable(UUID canchaId);
 
-	/** HorarioRecurrente.calcularFranjas con los horarios del escenario de la cancha. @throws ERR-RES-01 (no existe, política 9) o ERR-HOR-10 */
+	/** HorarioRecurrente.calcularFranjas con los horarios del escenario de la cancha. @throws ERR-HOR-09 (no existe, política 9; respaldo de ERR-RES-01, que ya revisó quien llama) o ERR-HOR-10 */
 	List<Franja> franjasDelDia(UUID canchaId, LocalDate fecha);
 
 	/** D36. Solo las horas: el jugador no ve el tipo ni el motivo del bloqueo. */
@@ -192,7 +192,7 @@ Pasos de `ConsultarDisponibilidadCasoUso.ejecutar(canchaId, fecha)`, sin transac
 4. `consultaCanchas.bloqueosDelDia` y `repositorioReservas.confirmadasDeCanchaEnFecha`.
 5. `franjasLibres` = las franjas que no se cruzan (`Franja.seCruzaCon`) con ninguna reserva ni bloqueo (política 11 de HorarioRecurrente y 3 de Reserva).
 6. Cada franja sale con `libre = Reserva.verificarDisponibilidad(fecha, f.horaInicio(), f.horaFin(), true, franjasLibres, ahora, parametros)` (CA1, CA2).
-7. Sin franjas → `INF-HOR-01` (CA4).
+7. Sin franjas, `franjas` sale vacía; el controlador agrega `INF-HOR-01` (CA4), igual que `INF-RSE-01` en HU19. Por eso `Disponibilidad` no lleva código ni mensaje.
 
 ## Criterios de aceptación → pruebas
 

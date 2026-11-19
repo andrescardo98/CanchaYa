@@ -131,8 +131,8 @@ class ConsultaCanchasCasoUsoTest {
 	}
 
 	@Test
-	void politica9LasFranjasDeUnaCanchaQueNoExisteSonErrRes01() {
-		esperarError(() -> consulta.franjasDelDia(UUID.randomUUID(), HOY), "ERR-RES-01");
+	void politica9LasFranjasDeUnaCanchaQueNoExisteSonErrHor09() {
+		esperarError(() -> consulta.franjasDelDia(UUID.randomUUID(), HOY), "ERR-HOR-09");
 	}
 
 	// bloqueosDelDia y tomarTurno (D36)

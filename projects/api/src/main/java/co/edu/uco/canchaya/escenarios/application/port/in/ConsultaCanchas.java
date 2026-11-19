@@ -22,8 +22,8 @@ public interface ConsultaCanchas {
 	 * HorarioRecurrente.calcularFranjas con los horarios del escenario de la cancha, la ventana de
 	 * PAR-RES-01 y la hora del servidor (D27).
 	 *
-	 * @throws co.edu.uco.canchaya.transversal.domain.ReglaNegocioException ERR-RES-01 si la cancha no
-	 *         existe (política 9) o ERR-HOR-10 si la fecha está fuera de la ventana (política 10)
+	 * @throws co.edu.uco.canchaya.transversal.domain.ReglaNegocioException ERR-HOR-09 si la cancha no
+	 *         existe (política 9, respaldo de ERR-RES-01) o ERR-HOR-10 si la fecha está fuera de la ventana (política 10)
 	 */
 	List<Franja> franjasDelDia(UUID canchaId, LocalDate fecha);
 
