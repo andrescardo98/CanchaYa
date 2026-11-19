@@ -23,15 +23,16 @@ public final class Escenario {
 	private static final int CALIFICACION_MAXIMA = 5;
 
 	private final UUID id;
-	private final String nombre;
-	private final String descripcion;
-	private final String direccion;
-	private final UUID ciudadId;
-	private final BigDecimal latitud;
-	private final BigDecimal longitud;
-	private final String telefonoContacto;
-	private final String correoContacto;
-	private final List<String> fotos;
+	// No son final: los cambia modificar (HU8)
+	private String nombre;
+	private String descripcion;
+	private String direccion;
+	private UUID ciudadId;
+	private BigDecimal latitud;
+	private BigDecimal longitud;
+	private String telefonoContacto;
+	private String correoContacto;
+	private List<String> fotos;
 	private final UUID administradorId;
 	// No es final: lo cambia cambiarEstado (HU13)
 	private EstadoEscenario estado;
@@ -118,6 +119,48 @@ public final class Escenario {
 	public Escenario conNuevoId() {
 		return new Escenario(UUID.randomUUID(), nombre, descripcion, direccion, ciudadId, latitud, longitud,
 				telefonoContacto, correoContacto, fotos, administradorId, estado);
+	}
+
+	/**
+	 * Responsabilidad «modificar» (HU8). La política 6 (que exista el escenario), la 2 (que exista
+	 * la ciudad) y el formato y el peso de cada foto nueva los revisa el caso de uso antes de
+	 * llamarlo. El id, el propietario y el estado no cambian.
+	 *
+	 * @param fotos direcciones de las fotos que quedan: las conservadas y las nuevas ya subidas
+	 * @throws ReglaNegocioException ERR-ESC-07, ERR-ESC-03 o ERR-ESC-13
+	 */
+	public void modificar(String nombre, String descripcion, String direccion, UUID ciudadId, BigDecimal latitud,
+			BigDecimal longitud, String telefonoContacto, String correoContacto, List<String> fotos,
+			Solicitante solicitante, int maximoFotos) {
+		validarPropietario(solicitante);
+		validarUbicacion(latitud, longitud);
+		validarCantidadFotos(fotos.size(), maximoFotos);
+
+		// Se cambia todo después de validar, así un error no deja el escenario a medias
+		this.nombre = recortar(nombre);
+		this.descripcion = opcional(descripcion);
+		this.direccion = recortar(direccion);
+		this.ciudadId = ciudadId;
+		this.latitud = redondear(latitud);
+		this.longitud = redondear(longitud);
+		this.telefonoContacto = recortar(telefonoContacto);
+		this.correoContacto = opcional(correoContacto);
+		this.fotos = List.copyOf(fotos);
+	}
+
+	/**
+	 * Política 7 (RN-05, RN-15): solo el propietario modifica el escenario. El encargado de sede
+	 * también es administrador de cancha, pero no es el propietario, y el administrador del
+	 * sistema tampoco puede (P3 de la especificación de HU8). Se expone para que el caso de uso la
+	 * revise antes de subir las fotos y para la consulta que llena el formulario.
+	 *
+	 * @throws ReglaNegocioException ERR-ESC-07
+	 */
+	public void validarPropietario(Solicitante solicitante) {
+		if (solicitante == null || !solicitante.tieneRol(Rol.ADMINISTRADOR_CANCHA)
+				|| !esPropietario(solicitante.usuarioId())) {
+			throw new ReglaNegocioException("ERR-ESC-07");
+		}
 	}
 
 	/**

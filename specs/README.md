@@ -61,4 +61,5 @@ Lo que se ve relacionado pero esta HU no pide (regla 5 de «Cómo trabajar una h
 
 | HU | Especificación | Estado |
 |---|---|---|
+| HU8 | [HU8-modificar-escenario](HU8-modificar-escenario/spec.md) | Implementada |
 | HU19 | [HU19-perfil-escenario](HU19-perfil-escenario/spec.md) | Implementada |

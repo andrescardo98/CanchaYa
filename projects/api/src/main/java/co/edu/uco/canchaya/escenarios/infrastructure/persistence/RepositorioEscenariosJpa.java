@@ -39,6 +39,22 @@ class RepositorioEscenariosJpa implements RepositorioEscenarios {
 		return jpa.findById(id).map(EscenarioEntidad::aDominio);
 	}
 
+	/*
+	 * HU8: los datos y la lista de fotos entran juntos o no entra nada. Hibernate inserta las filas
+	 * nuevas antes de borrar las viejas, y dos fotos con la misma posición chocarían con
+	 * uq_foto_escenario_orden; por eso primero se borran las viejas (flush) y luego se agregan las nuevas.
+	 */
+	@Override
+	@Transactional
+	public void actualizar(Escenario escenario) {
+		EscenarioEntidad entidad = jpa.findById(escenario.getId()).orElseThrow();
+		entidad.copiarDatosModificables(escenario);
+		entidad.quitarFotos();
+		jpa.flush();
+		entidad.agregarFotos(escenario.getFotos());
+		jpa.flush();
+	}
+
 	@Override
 	@Transactional
 	public void actualizarEstado(Escenario escenario) {

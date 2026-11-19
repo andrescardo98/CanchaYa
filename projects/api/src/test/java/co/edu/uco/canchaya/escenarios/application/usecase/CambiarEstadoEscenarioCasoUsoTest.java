@@ -192,6 +192,11 @@ class CambiarEstadoEscenarioCasoUsoTest {
 		}
 
 		@Override
+		public void actualizar(Escenario escenario) {
+			throw new UnsupportedOperationException(); // HU8
+		}
+
+		@Override
 		public void actualizarEstado(Escenario escenario) {
 			actualizados.add(escenario.getEstado());
 			ultimoGuardado = escenario.getEstado();

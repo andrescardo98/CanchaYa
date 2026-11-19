@@ -17,7 +17,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import co.edu.uco.canchaya.escenarios.application.port.in.CambiarEstadoEscenario;
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarEscenarioPropietario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarPerfilEscenario;
+import co.edu.uco.canchaya.escenarios.application.port.in.ModificarEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarPerfilEscenario.CanchaPerfil;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarPerfilEscenario.PerfilEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarEscenariosAdministracion;
@@ -39,6 +41,13 @@ class PerfilEscenarioControllerTest {
 
 	@MockitoBean
 	private ConsultarPerfilEscenario consultarPerfil;
+
+	// Del mismo controlador, de la HU8; sus pruebas están en ModificarEscenarioControllerTest
+	@MockitoBean
+	private ConsultarEscenarioPropietario consultarEscenario;
+
+	@MockitoBean
+	private ModificarEscenario modificarEscenario;
 
 	// Del mismo controlador (HU5 y HU13); sus pruebas están en EscenarioControllerTest y EstadoEscenarioControllerTest
 	@MockitoBean

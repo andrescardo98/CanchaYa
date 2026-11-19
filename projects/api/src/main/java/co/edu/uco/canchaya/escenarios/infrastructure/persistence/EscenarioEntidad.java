@@ -90,12 +90,32 @@ class EscenarioEntidad implements Persistable<UUID> {
 		entidad.correoContacto = escenario.getCorreoContacto();
 		entidad.administradorId = escenario.getAdministradorId();
 		entidad.estado = escenario.getEstado();
-		List<String> urls = escenario.getFotos();
+		entidad.agregarFotos(escenario.getFotos());
+		return entidad;
+	}
+
+	// HU8: los datos que cambia Escenario.modificar. El propietario y el estado no cambian aquí
+	void copiarDatosModificables(Escenario escenario) {
+		nombre = escenario.getNombre();
+		descripcion = escenario.getDescripcion();
+		direccion = escenario.getDireccion();
+		ciudadId = escenario.getCiudadId();
+		latitud = escenario.getLatitud();
+		longitud = escenario.getLongitud();
+		telefonoContacto = escenario.getTelefonoContacto();
+		correoContacto = escenario.getCorreoContacto();
+	}
+
+	// Las filas quitadas se borran al guardar (orphanRemoval)
+	void quitarFotos() {
+		fotos.clear();
+	}
+
+	void agregarFotos(List<String> urls) {
 		for (int i = 0; i < urls.size(); i++) {
 			// orden va de 1 a 5 (ck_foto_escenario_orden)
-			entidad.fotos.add(new FotoEscenarioEntidad(entidad, urls.get(i), (short) (i + 1)));
+			fotos.add(new FotoEscenarioEntidad(this, urls.get(i), (short) (i + 1)));
 		}
-		return entidad;
 	}
 
 	// Las fotos se cargan aquí: hay que llamarlo dentro de una transacción
