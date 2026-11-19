@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,9 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import co.edu.uco.canchaya.escenarios.application.port.in.CambiarEstadoEscenario;
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarEscenarioPropietario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarPerfilEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarPerfilEscenario.PerfilEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarEscenariosAdministracion;
+import co.edu.uco.canchaya.escenarios.application.port.in.ModificarEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarEscenario.FotoAdjunta;
 import co.edu.uco.canchaya.escenarios.domain.Escenario;
@@ -40,15 +43,20 @@ class EscenarioController {
 	private final ListarEscenariosAdministracion listarEscenarios;
 	private final CambiarEstadoEscenario cambiarEstado;
 	private final ConsultarPerfilEscenario consultarPerfil;
+	private final ConsultarEscenarioPropietario consultarEscenario;
+	private final ModificarEscenario modificarEscenario;
 	private final CatalogoMensajes catalogo;
 
 	EscenarioController(RegistrarEscenario registrarEscenario, ListarEscenariosAdministracion listarEscenarios,
 			CambiarEstadoEscenario cambiarEstado, ConsultarPerfilEscenario consultarPerfil,
+			ConsultarEscenarioPropietario consultarEscenario, ModificarEscenario modificarEscenario,
 			CatalogoMensajes catalogo) {
 		this.registrarEscenario = registrarEscenario;
 		this.listarEscenarios = listarEscenarios;
 		this.cambiarEstado = cambiarEstado;
 		this.consultarPerfil = consultarPerfil;
+		this.consultarEscenario = consultarEscenario;
+		this.modificarEscenario = modificarEscenario;
 		this.catalogo = catalogo;
 	}
 
@@ -56,8 +64,7 @@ class EscenarioController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	ResponseEntity<RespuestaRegistroEscenario> registrar(@Valid @RequestPart("datos") SolicitudRegistroEscenario datos,
 			@RequestPart(name = "fotos", required = false) List<MultipartFile> fotos, Solicitante solicitante) {
-		List<FotoAdjunta> adjuntas = fotos == null ? List.of() : fotos.stream().map(EscenarioController::aFoto).toList();
-		Escenario escenario = registrarEscenario.ejecutar(datos.aDatos(adjuntas), solicitante);
+		Escenario escenario = registrarEscenario.ejecutar(datos.aDatos(adjuntas(fotos)), solicitante);
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(RespuestaRegistroEscenario.de(escenario, "EXI-ESC-01", catalogo.texto("EXI-ESC-01")));
 	}
@@ -89,6 +96,25 @@ class EscenarioController {
 			return RespuestaPerfilEscenario.de(perfil, "INF-RSE-01", catalogo.texto("INF-RSE-01"));
 		}
 		return RespuestaPerfilEscenario.de(perfil, null, null);
+	}
+
+	// HU8, CA1: los datos actuales para el formulario, solo al propietario (P2), aunque esté INACTIVO
+	@GetMapping("/{id}")
+	RespuestaEscenario consultar(@PathVariable UUID id, Solicitante solicitante) {
+		return RespuestaEscenario.de(consultarEscenario.ejecutar(id, solicitante));
+	}
+
+	// HU8. Multipart como el registro: «datos» con fotosConservadas y las fotos nuevas en «fotos» (P1)
+	@PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	RespuestaModificarEscenario modificar(@PathVariable UUID id,
+			@Valid @RequestPart("datos") SolicitudModificarEscenario datos,
+			@RequestPart(name = "fotos", required = false) List<MultipartFile> fotos, Solicitante solicitante) {
+		Escenario escenario = modificarEscenario.ejecutar(id, datos.aDatos(adjuntas(fotos)), solicitante);
+		return RespuestaModificarEscenario.de(escenario, "EXI-ESC-02", catalogo.texto("EXI-ESC-02"));
+	}
+
+	private static List<FotoAdjunta> adjuntas(List<MultipartFile> fotos) {
+		return fotos == null ? List.of() : fotos.stream().map(EscenarioController::aFoto).toList();
 	}
 
 	private static FotoAdjunta aFoto(MultipartFile archivo) {

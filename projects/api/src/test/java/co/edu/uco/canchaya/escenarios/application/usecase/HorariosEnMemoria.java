@@ -72,6 +72,11 @@ final class HorariosEnMemoria implements RepositorioHorarios {
 		}
 
 		@Override
+		public void actualizar(Escenario escenario) {
+			throw new UnsupportedOperationException(); // HU8
+		}
+
+		@Override
 		public void actualizarEstado(Escenario escenario) {
 			throw new UnsupportedOperationException();
 		}

@@ -17,6 +17,12 @@ public interface RepositorioEscenarios {
 	/** Con sus fotos (HU13). */
 	Optional<Escenario> buscarPorId(UUID id);
 
+	/**
+	 * Guarda los datos del escenario y reemplaza sus fotos en una sola transacción (HU8). El
+	 * propietario y el estado no cambian.
+	 */
+	void actualizar(Escenario escenario);
+
 	/** Guarda solo el estado; nada más del escenario cambia (HU13). */
 	void actualizarEstado(Escenario escenario);
 
