@@ -1,0 +1,47 @@
+package co.edu.uco.canchaya.escenarios.application.port.in;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import co.edu.uco.canchaya.escenarios.domain.Franja;
+
+/** Lo que Escenarios ofrece a Reservas sobre una cancha (componentes.md, D36). Lo usan HU20 y HU21. */
+public interface ConsultaCanchas {
+
+	/**
+	 * Vacío si la cancha no existe, no está DISPONIBLE o su escenario no está ACTIVO (política 1 de
+	 * Reserva, P2 de HU20).
+	 */
+	Optional<CanchaReservable> buscarReservable(UUID canchaId);
+
+	/**
+	 * HorarioRecurrente.calcularFranjas con los horarios del escenario de la cancha, la ventana de
+	 * PAR-RES-01 y la hora del servidor (D27).
+	 *
+	 * @throws co.edu.uco.canchaya.transversal.domain.ReglaNegocioException ERR-HOR-09 si la cancha no
+	 *         existe (política 9, respaldo de ERR-RES-01) o ERR-HOR-10 si la fecha está fuera de la ventana (política 10)
+	 */
+	List<Franja> franjasDelDia(UUID canchaId, LocalDate fecha);
+
+	/** D36. Solo las horas: el jugador no ve el tipo ni el motivo del bloqueo (P5 de HU20). */
+	List<RangoBloqueado> bloqueosDelDia(UUID canchaId, LocalDate fecha);
+
+	/**
+	 * D29 punto 2 y D36: bloquea la fila de la cancha (select ... for update) hasta que termina la
+	 * transacción de quien llama. Exige una transacción abierta (Propagation.MANDATORY).
+	 */
+	void tomarTurno(UUID canchaId);
+
+	/** nombre y nombreEscenario los usa EXI-RES-01 (HU21); precioHora, la política 11 de confirmar. */
+	record CanchaReservable(UUID id, UUID escenarioId, String nombre, String nombreEscenario, BigDecimal precioHora) {
+	}
+
+	/** Horas de un bloqueo de la cancha en un día. */
+	record RangoBloqueado(LocalTime horaInicio, LocalTime horaFin) {
+	}
+
+}

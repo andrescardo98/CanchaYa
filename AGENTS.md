@@ -97,12 +97,13 @@ Resumen de [docs/arquitectura/arquetipo.md](docs/arquitectura/arquetipo.md) (hoj
       ├── persistence           # Entidades JPA, repositorios y conversión al dominio
       ├── security              # Solo en identidad: JWT y Spring Security
       ├── fotos                 # Solo en escenarios: Supabase Storage o carpeta local (HU5)
-      └── calificaciones        # Solo en escenarios y TEMPORAL: sin reseñas hasta el Release 3 (HU19)
+      ├── calificaciones        # Solo en escenarios y TEMPORAL: sin reseñas hasta el Release 3 (HU19)
+      └── configuracion         # Solo en reservas: arma ParametrosReserva con los PAR-RES de application.properties (HU20)
   ```
 
   Si hace falta un paquete que no está aquí, pregunta antes de crearlo.
 - **El dominio no depende de Spring, de la base de datos ni de ninguna librería externa**, tampoco en los módulos de hexagonal simplificada: la clase que se guarda (con JPA) va aparte en `infrastructure.persistence` (D39).
-- **Entre módulos solo se usan los puertos de entrada** que cada uno ofrece (`ConsultaUsuarios`, `ConsultaUbicacion`, `ConsultaCanchas`, `ConsultaEscenarios`, `ConsultaReservas`). Nunca el dominio, los adaptadores ni las tablas de otro módulo. `ConsultaReservasFuturas` la define Escenarios y la implementa Reservas (D08). Estas reglas se revisan con pruebas de ArchUnit.
+- **Entre módulos solo se usan los puertos de entrada** que cada uno ofrece (`ConsultaUsuarios`, `ConsultaUbicacion`, `ConsultaCanchas`, `ConsultaEscenarios`, `ConsultaReservas`). Nunca el dominio, los adaptadores ni las tablas de otro módulo. `ConsultaReservasFuturas` la define Escenarios y la implementa Reservas (D08). La excepción son los records de valor que no cambian y no tienen reglas propias de su módulo, que pasan de un módulo a otro tal cual: `identidad.domain.Solicitante` y `escenarios.domain.Franja` (P1 de HU20). Estas reglas se revisan con pruebas de ArchUnit.
 - **Concurrencia de reservas** (D29, D36): restricción de exclusión en la base de datos, turno por cancha con `ConsultaCanchas.tomarTurno(canchaId)` dentro de la transacción y actualización condicional para confirmar asistencia y cancelar automáticamente.
 - **Correos** (D15): se envían después de guardar. Si fallan, la operación no se revierte: se registra el error y no se reintenta.
 - **Fechas y horas** (D27): todo se calcula en `America/Bogota`.

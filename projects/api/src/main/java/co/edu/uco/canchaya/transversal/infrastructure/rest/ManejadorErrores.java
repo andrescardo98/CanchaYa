@@ -60,7 +60,8 @@ class ManejadorErrores {
 			Map.entry("ERR-GEN-06", HttpStatus.FORBIDDEN), // HU13: sin permiso para ver la administración de escenarios
 			Map.entry("ERR-GEN-07", HttpStatus.BAD_REQUEST), // HU8 (P1): petición manipulada, por ejemplo una foto conservada que no es del escenario
 			Map.entry("ERR-HOR-01", HttpStatus.NOT_FOUND), // HU7: no existe el escenario del horario
-			Map.entry("ERR-HOR-02", HttpStatus.FORBIDDEN)); // HU7: solo el propietario gestiona los horarios
+			Map.entry("ERR-HOR-02", HttpStatus.FORBIDDEN), // HU7: solo el propietario gestiona los horarios
+			Map.entry("ERR-RES-01", HttpStatus.NOT_FOUND)); // HU20: la cancha no existe o no se puede reservar
 
 	@ExceptionHandler(ReglaNegocioException.class)
 	ResponseEntity<RespuestaError> reglaIncumplida(ReglaNegocioException ex) {

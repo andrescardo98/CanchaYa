@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -167,6 +168,16 @@ class RegistrarCanchaCasoUsoTest {
 		@Override
 		public List<Cancha> listarPorEscenario(UUID escenarioId) {
 			return real.listarPorEscenario(escenarioId);
+		}
+
+		@Override
+		public Optional<Cancha> buscarPorId(UUID id) {
+			return real.buscarPorId(id);
+		}
+
+		@Override
+		public void tomarTurno(UUID id) {
+			real.tomarTurno(id);
 		}
 	}
 

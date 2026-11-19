@@ -1,11 +1,13 @@
 package co.edu.uco.canchaya.escenarios.infrastructure.persistence;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioCanchas;
@@ -52,6 +54,19 @@ class RepositorioCanchasJpa implements RepositorioCanchas {
 	@Transactional(readOnly = true)
 	public List<Cancha> listarPorEscenario(UUID escenarioId) {
 		return jpa.findByEscenarioIdOrderByNombreAsc(escenarioId).stream().map(CanchaEntidad::aDominio).toList();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<Cancha> buscarPorId(UUID id) {
+		return jpa.findById(id).map(CanchaEntidad::aDominio);
+	}
+
+	@Override
+	// MANDATORY: sin la transacción de quien llama, el bloqueo se soltaría en seguida y no serviría
+	@Transactional(propagation = Propagation.MANDATORY)
+	public void tomarTurno(UUID id) {
+		jpa.bloquearFila(id);
 	}
 
 	private static String nombreRestriccion(Throwable error) {

@@ -15,22 +15,37 @@ import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioEscenarios
 import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioTiposCancha;
 import co.edu.uco.canchaya.escenarios.domain.Cancha;
 import co.edu.uco.canchaya.escenarios.domain.Escenario;
+import co.edu.uco.canchaya.escenarios.domain.EstadoCancha;
 import co.edu.uco.canchaya.escenarios.domain.EstadoEscenario;
 import co.edu.uco.canchaya.escenarios.domain.TipoCancha;
 
-/** Repositorios falsos que comparten las pruebas de los casos de uso de canchas (HU6). */
+/** Repositorios falsos que comparten las pruebas de los casos de uso de canchas (HU6 y HU20). */
 final class CanchasEnMemoria {
 
 	final Map<UUID, Escenario> escenarios = new HashMap<>();
 	final List<Cancha> canchas = new ArrayList<>();
 	final List<TipoCancha> tipos = new ArrayList<>();
+	// Canchas de las que se tomó el turno (HU20, D36)
+	final List<UUID> turnosTomados = new ArrayList<>();
 
 	Escenario escenarioDe(UUID propietarioId) {
+		return escenarioDe(propietarioId, EstadoEscenario.INACTIVO);
+	}
+
+	Escenario escenarioDe(UUID propietarioId, EstadoEscenario estado) {
 		Escenario escenario = Escenario.reconstruir(UUID.randomUUID(), "Cancha La 80", null, "Calle 80 # 45-10",
 				UUID.randomUUID(), new BigDecimal("6.155123"), new BigDecimal("-75.373700"), "+573001234567", null,
-				List.of(), propietarioId, EstadoEscenario.INACTIVO);
+				List.of(), propietarioId, estado);
 		escenarios.put(escenario.getId(), escenario);
 		return escenario;
+	}
+
+	/** Una cancha ya guardada, con el estado que pida la prueba (HU20). */
+	Cancha cancha(Escenario escenario, String nombre, EstadoCancha estado) {
+		Cancha cancha = Cancha.reconstruir(UUID.randomUUID(), escenario.getId(), UUID.randomUUID(), nombre,
+				new BigDecimal("80000.00"), estado);
+		canchas.add(cancha);
+		return cancha;
 	}
 
 	TipoCancha tipo(String codigo, String nombre, int capacidad) {
@@ -105,6 +120,16 @@ final class CanchasEnMemoria {
 			public List<Cancha> listarPorEscenario(UUID escenarioId) {
 				return canchas.stream().filter(c -> c.getEscenarioId().equals(escenarioId))
 						.sorted(Comparator.comparing(Cancha::getNombre)).toList();
+			}
+
+			@Override
+			public Optional<Cancha> buscarPorId(UUID id) {
+				return canchas.stream().filter(c -> c.getId().equals(id)).findFirst();
+			}
+
+			@Override
+			public void tomarTurno(UUID id) {
+				turnosTomados.add(id);
 			}
 		};
 	}

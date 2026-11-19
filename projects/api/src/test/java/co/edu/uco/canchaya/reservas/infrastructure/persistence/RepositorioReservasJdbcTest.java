@@ -2,6 +2,7 @@ package co.edu.uco.canchaya.reservas.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -18,8 +19,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import co.edu.uco.canchaya.TestcontainersConfiguration;
 import co.edu.uco.canchaya.reservas.application.port.out.RepositorioReservas;
+import co.edu.uco.canchaya.reservas.domain.ConfirmacionAsistencia;
+import co.edu.uco.canchaya.reservas.domain.EstadoReserva;
+import co.edu.uco.canchaya.reservas.domain.Reserva;
 
-/** HU13, CA7: qué cuenta como reserva confirmada futura (RN-17, D08), con la base real. */
+/**
+ * Con la base real: HU13, CA7 (qué cuenta como reserva confirmada futura, RN-17, D08) y HU20, CA2
+ * (las reservas que ocupan franjas de una cancha en una fecha).
+ */
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 class RepositorioReservasJdbcTest {
@@ -79,10 +86,18 @@ class RepositorioReservasJdbcTest {
 	}
 
 	private void confirmada(UUID canchaId, LocalDate fecha, int hora) {
+		confirmada(canchaId, fecha, hora, hora + 1);
+	}
+
+	private UUID confirmada(UUID canchaId, LocalDate fecha, int desde, int hasta) {
+		UUID id = UUID.randomUUID();
 		jdbc.update("""
-				insert into reserva (id, cancha_id, jugador_id, fecha, hora_inicio, hora_fin, precio, estado, fecha_creacion)
-				values (?, ?, ?, ?, ?, ?, 80000, 'CONFIRMADA', now())""",
-				UUID.randomUUID(), canchaId, jugador, fecha, LocalTime.of(hora, 0), LocalTime.of(hora + 1, 0));
+				insert into reserva (id, cancha_id, jugador_id, fecha, hora_inicio, hora_fin, precio, estado,
+				  confirmacion_asistencia, fecha_creacion)
+				values (?, ?, ?, ?, ?, ?, ?, 'CONFIRMADA', 'NO_REQUERIDA', now())""",
+				id, canchaId, jugador, fecha, LocalTime.of(desde, 0), LocalTime.of(hasta, 0),
+				new BigDecimal(80000 * (hasta - desde)));
+		return id;
 	}
 
 	private void cancelada(UUID canchaId, LocalDate fecha, int hora) {
@@ -133,6 +148,41 @@ class RepositorioReservasJdbcTest {
 
 		assertThat(hayFuturas()).isFalse();
 		assertThat(repositorio.existenConfirmadasQueEmpiezanDespuesDe(List.of(cancha, otraCancha), AHORA)).isTrue();
+	}
+
+	// HU20: confirmadasDeCanchaEnFecha
+
+	@Test
+	void hu20Ca2SoloLasConfirmadasDeLaCanchaEnLaFechaYPorHoraDeInicio() {
+		UUID deDosHoras = confirmada(cancha, HOY, 18, 20);
+		confirmada(cancha, HOY, 8);
+		cancelada(cancha, HOY, 10);
+		confirmada(otraCancha, HOY, 9);
+		confirmada(cancha, HOY.plusDays(1), 8);
+
+		List<Reserva> reservas = repositorio.confirmadasDeCanchaEnFecha(cancha, HOY);
+
+		assertThat(reservas).extracting(Reserva::getHoraInicio).containsExactly(LocalTime.of(8, 0), LocalTime.of(18, 0));
+		Reserva ultima = reservas.get(1);
+		assertThat(ultima.getId()).isEqualTo(deDosHoras);
+		assertThat(ultima.getCanchaId()).isEqualTo(cancha);
+		assertThat(ultima.getJugadorId()).isEqualTo(jugador);
+		assertThat(ultima.getFecha()).isEqualTo(HOY);
+		assertThat(ultima.getHoraFin()).isEqualTo(LocalTime.of(20, 0));
+		assertThat(ultima.horas()).isEqualTo(2);
+		assertThat(ultima.getPrecio()).isEqualByComparingTo("160000");
+		assertThat(ultima.getEstado()).isEqualTo(EstadoReserva.CONFIRMADA);
+		assertThat(ultima.getConfirmacionAsistencia()).isEqualTo(ConfirmacionAsistencia.NO_REQUERIDA);
+		assertThat(ultima.getFechaCreacion()).isNotNull();
+		assertThat(ultima.getOrigenCancelacion()).isNull();
+		assertThat(ultima.getFechaSolicitudConfirmacion()).isNull();
+	}
+
+	@Test
+	void hu20Ca2SinReservasLaListaEstaVacia() {
+		cancelada(cancha, HOY, 10);
+
+		assertThat(repositorio.confirmadasDeCanchaEnFecha(cancha, HOY)).isEmpty();
 	}
 
 }
