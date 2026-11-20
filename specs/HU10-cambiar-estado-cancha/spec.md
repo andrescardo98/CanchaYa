@@ -114,9 +114,9 @@ Sin control, puede pasar esto:
 
 Opciones:
 - A. Al inactivar, el caso de uso toma el turno de la cancha (`tomarTurno`, D29 punto 2 y D36) dentro de su transacción, antes de preguntar por las reservas. HU21 toma el mismo turno antes de revisar que la cancha sea reservable (paso 1 de su especificación). Así las dos operaciones van una después de la otra y la reserva que llega después ve la cancha INACTIVA (ERR-RES-01). Activar no lo necesita.
-- B. No tomar el turno, como hace hoy HU13 con el escenario, y aceptar el riesgo.
+- B. No tomar el turno, como hacía entonces HU13 con el escenario, y aceptar el riesgo.
 
-**Recomendación: A.** Es una línea más y reutiliza lo que ya existe. Se reporta aparte que HU13 tiene el mismo riesgo con el escenario (todas sus canchas). Esta HU no lo corrige.
+**Recomendación: A.** Es una línea más y reutiliza lo que ya existe. HU13 tenía el mismo riesgo con el escenario (todas sus canchas). Esta HU no lo corrigió: se arregló aparte, en el [arreglo de concurrencia de HU13](../HU13-activar-inactivar-escenario/spec.md).
 
 **P3 · El administrador del sistema no puede cambiar el estado de la cancha (aprobada el 19-nov-2026: opción A)**
 - A. Igual que HU8 y HU9 (P3): la política 2 se aplica tal cual. Solo el propietario puede, y el administrador del sistema recibe `ERR-CAN-02`. El administrador del sistema solo cambia el estado del escenario (HU13).
@@ -129,5 +129,5 @@ Opciones:
 - Correo al propietario o a los jugadores por el cambio de estado de la cancha: D19 solo lo pide para el escenario.
 - Cancelar o mover las reservas futuras para poder inactivar: la HU dice que primero deben cumplirse o cancelarse (HU24, HU25).
 - La búsqueda de canchas (HU18): esta HU solo deja listo `publicarEnBusqueda`, que ya existe.
-- Corregir el mismo riesgo de concurrencia en HU13 (P2): se reporta, no se hace.
+- Corregir el mismo riesgo de concurrencia en HU13 (P2): se hizo aparte, en el [arreglo de concurrencia de HU13](../HU13-activar-inactivar-escenario/spec.md).
 - La pantalla.

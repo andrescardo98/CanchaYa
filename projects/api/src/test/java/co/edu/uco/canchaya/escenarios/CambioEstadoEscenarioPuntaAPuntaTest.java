@@ -68,14 +68,14 @@ class CambioEstadoEscenarioPuntaAPuntaTest {
 
 		cliente.post().uri("/api/usuarios").contentType(MediaType.APPLICATION_JSON)
 				.body("""
-						{"nombre": "Ana Pérez", "correoElectronico": "ana@correo.com", "contrasena": "Clave2026",
+						{"nombre": "Ana Pérez", "correoElectronico": "propietario.hu13@correo.com", "contrasena": "Clave2026",
 						 "tipoDocumento": "CC", "numeroDocumento": "1000000061", "numeroCelular": "+573001234567",
 						 "rol": "ADMINISTRADOR_CANCHA"}
 						""")
 				.exchange().expectStatus().isCreated();
-		propietario = jdbc.queryForObject("select id from usuario where correo_electronico = 'ana@correo.com'",
+		propietario = jdbc.queryForObject("select id from usuario where correo_electronico = 'propietario.hu13@correo.com'",
 				UUID.class);
-		tokenPropietario = token("ana@correo.com", "Clave2026", "203.0.113.62");
+		tokenPropietario = token("propietario.hu13@correo.com", "Clave2026", "203.0.113.62");
 	}
 
 	@AfterEach
@@ -175,7 +175,7 @@ class CambioEstadoEscenarioPuntaAPuntaTest {
 
 		assertThat(estadoGuardado(id)).isEqualTo("ACTIVO");
 		MimeMessage correo = correoEnviado();
-		assertThat(correo.getAllRecipients()).extracting(Object::toString).containsExactly("ana@correo.com");
+		assertThat(correo.getAllRecipients()).extracting(Object::toString).containsExactly("propietario.hu13@correo.com");
 		assertThat(correo.getSubject()).isEqualTo("Su escenario Cancha La 80 ahora está Activo");
 		assertThat((String) correo.getContent()).startsWith("Hola, Ana Pérez:");
 	}
@@ -190,6 +190,26 @@ class CambioEstadoEscenarioPuntaAPuntaTest {
 
 		assertThat(estadoGuardado(id)).isEqualTo("INACTIVO");
 		assertThat((String) correoEnviado().getContent()).contains("dejaron de aparecer en la búsqueda");
+	}
+
+	// Arreglo de HU13 (CA7, P1): con canchas se toman sus turnos, y tomarTurno exige una transacción
+	// abierta; si el caso de uso no la abriera, esta petición fallaría con 500
+	@Test
+	void ca3InactivaUnEscenarioConCanchasSinReservasFuturas() throws Exception {
+		UUID id = escenario("Cancha La 80", "ACTIVO");
+		for (String nombre : new String[] { "Cancha 1", "Cancha 2" }) {
+			jdbc.update("insert into cancha (id, escenario_id, tipo_cancha_id, nombre, precio_hora) values (?, ?, ?, ?, 80000)",
+					UUID.randomUUID(), id, UUID.fromString(F5), nombre);
+		}
+
+		cambiar(id, "INACTIVO", tokenAdministrador)
+				.expectStatus().isOk()
+				.expectBody().jsonPath("$.codigo").isEqualTo("EXI-ESC-03");
+
+		assertThat(estadoGuardado(id)).isEqualTo("INACTIVO");
+		// El correo sale después de guardar, también con la transacción nueva (D15)
+		assertThat(correoEnviado().getAllRecipients()).extracting(Object::toString)
+				.containsExactly("propietario.hu13@correo.com");
 	}
 
 	@Test
