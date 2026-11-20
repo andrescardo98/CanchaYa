@@ -214,6 +214,27 @@ class ConsultarDisponibilidadCasoUsoTest {
 			return confirmadas.stream().filter(r -> r.getFecha().equals(fecha)).toList();
 		}
 
+		// HU20 solo lee: lo que sigue es de HU21
+		@Override
+		public boolean existePorId(UUID id) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void guardar(Reserva reserva) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int contarActivasDeJugador(UUID jugadorId, LocalDateTime ahora) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int horasConfirmadasDeJugadorEnFecha(UUID jugadorId, LocalDate fecha) {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 }

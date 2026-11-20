@@ -1,6 +1,6 @@
 # HU21 · Reservar una cancha
 
-**Estado:** Aprobada (18-nov-2026) · **HU:** [HU21](../../docs/historias/HU21.md) · **Módulo:** Reservas (`co.edu.uco.canchaya.reservas`), con `ConsultaCanchas` de Escenarios y canchas
+**Estado:** Implementada (19-nov-2026; aprobada el 18-nov-2026) · **HU:** [HU21](../../docs/historias/HU21.md) · **Módulo:** Reservas (`co.edu.uco.canchaya.reservas`), con `ConsultaCanchas` de Escenarios y canchas
 
 **Depende de [HU20](../HU20-consultar-disponibilidad/spec.md).** Esta especificación **no vuelve a definir** `Franja`, `HorarioRecurrente.calcularFranjas`, `Reserva` (atributos, `reconstruir`, `verificarDisponibilidad`), `ParametrosReserva`, el puerto `ConsultaCanchas` (`buscarReservable`, `franjasDelDia`, `bloqueosDelDia`, `tomarTurno`) ni `RepositorioReservas.confirmadasDeCanchaEnFecha`: están en la sección «Piezas compartidas con HU21» de HU20 y se construyen en sus tareas T1 a T6.
 
@@ -145,7 +145,7 @@ Una reserva de 2 horas es **una sola fila** con un solo rango (D29 punto 1): se 
 |---|---|
 | `ReservaEntidad` y `ReservaJpa` (nuevos) | La entidad JPA de la tabla `reserva` que anunciaba el comentario de `RepositorioReservasJdbc`. `rango` es columna generada: no se mapea. `aDominio()` usa `Reserva.reconstruir` |
 | `RepositorioReservasJpa` (nuevo) o `RepositorioReservasJdbc` (existente) | Implementan entre los dos `RepositorioReservas`. Se propone un solo adaptador, `RepositorioReservasJpa`, que absorbe las dos consultas JDBC existentes con `NamedParameterJdbcTemplate`, para no tener dos clases que implementen el mismo puerto |
-| `guardar` | `saveAndFlush` y traducción de `ex_reserva_sin_cruce` a `ERR-RES-06` |
+| `guardar` | `saveAndFlush` y traducción a `ERR-RES-06` de la violación de `ex_reserva_sin_cruce` (`23P01`) y del bloqueo mutuo (`40P01`, con advertencia en el log, P10) |
 | `contarActivasDeJugador` | CONFIRMADAS del jugador con `fecha + hora_fin > ahora` (P4); usa `ix_reserva_jugador_fecha` |
 | `horasConfirmadasDeJugadorEnFecha` | Suma de `hora_fin − hora_inicio` de sus CONFIRMADAS de esa fecha, en cualquier cancha |
 
@@ -156,7 +156,7 @@ Una reserva de 2 horas es **una sola fila** con un solo rango (D29 punto 1): se 
 | `reservas.infrastructure.rest.ReservaController` | `POST /api/reservas`; arma el `Solicitante` del token como los otros controladores |
 | `SolicitudReserva` y `RespuestaReserva` | Entrada con `@NotNull` y salida con `codigo` y `mensaje` |
 | `ManejadorErrores` | `ERR-RES-05 → 403` y `ERR-RES-06 → 409` (P8) |
-| `catalogo-mensajes.properties` | `EXI-RES-01`, `ERR-RES-02`, `05`, `06`, `07`, `08`, `09` y `31`. `INF-RES-02` no: lo muestra la pantalla y ningún servicio lo devuelve. `ERR-RES-10` tampoco: solo va al log, como `ERR-HOR-05` |
+| `catalogo-mensajes.properties` | `EXI-RES-01`, `ERR-RES-02`, `05`, `06`, `07`, `08`, `09` y `31`. `INF-RES-02` no: lo muestra la pantalla y ningún servicio lo devuelve. `ERR-RES-10` tampoco: solo va al log, como `ERR-HOR-05`. También `campo.canchaId` y `campo.fecha`, que usa `ERR-GEN-01` para nombrar el campo que falta |
 | `application.properties` | Nada nuevo: PAR-RES-12 (`canchaya.reserva.confirmacion-asistencia-activa=${PAR_RES_12:false}`) ya lo agrega HU20 T6 (P2) |
 
 ## Criterios de aceptación → pruebas
@@ -185,6 +185,7 @@ Una reserva de 2 horas es **una sola fila** con un solo rango (D29 punto 1): se 
 | CA14 | Ya tiene una de 2 horas esa fecha → `ERR-RES-09` | `CA14_yaTieneDosHorasEseDia_ERR_RES_09` | Dominio |
 | CA15 | Sin token → 401 `ERR-GEN-05`. `INF-RES-02` y volver al resumen son de la pantalla | `CA15_sinSesion_401` | Punta a punta |
 | Pol. 10 | Id repetido → se registra `ERR-RES-10` y se reintenta | `politica10_idRepetido_reintentaConOtro` | Caso de uso |
+| HU9 CA8 | El propietario cambia el precio con `PUT /api/canchas/{id}`; la reserva nueva sale con el precio nuevo y una anterior conserva el suyo | `HU9_CA8_reservaNueva_tomaElPrecioActualizado` | Punta a punta |
 | D36 | El caso de uso toma el turno antes de leer las franjas | `turno_seTomaAntesDeLeerFranjas` (orden de llamadas con `InOrder`) | Caso de uso |
 
 ## Decisiones tomadas (18-nov-2026)
@@ -207,9 +208,28 @@ Una reserva de 2 horas es **una sola fila** con un solo rango (D29 punto 1): se 
 
 **P9 · `ERR-RES-31`** cuando las horas no son en punto o la duración no es de 1 o 2 horas. `ERR-RES-06` cuando el rango sí es de horas en punto pero alguna franja no está libre o está fuera del horario.
 
+## Resultado del spike RT-03 (19-nov-2026)
+
+`ReservaConcurrenciaTest`, 20 repeticiones de cada caso, con dos hilos que salen a la vez de un `CountDownLatch`:
+
+| Caso | Reservas que quedan | Respuesta del que pierde |
+|---|---|---|
+| Con turno (caso de uso completo) | 1 en las 20 | `ERR-RES-06` en las 20 |
+| Sin turno, antes de P10 (solo la restricción `ex_reserva_sin_cruce`) | 1 en las 20 | `ERR-RES-06` en 13; **bloqueo mutuo** de PostgreSQL (`40P01`) en 7, que salía como 500 |
+| Sin turno, con P10 | 1 en las 20 | `ERR-RES-06` en las 20 (en la corrida de verificación, 11 por la restricción y 9 por bloqueo mutuo traducido) |
+
+Conclusión: la restricción de exclusión sola ya impide la doble reserva, pero cuando las dos inserciones se cruzan en el índice GiST, cada una espera a la otra y PostgreSQL aborta una por bloqueo mutuo. El turno por cancha (D29 punto 2) es la defensa principal y la restricción es el respaldo; con P10, el respaldo también responde `ERR-RES-06`.
+
+**P10 · El bloqueo mutuo al guardar una reserva responde `ERR-RES-06` (decidido el 19-nov-2026).** `RepositorioReservasJpa.guardar` traduce `40P01` a `ERR-RES-06` (409), igual que la violación de exclusión (`23P01`). Lo registra en el log como advertencia, con la cancha, la fecha y la franja. Las dos se capturan alrededor de `saveAndFlush`, que es donde se ejecuta el insert y la base responde; si llegaran al confirmar la transacción, ya no se podrían traducir. La prueba sin turno exige 20 de 20 `ERR-RES-06`.
+
 ## Preguntas abiertas
 
 Ninguna.
+
+## Para el pull request
+
+- Resultado del spike RT-03: la tabla de arriba, que también está en [docs/proyecto.md](../../docs/proyecto.md) (P5).
+- Riesgo conocido (P7): dos solicitudes simultáneas del mismo jugador en canchas distintas pueden pasar los límites de PAR-RES-03 y PAR-RES-04, porque el turno es por cancha.
 
 ## Tareas que dependen de HU20
 
@@ -224,7 +244,7 @@ Las tareas de [tareas.md](tareas.md) indican cuáles de HU20 necesitan. En resum
 | Modelo de dominio enriquecido, hoja Reserva, política 31 | Quitar «dentro de un mismo horario recurrente del escenario»: «una reserva abarca una o dos franjas consecutivas de la misma cancha (máximo 2 horas)», según D10 (P3) | Pendiente |
 | Modelo de dominio enriquecido, hoja Reserva, regla especial de `horaFin` | Quitar «dentro de un mismo horario recurrente del escenario», según D10 (P3) | Pendiente |
 | Modelo de dominio enriquecido, hoja Reserva, política 8 | Precisar que «activa» es CONFIRMADA y que todavía no termina (P4) | Pendiente |
-| Decisiones, D29 | Registrar que el spike RT-03 se hizo con la prueba de CA4 y su resultado (P5). `docs/proyecto.md` se actualiza a mano en T6 | Pendiente |
+| Decisiones, D29 | Registrar que el spike RT-03 se hizo con la prueba de CA4 (`ReservaConcurrenciaTest`) y su resultado (P5): cero dobles reservas con y sin turno; sin turno, PostgreSQL puede abortar una inserción por bloqueo mutuo (`40P01`), que se traduce a `ERR-RES-06` como la violación de exclusión (P10). `docs/proyecto.md` ya se actualizó a mano | Pendiente |
 
 ## Fuera de alcance
 

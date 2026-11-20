@@ -50,7 +50,16 @@ El backlog tiene 38 historias de usuario (113 puntos) en tres releases.
 
 **Módulos (contextos delimitados):** Identidad y acceso, Ubicación, Escenarios y canchas, Reservas y Reputación.
 
-**Pendientes técnicos:** spike de control de concurrencia (RT-03, antes de HU21), frecuencia de la tarea programada (PAR-RES-11) y prueba del puerto 2525 de Brevo en el Sprint 1.
+**Pendientes técnicos:** frecuencia de la tarea programada (PAR-RES-11) y prueba del puerto 2525 de Brevo en el Sprint 1.
+
+**Spike de control de concurrencia (RT-03, hecho el 19-nov-2026 con HU21):** dos jugadores piden la misma franja en el mismo instante, 20 veces por caso, con PostgreSQL real (`ReservaConcurrenciaTest`). En todas las repeticiones quedó **una sola reserva**: la meta de cero dobles reservas se cumple.
+
+| Caso | Reservas que quedan | Respuesta del que pierde |
+|---|---|---|
+| Con turno por cancha (D29 punto 2) | 1 en las 20 | `ERR-RES-06` (409) en las 20 |
+| Sin turno, solo la restricción de exclusión (D29 punto 1) | 1 en las 20 | `ERR-RES-06` en las 20: unas por la restricción y otras por bloqueo mutuo de PostgreSQL (`40P01`), que el repositorio traduce |
+
+Sin el turno, cuando las dos inserciones se cruzan en el índice de la restricción, cada una espera a la otra y PostgreSQL aborta una por bloqueo mutuo (en la primera corrida, 7 de 20). Por eso el turno es la defensa principal, y la restricción, el respaldo. Al guardar, el bloqueo mutuo también responde `ERR-RES-06` y queda en el log como advertencia (P10 de HU21).
 
 ## Cronograma
 

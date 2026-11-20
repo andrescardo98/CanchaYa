@@ -22,4 +22,22 @@ public interface RepositorioReservas {
 	 */
 	List<Reserva> confirmadasDeCanchaEnFecha(UUID canchaId, LocalDate fecha);
 
+	/** Política 10 de Reserva (HU21). */
+	boolean existePorId(UUID id);
+
+	/**
+	 * HU21. Si la restricción ex_reserva_sin_cruce rechaza la reserva, lanza ERR-RES-06: es el
+	 * respaldo del turno de la cancha (D29 punto 1).
+	 */
+	void guardar(Reserva reserva);
+
+	/**
+	 * Política 8 (HU21, P4): reservas CONFIRMADAS del jugador que no han terminado
+	 * ({@code fecha + horaFin > ahora}, en America/Bogota).
+	 */
+	int contarActivasDeJugador(UUID jugadorId, LocalDateTime ahora);
+
+	/** Política 9 (HU21): horas de las reservas CONFIRMADAS del jugador en esa fecha, en cualquier cancha. */
+	int horasConfirmadasDeJugadorEnFecha(UUID jugadorId, LocalDate fecha);
+
 }
