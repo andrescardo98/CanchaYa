@@ -192,6 +192,26 @@ class CambioEstadoEscenarioPuntaAPuntaTest {
 		assertThat((String) correoEnviado().getContent()).contains("dejaron de aparecer en la búsqueda");
 	}
 
+	// Arreglo de HU13 (CA7, P1): con canchas se toman sus turnos, y tomarTurno exige una transacción
+	// abierta; si el caso de uso no la abriera, esta petición fallaría con 500
+	@Test
+	void ca3InactivaUnEscenarioConCanchasSinReservasFuturas() throws Exception {
+		UUID id = escenario("Cancha La 80", "ACTIVO");
+		for (String nombre : new String[] { "Cancha 1", "Cancha 2" }) {
+			jdbc.update("insert into cancha (id, escenario_id, tipo_cancha_id, nombre, precio_hora) values (?, ?, ?, ?, 80000)",
+					UUID.randomUUID(), id, UUID.fromString(F5), nombre);
+		}
+
+		cambiar(id, "INACTIVO", tokenAdministrador)
+				.expectStatus().isOk()
+				.expectBody().jsonPath("$.codigo").isEqualTo("EXI-ESC-03");
+
+		assertThat(estadoGuardado(id)).isEqualTo("INACTIVO");
+		// El correo sale después de guardar, también con la transacción nueva (D15)
+		assertThat(correoEnviado().getAllRecipients()).extracting(Object::toString)
+				.containsExactly("propietario.hu13@correo.com");
+	}
+
 	@Test
 	void ca4UnEscenarioQueNoExiste() {
 		cambiar(UUID.randomUUID(), "ACTIVO", tokenAdministrador)

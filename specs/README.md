@@ -64,6 +64,7 @@ Lo que se ve relacionado pero esta HU no pide (regla 5 de «Cómo trabajar una h
 | HU8 | [HU8-modificar-escenario](HU8-modificar-escenario/spec.md) | Implementada |
 | HU9 | [HU9-modificar-cancha](HU9-modificar-cancha/spec.md) | Implementada |
 | HU10 | [HU10-cambiar-estado-cancha](HU10-cambiar-estado-cancha/spec.md) | Implementada |
+| HU13 | [HU13-activar-inactivar-escenario](HU13-activar-inactivar-escenario/spec.md) (solo el arreglo de concurrencia) | Implementada |
 | HU19 | [HU19-perfil-escenario](HU19-perfil-escenario/spec.md) | Implementada |
 | HU20 | [HU20-consultar-disponibilidad](HU20-consultar-disponibilidad/spec.md) | Implementada |
 | HU21 | [HU21-reservar-cancha](HU21-reservar-cancha/spec.md) | Implementada |
