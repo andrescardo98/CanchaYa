@@ -189,6 +189,11 @@ class RegistrarCanchaCasoUsoTest {
 		public void tomarTurno(UUID id) {
 			real.tomarTurno(id);
 		}
+
+		@Override
+		public void actualizarEstado(Cancha cancha) {
+			real.actualizarEstado(cancha);
+		}
 	}
 
 }

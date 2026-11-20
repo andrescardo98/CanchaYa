@@ -2,11 +2,13 @@ package co.edu.uco.canchaya.escenarios.domain;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Objects;
 import java.util.UUID;
 
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.Solicitante;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
+import co.edu.uco.canchaya.transversal.domain.TextoCatalogo;
 
 public final class Cancha {
 
@@ -18,7 +20,8 @@ public final class Cancha {
 	private UUID tipoCanchaId;
 	private String nombre;
 	private BigDecimal precioHora;
-	private final EstadoCancha estado;
+	// No es final: lo cambia cambiarEstado (HU10)
+	private EstadoCancha estado;
 
 	private Cancha(UUID id, UUID escenarioId, UUID tipoCanchaId, String nombre, BigDecimal precioHora,
 			EstadoCancha estado) {
@@ -57,9 +60,7 @@ public final class Cancha {
 	 */
 	public void modificar(Escenario escenario, UUID tipoCanchaId, String nombre, BigDecimal precioHora,
 			Solicitante solicitante) {
-		if (!escenario.getId().equals(escenarioId)) {
-			throw new IllegalArgumentException("El escenario " + escenario.getId() + " no es el de la cancha " + id);
-		}
+		validarEscenario(escenario);
 		validarPropietario(escenario, solicitante);
 		BigDecimal precio = validarPrecio(precioHora);
 
@@ -67,6 +68,39 @@ public final class Cancha {
 		this.tipoCanchaId = tipoCanchaId;
 		this.nombre = recortar(nombre);
 		this.precioHora = precio;
+	}
+
+	/**
+	 * Responsabilidad «cambiarEstado» (HU10). La política 7 (que exista la cancha) la revisa el caso
+	 * de uso antes de llamarlo.
+	 *
+	 * @param escenario el escenario de esta cancha, para saber quién es el propietario
+	 * @param tieneReservasConfirmadasFuturas lo responde el módulo Reservas (D08); solo importa al inactivar
+	 * @throws ReglaNegocioException ERR-CAN-02, ERR-CAN-10 o ERR-CAN-12
+	 * @throws IllegalArgumentException si el escenario no es el de la cancha (error de programación)
+	 */
+	public void cambiarEstado(Escenario escenario, EstadoCancha nuevoEstado, Solicitante solicitante,
+			boolean tieneReservasConfirmadasFuturas) {
+		Objects.requireNonNull(nuevoEstado, "nuevoEstado");
+		validarEscenario(escenario);
+		// Política 2
+		validarPropietario(escenario, solicitante);
+		// Política 10
+		if (estado == nuevoEstado) {
+			throw new ReglaNegocioException("ERR-CAN-10", new TextoCatalogo("estado." + nuevoEstado.name()));
+		}
+		// Política 12 (RN-17, D08)
+		if (nuevoEstado == EstadoCancha.INACTIVA && tieneReservasConfirmadasFuturas) {
+			throw new ReglaNegocioException("ERR-CAN-12");
+		}
+		// Política 11 (RN-04): desde aquí estaDisponible() y publicarEnBusqueda() responden con el nuevo estado
+		estado = nuevoEstado;
+	}
+
+	private void validarEscenario(Escenario escenario) {
+		if (!escenario.getId().equals(escenarioId)) {
+			throw new IllegalArgumentException("El escenario " + escenario.getId() + " no es el de la cancha " + id);
+		}
 	}
 
 	/**

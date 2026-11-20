@@ -46,4 +46,7 @@ public interface RepositorioCanchas {
 	 */
 	void tomarTurno(UUID id);
 
+	/** HU10: guarda solo el estado. */
+	void actualizarEstado(Cancha cancha);
+
 }
