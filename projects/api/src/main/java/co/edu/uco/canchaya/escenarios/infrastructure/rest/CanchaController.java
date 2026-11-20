@@ -6,12 +6,14 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import co.edu.uco.canchaya.escenarios.application.port.in.CambiarEstadoCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarNombreCanchaDisponible;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarCanchasEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarTiposCancha;
@@ -19,6 +21,7 @@ import co.edu.uco.canchaya.escenarios.application.port.in.ModificarCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarCancha;
 import co.edu.uco.canchaya.escenarios.domain.Cancha;
 import co.edu.uco.canchaya.identidad.domain.Solicitante;
+import co.edu.uco.canchaya.transversal.domain.TextoCatalogo;
 import co.edu.uco.canchaya.transversal.infrastructure.rest.CatalogoMensajes;
 import jakarta.validation.Valid;
 
@@ -27,16 +30,18 @@ class CanchaController {
 
 	private final RegistrarCancha registrarCancha;
 	private final ModificarCancha modificarCancha;
+	private final CambiarEstadoCancha cambiarEstado;
 	private final ConsultarNombreCanchaDisponible consultarNombreDisponible;
 	private final ListarCanchasEscenario listarCanchas;
 	private final ListarTiposCancha listarTipos;
 	private final CatalogoMensajes catalogo;
 
 	CanchaController(RegistrarCancha registrarCancha, ModificarCancha modificarCancha,
-			ConsultarNombreCanchaDisponible consultarNombreDisponible, ListarCanchasEscenario listarCanchas,
+			CambiarEstadoCancha cambiarEstado, ConsultarNombreCanchaDisponible consultarNombreDisponible, ListarCanchasEscenario listarCanchas,
 			ListarTiposCancha listarTipos, CatalogoMensajes catalogo) {
 		this.registrarCancha = registrarCancha;
 		this.modificarCancha = modificarCancha;
+		this.cambiarEstado = cambiarEstado;
 		this.consultarNombreDisponible = consultarNombreDisponible;
 		this.listarCanchas = listarCanchas;
 		this.listarTipos = listarTipos;
@@ -58,6 +63,16 @@ class CanchaController {
 			Solicitante solicitante) {
 		Cancha cancha = modificarCancha.ejecutar(solicitud.aDatos(id), solicitante);
 		return RespuestaModificarCancha.de(cancha, "EXI-CAN-02", catalogo.texto("EXI-CAN-02"));
+	}
+
+	// HU10, CA1 a CA6: poner la cancha DISPONIBLE o INACTIVA (P1 de la especificación)
+	@PatchMapping("/api/canchas/{id}/estado")
+	RespuestaCambioEstadoCancha cambiarEstado(@PathVariable UUID id,
+			@Valid @RequestBody SolicitudCambioEstadoCancha solicitud, Solicitante solicitante) {
+		Cancha cancha = cambiarEstado.ejecutar(id, solicitud.estado(), solicitante);
+		String mensaje = catalogo.texto("EXI-CAN-03", List.of(cancha.getNombre(),
+				new TextoCatalogo("estado." + cancha.getEstado().name())));
+		return new RespuestaCambioEstadoCancha("EXI-CAN-03", mensaje, cancha.getId(), cancha.getEstado());
 	}
 
 	// HU6, CA1: la lista que se actualiza después de registrar

@@ -19,7 +19,7 @@ import co.edu.uco.canchaya.escenarios.domain.EstadoCancha;
 import co.edu.uco.canchaya.escenarios.domain.EstadoEscenario;
 import co.edu.uco.canchaya.escenarios.domain.TipoCancha;
 
-/** Repositorios falsos que comparten las pruebas de los casos de uso de canchas (HU6, HU9 y HU20). */
+/** Repositorios falsos que comparten las pruebas de los casos de uso de canchas (HU6, HU9, HU10 y HU20). */
 final class CanchasEnMemoria {
 
 	final Map<UUID, Escenario> escenarios = new HashMap<>();
@@ -27,6 +27,8 @@ final class CanchasEnMemoria {
 	final List<TipoCancha> tipos = new ArrayList<>();
 	// Canchas de las que se tomó el turno (HU20, D36)
 	final List<UUID> turnosTomados = new ArrayList<>();
+	// Canchas a las que se les guardó un cambio de estado (HU10)
+	final List<UUID> estadosActualizados = new ArrayList<>();
 
 	Escenario escenarioDe(UUID propietarioId) {
 		return escenarioDe(propietarioId, EstadoEscenario.INACTIVO);
@@ -145,6 +147,13 @@ final class CanchasEnMemoria {
 			@Override
 			public void tomarTurno(UUID id) {
 				turnosTomados.add(id);
+			}
+
+			// HU10: reemplaza la cancha guardada por la que cambió de estado
+			@Override
+			public void actualizarEstado(Cancha cancha) {
+				estadosActualizados.add(cancha.getId());
+				canchas.replaceAll(c -> c.getId().equals(cancha.getId()) ? copia(cancha) : c);
 			}
 		};
 	}
