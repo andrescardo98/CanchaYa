@@ -14,9 +14,10 @@ public final class Cancha {
 
 	private final UUID id;
 	private final UUID escenarioId;
-	private final UUID tipoCanchaId;
-	private final String nombre;
-	private final BigDecimal precioHora;
+	// No son final: los cambia modificar (HU9)
+	private UUID tipoCanchaId;
+	private String nombre;
+	private BigDecimal precioHora;
 	private final EstadoCancha estado;
 
 	private Cancha(UUID id, UUID escenarioId, UUID tipoCanchaId, String nombre, BigDecimal precioHora,
@@ -43,6 +44,29 @@ public final class Cancha {
 		// La cancha nace DISPONIBLE
 		return new Cancha(UUID.randomUUID(), escenario.getId(), tipoCanchaId, recortar(nombre), precio,
 				EstadoCancha.DISPONIBLE);
+	}
+
+	/**
+	 * Responsabilidad «modificar» (HU9). Las políticas 7, 4 y 8 necesitan la base de datos: las
+	 * revisa el caso de uso. La política 9 se cumple por diseño: cada reserva guarda su propio
+	 * precio. El id, el escenario y el estado no cambian.
+	 *
+	 * @param escenario el escenario de esta cancha, para saber quién es el propietario
+	 * @throws ReglaNegocioException ERR-CAN-02 o ERR-CAN-05
+	 * @throws IllegalArgumentException si el escenario no es el de la cancha (error de programación)
+	 */
+	public void modificar(Escenario escenario, UUID tipoCanchaId, String nombre, BigDecimal precioHora,
+			Solicitante solicitante) {
+		if (!escenario.getId().equals(escenarioId)) {
+			throw new IllegalArgumentException("El escenario " + escenario.getId() + " no es el de la cancha " + id);
+		}
+		validarPropietario(escenario, solicitante);
+		BigDecimal precio = validarPrecio(precioHora);
+
+		// Se cambia todo después de validar, así un error no deja la cancha a medias
+		this.tipoCanchaId = tipoCanchaId;
+		this.nombre = recortar(nombre);
+		this.precioHora = precio;
 	}
 
 	/**

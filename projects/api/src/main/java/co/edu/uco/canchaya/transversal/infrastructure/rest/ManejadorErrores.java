@@ -57,6 +57,7 @@ class ManejadorErrores {
 			Map.entry("ERR-ESC-08", HttpStatus.FORBIDDEN), // HU13: solo el administrador del sistema cambia el estado
 			Map.entry("ERR-CAN-01", HttpStatus.NOT_FOUND), // HU6: no existe el escenario de la cancha
 			Map.entry("ERR-CAN-02", HttpStatus.FORBIDDEN), // HU6: no es el propietario del escenario
+			Map.entry("ERR-CAN-07", HttpStatus.NOT_FOUND), // HU9: no existe la cancha
 			Map.entry("ERR-GEN-06", HttpStatus.FORBIDDEN), // HU13: sin permiso para ver la administración de escenarios
 			Map.entry("ERR-GEN-07", HttpStatus.BAD_REQUEST), // HU8 (P1): petición manipulada, por ejemplo una foto conservada que no es del escenario
 			Map.entry("ERR-HOR-01", HttpStatus.NOT_FOUND), // HU7: no existe el escenario del horario

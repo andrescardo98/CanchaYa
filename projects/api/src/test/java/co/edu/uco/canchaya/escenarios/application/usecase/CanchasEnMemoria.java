@@ -19,7 +19,7 @@ import co.edu.uco.canchaya.escenarios.domain.EstadoCancha;
 import co.edu.uco.canchaya.escenarios.domain.EstadoEscenario;
 import co.edu.uco.canchaya.escenarios.domain.TipoCancha;
 
-/** Repositorios falsos que comparten las pruebas de los casos de uso de canchas (HU6 y HU20). */
+/** Repositorios falsos que comparten las pruebas de los casos de uso de canchas (HU6, HU9 y HU20). */
 final class CanchasEnMemoria {
 
 	final Map<UUID, Escenario> escenarios = new HashMap<>();
@@ -123,8 +123,23 @@ final class CanchasEnMemoria {
 			}
 
 			@Override
+			public boolean existeNombreEnOtraCancha(UUID escenarioId, String nombre, UUID canchaId) {
+				String buscado = nombre.toLowerCase(Locale.ROOT);
+				return canchas.stream().anyMatch(c -> c.getEscenarioId().equals(escenarioId)
+						&& !c.getId().equals(canchaId) && c.getNombre().toLowerCase(Locale.ROOT).equals(buscado));
+			}
+
+			// HU9: reemplaza la cancha guardada por la que se modificó
+			@Override
+			public void actualizar(Cancha cancha) {
+				canchas.replaceAll(c -> c.getId().equals(cancha.getId()) ? copia(cancha) : c);
+			}
+
+			// Una copia, como la que arma la base: si el caso de uso la modifica y luego falla, la
+			// guardada no cambia (HU9)
+			@Override
 			public Optional<Cancha> buscarPorId(UUID id) {
-				return canchas.stream().filter(c -> c.getId().equals(id)).findFirst();
+				return canchas.stream().filter(c -> c.getId().equals(id)).findFirst().map(CanchasEnMemoria::copia);
 			}
 
 			@Override
@@ -132,6 +147,16 @@ final class CanchasEnMemoria {
 				turnosTomados.add(id);
 			}
 		};
+	}
+
+	private static Cancha copia(Cancha cancha) {
+		return Cancha.reconstruir(cancha.getId(), cancha.getEscenarioId(), cancha.getTipoCanchaId(),
+				cancha.getNombre(), cancha.getPrecioHora(), cancha.getEstado());
+	}
+
+	/** La cancha guardada con ese identificador (HU9). */
+	Cancha guardada(UUID id) {
+		return canchas.stream().filter(c -> c.getId().equals(id)).findFirst().orElseThrow();
 	}
 
 	RepositorioTiposCancha repositorioTipos() {

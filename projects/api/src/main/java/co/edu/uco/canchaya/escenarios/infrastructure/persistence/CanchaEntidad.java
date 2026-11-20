@@ -59,6 +59,13 @@ class CanchaEntidad implements Persistable<UUID> {
 		return entidad;
 	}
 
+	/** HU9: lo que cambia Cancha.modificar. El escenario y el estado se quedan como estaban. */
+	void copiarDatosModificables(Cancha cancha) {
+		this.tipoCanchaId = cancha.getTipoCanchaId();
+		this.nombre = cancha.getNombre();
+		this.precioHora = cancha.getPrecioHora();
+	}
+
 	Cancha aDominio() {
 		return Cancha.reconstruir(id, escenarioId, tipoCanchaId, nombre, precioHora, estado);
 	}

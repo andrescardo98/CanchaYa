@@ -8,12 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarNombreCanchaDisponible;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarCanchasEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarTiposCancha;
+import co.edu.uco.canchaya.escenarios.application.port.in.ModificarCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarCancha;
 import co.edu.uco.canchaya.escenarios.domain.Cancha;
 import co.edu.uco.canchaya.identidad.domain.Solicitante;
@@ -24,14 +26,17 @@ import jakarta.validation.Valid;
 class CanchaController {
 
 	private final RegistrarCancha registrarCancha;
+	private final ModificarCancha modificarCancha;
 	private final ConsultarNombreCanchaDisponible consultarNombreDisponible;
 	private final ListarCanchasEscenario listarCanchas;
 	private final ListarTiposCancha listarTipos;
 	private final CatalogoMensajes catalogo;
 
-	CanchaController(RegistrarCancha registrarCancha, ConsultarNombreCanchaDisponible consultarNombreDisponible,
-			ListarCanchasEscenario listarCanchas, ListarTiposCancha listarTipos, CatalogoMensajes catalogo) {
+	CanchaController(RegistrarCancha registrarCancha, ModificarCancha modificarCancha,
+			ConsultarNombreCanchaDisponible consultarNombreDisponible, ListarCanchasEscenario listarCanchas,
+			ListarTiposCancha listarTipos, CatalogoMensajes catalogo) {
 		this.registrarCancha = registrarCancha;
+		this.modificarCancha = modificarCancha;
 		this.consultarNombreDisponible = consultarNombreDisponible;
 		this.listarCanchas = listarCanchas;
 		this.listarTipos = listarTipos;
@@ -45,6 +50,14 @@ class CanchaController {
 		Cancha cancha = registrarCancha.ejecutar(solicitud.aDatos(escenarioId), solicitante);
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(new RespuestaRegistroCancha("EXI-CAN-01", catalogo.texto("EXI-CAN-01"), cancha.getId()));
+	}
+
+	// HU9, CA1 a CA7. El escenario sale de la cancha (P1 de la especificación)
+	@PutMapping("/api/canchas/{id}")
+	RespuestaModificarCancha modificar(@PathVariable UUID id, @Valid @RequestBody SolicitudModificarCancha solicitud,
+			Solicitante solicitante) {
+		Cancha cancha = modificarCancha.ejecutar(solicitud.aDatos(id), solicitante);
+		return RespuestaModificarCancha.de(cancha, "EXI-CAN-02", catalogo.texto("EXI-CAN-02"));
 	}
 
 	// HU6, CA1: la lista que se actualiza después de registrar
