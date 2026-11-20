@@ -275,6 +275,16 @@ class ReservaConfirmarTest {
 		esperarError(solicitud, "ERR-RES-31");
 	}
 
+	// CA12 y regla 7 de AGENTS.md: el máximo de franjas sale de PAR-RES-02, no está fijo en el código
+	@Test
+	void CA12_elMaximoDeFranjasSaleDeLosParametros() {
+		Solicitud solicitud = new Solicitud();
+		solicitud.parametros = new ParametrosReserva(30, 3, 3, 5, 3, 5, LocalTime.NOON, 3, 24, 250, false);
+		solicitud.fin = "21:00";
+
+		assertThat(solicitud.confirmar().horas()).isEqualTo(3);
+	}
+
 	// CA13: si la segunda franja no sirve, no se crea nada (confirmar lanza antes de construir)
 	@Test
 	void CA13_segundaFranjaNoDisponible_noSeGuardaNinguna() {
@@ -304,6 +314,49 @@ class ReservaConfirmarTest {
 
 		assertThat(otra.getId()).isNotEqualTo(reserva.getId());
 		assertThat(otra).usingRecursiveComparison().ignoringFields("id").isEqualTo(reserva);
+	}
+
+	// Orden de las políticas de clases.md (5, 1, 2, 31, 6, 7, 8 y 9): si fallan varias, sale la primera.
+	// La 5 antes que la 1 ya la revisa CA10.
+	@Test
+	void ordenDeLasPoliticas() {
+		// 1 antes que 2
+		Solicitud solicitud = new Solicitud();
+		solicitud.canchaDisponible = false;
+		solicitud.fecha = HOY.plusDays(31);
+		esperarError(solicitud, "ERR-RES-01");
+
+		// 2 antes que 31
+		solicitud = new Solicitud();
+		solicitud.fecha = HOY.plusDays(31);
+		solicitud.fin = "21:00";
+		esperarError(solicitud, "ERR-RES-02");
+
+		// 31 antes que 6
+		solicitud = new Solicitud();
+		solicitud.fin = "21:00";
+		solicitud.libres = List.of();
+		esperarError(solicitud, "ERR-RES-31");
+
+		// 6 antes que 7, 8 y 9
+		solicitud = new Solicitud();
+		solicitud.libres = List.of();
+		solicitud.bloqueada = true;
+		solicitud.activas = 5;
+		solicitud.horasDelDia = 2;
+		esperarError(solicitud, "ERR-RES-06");
+
+		// 7 antes que 8 y 9
+		solicitud.libres = franjas(MANANA, "18:00");
+		esperarError(solicitud, "ERR-RES-07");
+
+		// 8 antes que 9
+		solicitud.bloqueada = false;
+		esperarError(solicitud, "ERR-RES-08");
+
+		// y la 9 sola
+		solicitud.activas = 0;
+		esperarError(solicitud, "ERR-RES-09");
 	}
 
 }
