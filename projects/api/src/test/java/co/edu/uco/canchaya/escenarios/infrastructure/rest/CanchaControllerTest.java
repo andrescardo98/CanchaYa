@@ -27,6 +27,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import co.edu.uco.canchaya.escenarios.application.port.in.CambiarEstadoCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarNombreCanchaDisponible;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarCanchasEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarTiposCancha;
@@ -61,6 +62,10 @@ class CanchaControllerTest {
 	// HU9: lo pide CanchaController; sus pruebas están en ModificarCanchaControllerTest
 	@MockitoBean
 	private ModificarCancha modificarCancha;
+
+	// HU10: lo pide CanchaController; sus pruebas están en EstadoCanchaControllerTest
+	@MockitoBean
+	private CambiarEstadoCancha cambiarEstado;
 
 	@MockitoBean
 	private ConsultarNombreCanchaDisponible consultarNombreDisponible;

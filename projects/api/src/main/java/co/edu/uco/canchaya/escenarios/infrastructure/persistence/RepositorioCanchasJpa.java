@@ -92,6 +92,12 @@ class RepositorioCanchasJpa implements RepositorioCanchas {
 		jpa.bloquearFila(id);
 	}
 
+	@Override
+	@Transactional
+	public void actualizarEstado(Cancha cancha) {
+		jpa.actualizarEstado(cancha.getId(), cancha.getEstado());
+	}
+
 	private static String nombreRestriccion(Throwable error) {
 		for (Throwable causa = error; causa != null; causa = causa.getCause()) {
 			if (causa instanceof ConstraintViolationException violacion) {

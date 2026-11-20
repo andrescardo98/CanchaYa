@@ -5,7 +5,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+
+import co.edu.uco.canchaya.escenarios.domain.EstadoCancha;
 
 interface CanchaJpa extends JpaRepository<CanchaEntidad, UUID> {
 
@@ -26,5 +29,10 @@ interface CanchaJpa extends JpaRepository<CanchaEntidad, UUID> {
 	// D29 punto 2 y D36: la fila queda bloqueada hasta que termina la transacción
 	@Query(value = "select id from cancha where id = :id for update", nativeQuery = true)
 	Optional<UUID> bloquearFila(UUID id);
+
+	// HU10: solo la columna estado, igual que EscenarioJpa.actualizarEstado (HU13)
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("update CanchaEntidad c set c.estado = :estado where c.id = :id")
+	int actualizarEstado(UUID id, EstadoCancha estado);
 
 }
