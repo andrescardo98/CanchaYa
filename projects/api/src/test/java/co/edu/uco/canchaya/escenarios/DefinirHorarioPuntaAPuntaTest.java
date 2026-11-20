@@ -40,12 +40,12 @@ class DefinirHorarioPuntaAPuntaTest {
 
 	@BeforeEach
 	void preparar() {
-		registrar("Ana Pérez", "ana@correo.com", "1000000081");
-		registrar("Luis Gómez", "luis@correo.com", "1000000082");
-		tokenPropietario = token("ana@correo.com", "203.0.113.81");
-		tokenOtroAdministrador = token("luis@correo.com", "203.0.113.82");
+		registrar("Ana Pérez", "propietario.hu7@correo.com", "1000000081");
+		registrar("Luis Gómez", "otro.hu7@correo.com", "1000000082");
+		tokenPropietario = token("propietario.hu7@correo.com", "203.0.113.81");
+		tokenOtroAdministrador = token("otro.hu7@correo.com", "203.0.113.82");
 
-		UUID propietario = jdbc.queryForObject("select id from usuario where correo_electronico = 'ana@correo.com'",
+		UUID propietario = jdbc.queryForObject("select id from usuario where correo_electronico = 'propietario.hu7@correo.com'",
 				UUID.class);
 		escenario = UUID.randomUUID();
 		jdbc.update("""
