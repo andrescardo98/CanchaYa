@@ -20,6 +20,20 @@ public interface RepositorioCanchas {
 	 */
 	void guardar(Cancha cancha);
 
+	/**
+	 * HU9, política 8: compara sin distinguir mayúsculas de minúsculas y no cuenta la cancha que se
+	 * modifica, así se puede dejar el mismo nombre o cambiarle solo las mayúsculas.
+	 */
+	boolean existeNombreEnOtraCancha(UUID escenarioId, String nombre, UUID canchaId);
+
+	/**
+	 * HU9: guarda el nombre, el tipo y el precio. Si otra solicitud dejó el mismo nombre al mismo
+	 * tiempo, la base la rechaza.
+	 *
+	 * @throws co.edu.uco.canchaya.transversal.domain.ReglaNegocioException ERR-CAN-08
+	 */
+	void actualizar(Cancha cancha);
+
 	/** Ordenadas por nombre. */
 	List<Cancha> listarPorEscenario(UUID escenarioId);
 

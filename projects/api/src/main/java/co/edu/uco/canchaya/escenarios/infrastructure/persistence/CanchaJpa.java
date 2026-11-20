@@ -15,6 +15,12 @@ interface CanchaJpa extends JpaRepository<CanchaEntidad, UUID> {
 			where c.escenarioId = :escenarioId and lower(c.nombre) = lower(:nombre)""")
 	boolean existeNombreEnEscenario(UUID escenarioId, String nombre);
 
+	// HU9, política 8: lo mismo, sin contar la cancha que se modifica
+	@Query("""
+			select count(c) > 0 from CanchaEntidad c
+			where c.escenarioId = :escenarioId and lower(c.nombre) = lower(:nombre) and c.id <> :canchaId""")
+	boolean existeNombreEnOtraCancha(UUID escenarioId, String nombre, UUID canchaId);
+
 	List<CanchaEntidad> findByEscenarioIdOrderByNombreAsc(UUID escenarioId);
 
 	// D29 punto 2 y D36: la fila queda bloqueada hasta que termina la transacción

@@ -166,6 +166,16 @@ class RegistrarCanchaCasoUsoTest {
 		}
 
 		@Override
+		public boolean existeNombreEnOtraCancha(UUID escenarioId, String nombre, UUID canchaId) {
+			return real.existeNombreEnOtraCancha(escenarioId, nombre, canchaId);
+		}
+
+		@Override
+		public void actualizar(Cancha cancha) {
+			real.actualizar(cancha);
+		}
+
+		@Override
 		public List<Cancha> listarPorEscenario(UUID escenarioId) {
 			return real.listarPorEscenario(escenarioId);
 		}

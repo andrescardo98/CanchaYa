@@ -51,6 +51,29 @@ class RepositorioCanchasJpa implements RepositorioCanchas {
 	}
 
 	@Override
+	public boolean existeNombreEnOtraCancha(UUID escenarioId, String nombre, UUID canchaId) {
+		return jpa.existeNombreEnOtraCancha(escenarioId, nombre, canchaId);
+	}
+
+	@Override
+	@Transactional
+	public void actualizar(Cancha cancha) {
+		// guardar no sirve: haría INSERT (isNew). Se carga la fila y se cambian solo los datos modificables
+		CanchaEntidad entidad = jpa.findById(cancha.getId()).orElseThrow();
+		entidad.copiarDatosModificables(cancha);
+		try {
+			// flush por la misma razón que en guardar: traducir aquí el rechazo de la base
+			jpa.flush();
+		} catch (DataIntegrityViolationException e) {
+			// Otra solicitud dejó el mismo nombre entre la revisión del caso de uso y este update
+			if (NOMBRE_UNICO.equals(nombreRestriccion(e))) {
+				throw new ReglaNegocioException("ERR-CAN-08", cancha.getNombre());
+			}
+			throw e;
+		}
+	}
+
+	@Override
 	@Transactional(readOnly = true)
 	public List<Cancha> listarPorEscenario(UUID escenarioId) {
 		return jpa.findByEscenarioIdOrderByNombreAsc(escenarioId).stream().map(CanchaEntidad::aDominio).toList();

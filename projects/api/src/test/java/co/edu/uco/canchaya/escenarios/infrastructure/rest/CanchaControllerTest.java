@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultarNombreCanchaDisponible;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarCanchasEscenario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarTiposCancha;
+import co.edu.uco.canchaya.escenarios.application.port.in.ModificarCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarCancha.DatosRegistroCancha;
 import co.edu.uco.canchaya.escenarios.domain.Cancha;
@@ -56,6 +57,10 @@ class CanchaControllerTest {
 
 	@MockitoBean
 	private RegistrarCancha registrarCancha;
+
+	// HU9: lo pide CanchaController; sus pruebas están en ModificarCanchaControllerTest
+	@MockitoBean
+	private ModificarCancha modificarCancha;
 
 	@MockitoBean
 	private ConsultarNombreCanchaDisponible consultarNombreDisponible;
