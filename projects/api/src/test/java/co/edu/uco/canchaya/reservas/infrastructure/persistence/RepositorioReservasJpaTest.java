@@ -1,11 +1,14 @@
 package co.edu.uco.canchaya.reservas.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,14 +25,15 @@ import co.edu.uco.canchaya.reservas.application.port.out.RepositorioReservas;
 import co.edu.uco.canchaya.reservas.domain.ConfirmacionAsistencia;
 import co.edu.uco.canchaya.reservas.domain.EstadoReserva;
 import co.edu.uco.canchaya.reservas.domain.Reserva;
+import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 
 /**
- * Con la base real: HU13, CA7 (qué cuenta como reserva confirmada futura, RN-17, D08) y HU20, CA2
- * (las reservas que ocupan franjas de una cancha en una fecha).
+ * Con la base real: HU13, CA7 (qué cuenta como reserva confirmada futura, RN-17, D08), HU20, CA2
+ * (las reservas que ocupan franjas de una cancha en una fecha) y HU21 (guardar y los límites del jugador).
  */
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
-class RepositorioReservasJdbcTest {
+class RepositorioReservasJpaTest {
 
 	private static final String F5 = "27d013e3-f5b3-5378-a7df-7c80429554fe";
 	// «Ahora» fijo: 15 de enero de 2030 a las 10:00 en Bogotá
@@ -183,6 +187,76 @@ class RepositorioReservasJdbcTest {
 		cancelada(cancha, HOY, 10);
 
 		assertThat(repositorio.confirmadasDeCanchaEnFecha(cancha, HOY)).isEmpty();
+	}
+
+	// HU21: guardar, contarActivasDeJugador y horasConfirmadasDeJugadorEnFecha
+
+	private Reserva nueva(UUID canchaId, LocalDate fecha, int desde, int hasta) {
+		return Reserva.reconstruir(UUID.randomUUID(), canchaId, jugador, fecha, LocalTime.of(desde, 0),
+				LocalTime.of(hasta, 0), new BigDecimal("80000.00").multiply(BigDecimal.valueOf(hasta - desde)),
+				EstadoReserva.CONFIRMADA, ConfirmacionAsistencia.NO_REQUERIDA, null, null,
+				// PostgreSQL guarda microsegundos; Java en Windows da nanosegundos
+				OffsetDateTime.now().truncatedTo(ChronoUnit.MICROS), null, null);
+	}
+
+	private int filas() {
+		return jdbc.queryForObject("select count(*) from reserva", Integer.class);
+	}
+
+	@Test
+	void hu21GuardarYLeerConservaTodosLosDatos() {
+		Reserva reserva = nueva(cancha, HOY, 18, 20);
+
+		repositorio.guardar(reserva);
+
+		assertThat(repositorio.existePorId(reserva.getId())).isTrue();
+		assertThat(repositorio.existePorId(UUID.randomUUID())).isFalse();
+		Reserva leida = repositorio.confirmadasDeCanchaEnFecha(cancha, HOY).get(0);
+		assertThat(leida).usingRecursiveComparison().ignoringFields("fechaCreacion").isEqualTo(reserva);
+		assertThat(leida.getFechaCreacion().toInstant()).isEqualTo(reserva.getFechaCreacion().toInstant());
+	}
+
+	// CA3, D29 punto 1: si el turno no la frenara, la restricción de exclusión rechaza el cruce
+	@Test
+	void CA3_restriccionDeExclusion_ERR_RES_06() {
+		confirmada(cancha, HOY, 18, 20);
+
+		assertThatThrownBy(() -> repositorio.guardar(nueva(cancha, HOY, 19, 21)))
+				.isInstanceOf(ReglaNegocioException.class)
+				.extracting(e -> ((ReglaNegocioException) e).getCodigoMensaje()).isEqualTo("ERR-RES-06");
+		assertThat(filas()).isEqualTo(1);
+
+		// Seguidas no se cruzan (hora de fin abierta), ni en otra cancha, ni sobre una cancelada
+		cancelada(cancha, HOY, 21);
+		repositorio.guardar(nueva(cancha, HOY, 20, 22));
+		repositorio.guardar(nueva(otraCancha, HOY, 18, 20));
+		assertThat(filas()).isEqualTo(4);
+	}
+
+	// CA6 y P4: activa = CONFIRMADA y que no ha terminado (fecha + horaFin > ahora)
+	@Test
+	void CA6_reservaTerminada_noCuentaComoActiva() {
+		confirmada(cancha, HOY, 8, 10); // terminó justo ahora (10:00): ya no cuenta
+		confirmada(otraCancha, HOY, 9, 11); // está en juego: cuenta
+		confirmada(cancha, HOY.plusDays(1), 8); // futura: cuenta
+		confirmada(cancha, HOY.minusDays(1), 18); // de ayer: no cuenta
+		cancelada(cancha, HOY.plusDays(2), 8); // cancelada: no cuenta
+
+		assertThat(repositorio.contarActivasDeJugador(jugador, AHORA)).isEqualTo(2);
+		assertThat(repositorio.contarActivasDeJugador(UUID.randomUUID(), AHORA)).isZero();
+	}
+
+	// CA7 y CA14: horas CONFIRMADAS del jugador en la fecha, sumando todas las canchas
+	@Test
+	void CA7_superaDosHorasEnElDia_ERR_RES_09() {
+		confirmada(cancha, HOY, 8); // 1 h
+		confirmada(otraCancha, HOY, 14, 16); // 2 h en otra cancha
+		cancelada(cancha, HOY, 18); // no cuenta
+		confirmada(cancha, HOY.plusDays(1), 8); // otro día
+
+		assertThat(repositorio.horasConfirmadasDeJugadorEnFecha(jugador, HOY)).isEqualTo(3);
+		assertThat(repositorio.horasConfirmadasDeJugadorEnFecha(jugador, HOY.plusDays(5))).isZero();
+		assertThat(repositorio.horasConfirmadasDeJugadorEnFecha(UUID.randomUUID(), HOY)).isZero();
 	}
 
 }
