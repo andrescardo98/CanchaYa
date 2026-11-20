@@ -7,4 +7,4 @@
 - [x] T3 · Persistencia · `existeNombreEnOtraCancha` y `actualizar` (ERR-CAN-08 si la base rechaza el nombre), con `ModificacionCanchaPersistenciaTest` (CA1, CA5 y CA8 con la reserva insertada por SQL, P2)
 - [x] T4 · REST · `PUT /api/canchas/{id}` (P1), `SolicitudModificarCancha`, `RespuestaModificarCancha`, `ERR-CAN-07 → 404`, y `EXI-CAN-02`, `ERR-CAN-07` y `ERR-CAN-08` en el catálogo, con `ModificarCanchaControllerTest` (CA1 a CA7). Los otros `@WebMvcTest` de `CanchaController` reciben el nuevo `@MockitoBean`
 - [x] T5 · Punta a punta · `ModificarCanchaPuntaAPuntaTest`: modificar y ver el cambio en la lista, inexistente y no propietario (CA1, CA3, CA4)
-- [ ] T6 · Verificación · `./mvnw verify` y `/pull-request`
+- [x] T6 · Verificación · `./mvnw verify` y `/pull-request`
