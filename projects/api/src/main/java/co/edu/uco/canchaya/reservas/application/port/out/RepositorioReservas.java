@@ -22,6 +22,12 @@ public interface RepositorioReservas {
 	 */
 	List<Reserva> confirmadasDeCanchaEnFecha(UUID canchaId, LocalDate fecha);
 
+	/**
+	 * HU18 (CA5): reservas CONFIRMADAS de varias canchas en esa fecha, en una sola consulta, por hora
+	 * de inicio. Vacía si no se pide ninguna cancha.
+	 */
+	List<Reserva> confirmadasDeCanchasEnFecha(Collection<UUID> canchaIds, LocalDate fecha);
+
 	/** Política 10 de Reserva (HU21). */
 	boolean existePorId(UUID id);
 

@@ -168,7 +168,7 @@ Si el spike muestra algo distinto, se corrige esta especificación antes de segu
 | CA5 | Sin fecha ni hora no se filtra por disponibilidad | `CA5_sinFechaNiHora_noFiltraPorDisponibilidad` | Caso de uso |
 | CA5 (P2) | Solo fecha: sale la cancha con una franja libre ese día; no sale la que tiene todas ocupadas (reservas y bloqueos) ni la de un escenario que no atiende ese día | `CA5_soloFecha_alMenosUnaFranjaLibre` | Caso de uso |
 | CA5 | `hora` sin `fecha` → `ERR-GEN-01`; `hora` 14:30 → `ERR-GEN-02` | `CA5_horaSinFecha_ERR_GEN_01` y `CA5_horaNoEnPunto_ERR_GEN_02` | REST |
-| CA5 | `ConsultaFranjasOcupadasCasoUso`: solo cuentan las CONFIRMADAS de esas canchas en esa fecha, agrupadas por cancha | `CA5_soloConfirmadasDeLaFecha` | Persistencia de Reservas |
+| CA5 | `ConsultaFranjasOcupadasCasoUso`: solo cuentan las CONFIRMADAS de esas canchas en esa fecha, agrupadas por cancha | `ca5SoloConfirmadasDeLaFecha` y `sinCanchas_mapaVacio` (`ConsultaFranjasOcupadasPersistenciaTest`) | Persistencia de Reservas |
 | CA6 | Ayer y hoy + 31 → `ERR-HOR-10`; hoy y hoy + 30 se aceptan; la ventana sale de PAR-RES-01, y `calcularFranjas` usa la misma validación | `ca6FechaFueraDeLaVentana_ErrHor10`, `ca6BordesDeLaVentana_seAceptan`, `ca6LaVentanaSaleDelParametro` y `ca6CalcularFranjasUsaLaMismaValidacion` (`HorarioRecurrenteValidarFechaConsultableTest`) | Dominio |
 | CA6 | 422 con `ERR-HOR-10` aunque ninguna cancha cumpla los demás filtros | `CA6_fechaFueraDeVentana_422_ERR_HOR_10` | REST |
 | CA7 | Ninguna cancha cumple → `resultados` `[]` e `INF-ESC-01` | `CA7_sinResultados_INF_ESC_01` | Caso de uso + REST |

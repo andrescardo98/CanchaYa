@@ -67,6 +67,18 @@ class RepositorioReservasJpa implements RepositorioReservas {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
+	public List<Reserva> confirmadasDeCanchasEnFecha(Collection<UUID> canchaIds, LocalDate fecha) {
+		if (canchaIds.isEmpty()) {
+			return List.of();
+		}
+		return jpa.findByCanchaIdInAndFechaAndEstadoOrderByHoraInicioAsc(canchaIds, fecha, EstadoReserva.CONFIRMADA)
+				.stream()
+				.map(ReservaEntidad::aDominio)
+				.toList();
+	}
+
+	@Override
 	public boolean existePorId(UUID id) {
 		return jpa.existsById(id);
 	}
