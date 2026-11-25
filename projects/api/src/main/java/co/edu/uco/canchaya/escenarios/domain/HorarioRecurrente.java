@@ -96,6 +96,32 @@ public final class HorarioRecurrente {
 	}
 
 	/**
+	 * Responsabilidad «eliminar» (HU12). Solo revisa: el borrado lo hace el caso de uso, que antes
+	 * revisa la política 6 (que exista el horario) y pregunta a Reservas si hay reservas. La
+	 * política 8 (RN-04) la cumple la búsqueda al no mostrar escenarios sin horarios.
+	 *
+	 * @param escenario                       el escenario de este horario, para saber quién es el propietario
+	 * @param tieneReservasConfirmadasFuturas si hay reservas confirmadas futuras que se cruzan con
+	 *                                        este día y rango de horas (D08)
+	 * @throws ReglaNegocioException ERR-HOR-02 o ERR-HOR-15
+	 * @throws IllegalArgumentException si el escenario no es el del horario (error de programación)
+	 */
+	public void validarEliminacion(Escenario escenario, Solicitante solicitante,
+			boolean tieneReservasConfirmadasFuturas) {
+		Objects.requireNonNull(escenario, "escenario");
+		if (!escenario.getId().equals(escenarioId)) {
+			throw new IllegalArgumentException("El escenario " + escenario.getId() + " no es el del horario " + id);
+		}
+
+		// Política 2 primero: quien no es el dueño no se entera de si hay reservas
+		validarPropietario(escenario, solicitante);
+		// Política 15 (RN-17, D08)
+		if (tieneReservasConfirmadasFuturas) {
+			throw new ReglaNegocioException("ERR-HOR-15");
+		}
+	}
+
+	/**
 	 * Política 2 (RN-05, RN-15). El encargado de sede tiene el mismo rol, pero no es el dueño. Se
 	 * expone porque la lista de horarios del escenario también la necesita.
 	 *

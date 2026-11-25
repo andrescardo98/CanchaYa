@@ -10,7 +10,9 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -305,6 +307,13 @@ class CambiarEstadoEscenarioCasoUsoTest {
 		public boolean existenConfirmadasFuturas(Collection<UUID> canchaIds) {
 			consultas.add(List.copyOf(canchaIds));
 			return hayFuturas;
+		}
+
+		// HU12: estas pruebas son de HU10 y HU13
+		@Override
+		public boolean existenConfirmadasFuturasEnHorario(Collection<UUID> canchaIds, DayOfWeek dia,
+				LocalTime horaInicio, LocalTime horaFin) {
+			throw new UnsupportedOperationException();
 		}
 
 	}

@@ -2,7 +2,9 @@ package co.edu.uco.canchaya.escenarios.application.usecase;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,7 +15,7 @@ import co.edu.uco.canchaya.escenarios.domain.Escenario;
 import co.edu.uco.canchaya.escenarios.domain.EstadoEscenario;
 import co.edu.uco.canchaya.escenarios.domain.HorarioRecurrente;
 
-/** Repositorios falsos para las pruebas de HU7 y HU11. Solo hacen lo que usan los casos de uso de horarios. */
+/** Repositorios falsos para las pruebas de HU7, HU11 y HU12. Solo hacen lo que usan los casos de uso de horarios. */
 final class HorariosEnMemoria implements RepositorioHorarios {
 
 	final List<HorarioRecurrente> guardados = new ArrayList<>();
@@ -48,6 +50,12 @@ final class HorariosEnMemoria implements RepositorioHorarios {
 		guardados.replaceAll(h -> h.getId().equals(horario.getId()) ? copia(horario) : h);
 	}
 
+	// HU12
+	@Override
+	public void eliminar(UUID id) {
+		guardados.removeIf(h -> h.getId().equals(id));
+	}
+
 	private static HorarioRecurrente copia(HorarioRecurrente h) {
 		return HorarioRecurrente.reconstruir(h.getId(), h.getEscenarioId(), h.getDiaSemana(), h.getHoraInicio(),
 				h.getHoraFin());
@@ -72,6 +80,8 @@ final class HorariosEnMemoria implements RepositorioHorarios {
 	static final class Escenarios implements RepositorioEscenarios {
 
 		final List<Escenario> escenarios = new ArrayList<>();
+		// HU12: las canchas de cada escenario, para tomar sus turnos
+		final Map<UUID, List<UUID>> canchas = new HashMap<>();
 
 		@Override
 		public Optional<Escenario> buscarPorId(UUID id) {
@@ -105,7 +115,7 @@ final class HorariosEnMemoria implements RepositorioHorarios {
 
 		@Override
 		public List<UUID> idsCanchas(UUID escenarioId) {
-			throw new UnsupportedOperationException();
+			return canchas.getOrDefault(escenarioId, List.of());
 		}
 
 	}

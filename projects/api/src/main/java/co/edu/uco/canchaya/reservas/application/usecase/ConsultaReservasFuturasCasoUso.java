@@ -1,7 +1,9 @@
 package co.edu.uco.canchaya.reservas.application.usecase;
 
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -29,6 +31,13 @@ public class ConsultaReservasFuturasCasoUso implements ConsultaReservasFuturas {
 	public boolean existenConfirmadasFuturas(Collection<UUID> canchaIds) {
 		return !canchaIds.isEmpty()
 				&& repositorio.existenConfirmadasQueEmpiezanDespuesDe(canchaIds, LocalDateTime.now(reloj));
+	}
+
+	@Override
+	public boolean existenConfirmadasFuturasEnHorario(Collection<UUID> canchaIds, DayOfWeek dia,
+			LocalTime horaInicio, LocalTime horaFin) {
+		return !canchaIds.isEmpty() && repositorio.existenConfirmadasEnHorarioQueEmpiezanDespuesDe(canchaIds, dia,
+				horaInicio, horaFin, LocalDateTime.now(reloj));
 	}
 
 }

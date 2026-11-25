@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -28,8 +29,9 @@ import co.edu.uco.canchaya.reservas.domain.Reserva;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 
 /**
- * Con la base real: HU13, CA7 (qué cuenta como reserva confirmada futura, RN-17, D08), HU20, CA2
- * (las reservas que ocupan franjas de una cancha en una fecha) y HU21 (guardar y los límites del jugador).
+ * Con la base real: HU12, CA6 (reservas confirmadas futuras dentro de un horario, D08), HU13, CA7
+ * (qué cuenta como reserva confirmada futura, RN-17, D08), HU20, CA2 (las reservas que ocupan
+ * franjas de una cancha en una fecha) y HU21 (guardar y los límites del jugador).
  */
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
@@ -152,6 +154,92 @@ class RepositorioReservasJpaTest {
 
 		assertThat(hayFuturas()).isFalse();
 		assertThat(repositorio.existenConfirmadasQueEmpiezanDespuesDe(List.of(cancha, otraCancha), AHORA)).isTrue();
+	}
+
+	// HU12, CA6 (política 15, D08, P2): existenConfirmadasEnHorarioQueEmpiezanDespuesDe. HOY es
+	// martes; el horario que se quiere eliminar es el del martes de 06:00 a 12:00
+
+	private boolean hayEnHorarioDelMartes(List<UUID> canchas) {
+		return repositorio.existenConfirmadasEnHorarioQueEmpiezanDespuesDe(canchas, DayOfWeek.TUESDAY,
+				LocalTime.of(6, 0), LocalTime.of(12, 0), AHORA);
+	}
+
+	private boolean hayEnHorarioDelMartes() {
+		return hayEnHorarioDelMartes(List.of(cancha));
+	}
+
+	@Test
+	void ca6ExistenConfirmadasEnHorario_elMartesSiguienteDentroDelRangoCuenta() {
+		assertThat(HOY.getDayOfWeek()).isEqualTo(DayOfWeek.TUESDAY);
+		confirmada(cancha, HOY.plusWeeks(1), 8);
+
+		assertThat(hayEnHorarioDelMartes()).isTrue();
+	}
+
+	@Test
+	void ca6ExistenConfirmadasEnHorario_hoyMasTardeDentroDelRangoCuenta() {
+		confirmada(cancha, HOY, 11);
+
+		assertThat(hayEnHorarioDelMartes()).isTrue();
+	}
+
+	// P2: cuenta aunque solo una parte de la reserva quede dentro del rango (puede pasar después de HU11)
+	@Test
+	void ca6ExistenConfirmadasEnHorario_laQueSeCruzaEnParteCuenta() {
+		confirmada(cancha, HOY.plusWeeks(1), 11, 13);
+		assertThat(hayEnHorarioDelMartes()).isTrue();
+
+		jdbc.update("delete from reserva");
+		confirmada(cancha, HOY.plusWeeks(2), 5, 7);
+		assertThat(hayEnHorarioDelMartes()).isTrue();
+	}
+
+	@Test
+	void ca6ExistenConfirmadasEnHorario_lasDeOtroDiaNoCuentan() {
+		confirmada(cancha, HOY.plusDays(1), 8); // miércoles
+		confirmada(cancha, HOY.plusDays(6), 8); // lunes
+
+		assertThat(hayEnHorarioDelMartes()).isFalse();
+	}
+
+	@Test
+	void ca6ExistenConfirmadasEnHorario_lasDeFueraDelRangoNoCuentan() {
+		confirmada(cancha, HOY.plusWeeks(1), 14, 16);
+
+		assertThat(hayEnHorarioDelMartes()).isFalse();
+	}
+
+	// La hora de fin es abierta, como en la restricción de exclusión: pegadas al borde no se cruzan
+	@Test
+	void ca6ExistenConfirmadasEnHorario_lasPegadasAlBordeNoCuentan() {
+		confirmada(cancha, HOY.plusWeeks(1), 5); // de 05:00 a 06:00
+		confirmada(cancha, HOY.plusWeeks(1), 12); // de 12:00 a 13:00
+
+		assertThat(hayEnHorarioDelMartes()).isFalse();
+	}
+
+	@Test
+	void ca6ExistenConfirmadasEnHorario_lasCanceladasNoCuentan() {
+		cancelada(cancha, HOY.plusWeeks(1), 8);
+
+		assertThat(hayEnHorarioDelMartes()).isFalse();
+	}
+
+	@Test
+	void ca6ExistenConfirmadasEnHorario_lasQueYaEmpezaronOPasaronNoCuentan() {
+		confirmada(cancha, HOY, 10); // empieza justo ahora: ya no es futura
+		confirmada(cancha, HOY, 8);
+		confirmada(cancha, HOY.minusWeeks(1), 8);
+
+		assertThat(hayEnHorarioDelMartes()).isFalse();
+	}
+
+	@Test
+	void ca6ExistenConfirmadasEnHorario_lasDeOtrasCanchasNoCuentan() {
+		confirmada(otraCancha, HOY.plusWeeks(1), 8);
+
+		assertThat(hayEnHorarioDelMartes()).isFalse();
+		assertThat(hayEnHorarioDelMartes(List.of(cancha, otraCancha))).isTrue();
 	}
 
 	// HU20: confirmadasDeCanchaEnFecha

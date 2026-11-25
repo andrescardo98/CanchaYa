@@ -78,6 +78,14 @@ class RepositorioHorariosJpa implements RepositorioHorarios {
 		}
 	}
 
+	// HU12. Si no existe no hace nada: dos eliminaciones al mismo tiempo no dejan datos malos (spec, concurrencia)
+	@Override
+	@Transactional
+	public void eliminar(UUID id) {
+		jpa.deleteById(id);
+		jpa.flush();
+	}
+
 	@Override
 	@Transactional(readOnly = true)
 	public List<HorarioRecurrente> buscarPorEscenarioYDia(UUID escenarioId, DiaSemana diaSemana) {

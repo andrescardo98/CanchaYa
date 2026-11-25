@@ -26,6 +26,9 @@ public interface RepositorioHorarios {
 	 */
 	void actualizar(HorarioRecurrente horario);
 
+	/** HU12: borrado definitivo. Ninguna tabla apunta a horario_recurrente, así que no choca con nada. */
+	void eliminar(UUID id);
+
 	/** Para la política 4: solo los del mismo día. */
 	List<HorarioRecurrente> buscarPorEscenarioYDia(UUID escenarioId, DiaSemana diaSemana);
 

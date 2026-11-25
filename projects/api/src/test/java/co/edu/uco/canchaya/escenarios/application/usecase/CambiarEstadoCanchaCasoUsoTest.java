@@ -3,6 +3,8 @@ package co.edu.uco.canchaya.escenarios.application.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -161,6 +163,13 @@ class CambiarEstadoCanchaCasoUsoTest {
 			consultas.add(List.copyOf(canchaIds));
 			turnoTomadoAlConsultar = memoria.turnosTomados.containsAll(canchaIds);
 			return hayFuturas;
+		}
+
+		// HU12: estas pruebas son de HU10 y HU13
+		@Override
+		public boolean existenConfirmadasFuturasEnHorario(Collection<UUID> canchaIds, DayOfWeek dia,
+				LocalTime horaInicio, LocalTime horaFin) {
+			throw new UnsupportedOperationException();
 		}
 
 	}

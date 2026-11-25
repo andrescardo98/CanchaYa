@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import co.edu.uco.canchaya.escenarios.application.port.in.DefinirHorario;
+import co.edu.uco.canchaya.escenarios.application.port.in.EliminarHorario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarHorarios;
 import co.edu.uco.canchaya.escenarios.application.port.in.ModificarHorario;
 import co.edu.uco.canchaya.escenarios.domain.DiaSemana;
@@ -57,6 +58,10 @@ class ModificarHorarioControllerTest {
 
 	@MockitoBean
 	private ListarHorarios listarHorarios;
+
+	// HU12: lo pide HorarioController; sus pruebas están en EliminarHorarioControllerTest
+	@MockitoBean
+	private EliminarHorario eliminarHorario;
 
 	private static MockHttpServletRequestBuilder modificar(Object id, String cuerpo) {
 		return put("/api/horarios/{id}", id).contentType(MediaType.APPLICATION_JSON).content(cuerpo)
