@@ -1,6 +1,6 @@
 # HU22 · Recibir la notificación de una reserva
 
-**Estado:** Aprobada (24-nov-2026) · **HU:** [HU22](../../docs/historias/HU22.md) · **Módulo:** Reservas (con cambios pequeños en Escenarios, Identidad y Transversal)
+**Estado:** Implementada (24-nov-2026) · **HU:** [HU22](../../docs/historias/HU22.md) · **Módulo:** Reservas (con cambios pequeños en Escenarios, Identidad y Transversal)
 
 ## Fuentes
 
@@ -71,6 +71,7 @@ Sin cambios. No hay migración nueva.
 | CA1 | Al jugador le llega `COR-RES-01` con escenario, dirección, ciudad, cancha, fecha, horas y precio con formato, y sin aviso (PAR-RES-12 = No) | `ReservarCanchaCasoUsoTest.CA1_alJugadorLeLlegaCorRes01SinAviso` | Caso de uso |
 | CA1 | Con PAR-RES-12 en «Sí» y una reserva PENDIENTE, `COR-RES-01` lleva `COR-RES-01.avisoConfirmacion` | `ReservarCanchaCasoUsoTest.CA1_conConfirmacionPendiente_llevaElAviso` | Caso de uso |
 | CA1 | La plantilla arma el asunto y el cuerpo con el aviso y con el aviso vacío | `EnvioCorreoSmtpTest.CA1_armaCorRes01` | Transversal |
+| CA2 | La plantilla arma `COR-RES-02` con el nombre y el celular del jugador | `EnvioCorreoSmtpTest.CA2_armaCorRes02` | Transversal |
 | CA2 | Al propietario le llega `COR-RES-02` con cancha, fecha, horas, nombre y celular del jugador | `ReservarCanchaCasoUsoTest.CA2_alPropietarioLeLlegaCorRes02` | Caso de uso |
 | CA2 | `buscarDatosCorreo` trae dirección, nombre de la ciudad y propietario del escenario | `ConsultaCanchasCasoUsoTest.HU22_CA2_buscarDatosCorreo` | Escenarios |
 | CA2 | `buscarContactos` trae el celular | `ConsultaUsuariosCasoUsoTest.HU22_CA2_traeElCelular` | Identidad |
