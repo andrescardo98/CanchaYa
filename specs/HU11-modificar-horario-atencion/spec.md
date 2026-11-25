@@ -1,6 +1,6 @@
 # HU11 · Modificar un horario de atención
 
-**Estado:** Aprobada (24-nov-2026) · **HU:** [HU11](../../docs/historias/HU11.md) · **Módulo:** Escenarios y canchas (`co.edu.uco.canchaya.escenarios`)
+**Estado:** Implementada (24-nov-2026) · **HU:** [HU11](../../docs/historias/HU11.md) · **Módulo:** Escenarios y canchas (`co.edu.uco.canchaya.escenarios`)
 
 ## Fuentes
 
@@ -62,8 +62,8 @@ Respuesta `200`:
 | Puerto de salida | `RepositorioHorarios.buscarPorId(UUID)` | Nuevo: `Optional<HorarioRecurrente>` |
 | Puerto de salida | `RepositorioHorarios.actualizar(HorarioRecurrente)` | Nuevo: guarda día y horas. Si otra solicitud dejó al mismo tiempo un horario que se cruza, la base lo rechaza (`ex_horario_recurrente_sin_cruce`) y se traduce a ERR-HOR-07 con el día. `guardar` no sirve: hace INSERT (`isNew`) y traduce a ERR-HOR-04 |
 | Persistencia | `RepositorioHorariosJpa` y `HorarioRecurrenteEntidad` | `actualizar` carga la entidad, cambia los tres campos con un método nuevo de la entidad y hace `saveAndFlush` para traducir aquí la violación (reutiliza `esCruce`). La columna `rango_horas` la recalcula la base sola |
-| REST | `PUT /api/horarios/{id}` en `HorarioController` (P1), con `SolicitudDefinirHorario` (P2) y `RespuestaModificarHorario(codigo, mensaje, RespuestaHorario horario)` | El `@RequestMapping("/api/escenarios/{escenarioId}/horarios")` de la clase se quita y cada método lleva su ruta completa; `GET` y `POST` de HU7 quedan con la misma URL. `ERR-HOR-06 → 404` en `ManejadorErrores` |
-| Transversal | `EXI-HOR-02`, `ERR-HOR-06` y `ERR-HOR-07` en `catalogo-mensajes.properties` | Hoy no están. El comentario «Valores de {diaSemana} en ERR-HOR-04» pasa a decir «ERR-HOR-04 y ERR-HOR-07» |
+| REST | `PUT /api/horarios/{id}` en `HorarioController` (P1), con `SolicitudDefinirHorario` (P2) y `RespuestaModificarHorario(codigo, mensaje, RespuestaHorario horario)` | El `@RequestMapping("/api/escenarios/{escenarioId}/horarios")` de la clase se quita y cada método lleva su ruta completa (la de HU7 queda en la constante `HORARIOS_ESCENARIO`); `GET` y `POST` de HU7 quedan con la misma URL. `ERR-HOR-06 → 404` en `ManejadorErrores` |
+| Transversal | `EXI-HOR-02`, `ERR-HOR-06` y `ERR-HOR-07` en `catalogo-mensajes.properties` | Antes de HU11 no estaban. El comentario «Valores de {diaSemana} en ERR-HOR-04» pasa a decir «ERR-HOR-04 y ERR-HOR-07» |
 
 Sin migraciones: la tabla `horario_recurrente` y su restricción de exclusión ya cubren el cruce también en un UPDATE.
 
@@ -73,21 +73,25 @@ Sin migraciones: la tabla `horario_recurrente` y su restricción de exclusión y
 
 | CA | Qué se verifica | Prueba | Capa |
 |---|---|---|---|
-| CA1 | Cambia día y horas; conserva id y escenario; no se cruza consigo mismo (de 6–12 a 6–14 el mismo día sí se puede) | `ca1Modificar_cambiaDiaYHorasYConservaIdYEscenario` y `ca1Modificar_noSeCruzaConsigoMismo` | Dominio |
-| CA1 | Se guarda con el nuevo día; la política 7 usa los horarios del día nuevo | `ca1Modificar_guardaLosCambios` y `ca1CambiarDeDia_revisaLosHorariosDelDiaNuevo` | Caso de uso |
-| CA1 | `actualizar` cambia la fila y `buscarPorId` la lee | `ca1Actualizar_cambiaDiaYHoras` | Persistencia |
-| CA1 | 200 con `EXI-HOR-02` y el horario guardado; la lista del escenario y la disponibilidad de una cancha (HU20) salen con el nuevo horario | `ca1ModificarHorario_200_EXI_HOR_02_listaYDisponibilidadActualizadas` | REST + punta a punta |
-| CA2 | Sin día, día que no existe, sin horas u horas mal escritas (`7:00`, `25:00`): 400 con todos los ERR-GEN y no se llama al caso de uso | `ca2DatosInvalidos_400_conTodosLosErrores` | REST |
-| CA3 | Horario inexistente: `ERR-HOR-06` y nada cambia | `ca3HorarioInexistente_ERR_HOR_06` | Caso de uso |
-| CA3 | 404 `ERR-HOR-06` por HTTP | `ca3HorarioInexistente_404_ERR_HOR_06` | REST |
-| CA4 | Otro administrador de cancha, un encargado de sede y el administrador del sistema: `ERR-HOR-02`, nada cambia | `ca4NoPropietario_ERR_HOR_02`, `ca4EncargadoDeSede_ERR_HOR_02` y `ca4AdministradorDelSistema_ERR_HOR_02` | Dominio + caso de uso |
-| CA4 | 403 `ERR-HOR-02` por HTTP con token real | `ca4NoPropietario_403_ERR_HOR_02` | Punta a punta |
-| CA5 | Fin igual o anterior al inicio: `ERR-HOR-03` y el horario queda como estaba | `ca5FinNoMayorQueInicio_ERR_HOR_03` | Dominio |
-| CA6 | Se cruza con otro horario del día nuevo: `ERR-HOR-07` con el día; quedar pegado (12–14 junto a 6–12) sí se puede | `ca6SeCruzaConOtro_ERR_HOR_07` y `ca6HorarioPegado_seGuarda` | Dominio |
-| CA6 | Dos solicitudes al mismo tiempo: la base rechaza el cruce en el UPDATE y se responde `ERR-HOR-07` | `ca6Actualizar_cruceEnLaBase_ERR_HOR_07` | Persistencia |
-| CA7 | Hora de inicio o de fin con minutos (`07:30`): `ERR-HOR-13` | `ca7HoraNoEnPunto_ERR_HOR_13` | Dominio |
-| CA8 | Una reserva confirmada que queda por fuera del nuevo horario sigue en la base, igual que antes (política 14, D09) | `ca8ReservaPorFueraDelNuevoHorario_seConserva` (inserta la reserva con SQL, P3) | Persistencia |
-| CA8 | La disponibilidad se calcula con el nuevo horario | Cubierto por la prueba punta a punta de CA1 | — |
+| CA1 | Cambia día y horas; conserva id y escenario; no se cruza consigo mismo (de 6–12 a 6–14 el mismo día sí se puede) | `HorarioRecurrenteModificarTest`: `ca1Modificar_cambiaDiaYHorasYConservaIdYEscenario` y `ca1Modificar_noSeCruzaConsigoMismo` | Dominio |
+| CA1 | Se guarda sin crear otro horario; la política 7 usa los horarios del día nuevo; ampliar el mismo horario se puede | `ModificarHorarioCasoUsoTest`: `ca1Modificar_guardaLosCambios`, `ca1CambiarDeDia_revisaLosHorariosDelDiaNuevo` y `ca1AmpliarElMismoHorario_seGuarda` | Caso de uso |
+| CA1 | `actualizar` cambia la fila (no agrega otra) y `buscarPorId` la lee | `ModificacionHorarioPersistenciaTest`: `ca1Actualizar_cambiaDiaYHoras` | Persistencia |
+| CA1 | 200 con `EXI-HOR-02` y el horario guardado | `ModificarHorarioControllerTest`: `ca1ModificarHorario_200_EXI_HOR_02_conElHorarioGuardado` | REST |
+| CA1 | Con token real: 200, la lista del escenario y la disponibilidad de una cancha (HU20) salen con el nuevo horario | `ModificarHorarioPuntaAPuntaTest`: `ca1ModificarHorario_200_EXI_HOR_02_listaYDisponibilidadActualizadas` | Punta a punta |
+| CA2 | Sin datos: 400 con `ERR-GEN-01` por cada campo; día que no existe y horas mal escritas (`7:00`, `25:00`): 400 con los tres `ERR-GEN-02` a la vez; no se llama al caso de uso | `ModificarHorarioControllerTest`: `ca2SinDatos_400_ERR_GEN_01PorCadaCampo` y `ca2DatosInvalidos_400_conTodosLosErrores` | REST |
+| CA3 | Horario inexistente: `ERR-HOR-06` y nada cambia | `ModificarHorarioCasoUsoTest`: `ca3HorarioInexistente_ERR_HOR_06`; `ModificacionHorarioPersistenciaTest`: `ca3BuscarPorId_inexistente_vacio` | Caso de uso + persistencia |
+| CA3 | 404 `ERR-HOR-06` por HTTP | `ModificarHorarioControllerTest`: `ca3Ca4Ca5Ca7LasReglasIncumplidasRespondenSuMensaje`; `ModificarHorarioPuntaAPuntaTest`: `ca3HorarioInexistente_404_ERR_HOR_06` | REST + punta a punta |
+| CA4 | Cualquier rol que no sea el dueño (otro administrador de cancha o encargado de sede, jugador, administrador del sistema): `ERR-HOR-02` y el horario queda como estaba | `HorarioRecurrenteModificarTest`: `ca4NoPropietario_ERR_HOR_02` (un caso por rol); `ModificarHorarioCasoUsoTest`: `ca4EncargadoDeSede_ERR_HOR_02` y `ca4AdministradorDelSistema_ERR_HOR_02` | Dominio + caso de uso |
+| CA4 | 403 `ERR-HOR-02` por HTTP; con token real, nada cambia en la base | `ModificarHorarioControllerTest`: `ca3Ca4Ca5Ca7LasReglasIncumplidasRespondenSuMensaje`; `ModificarHorarioPuntaAPuntaTest`: `ca4NoPropietario_403_ERR_HOR_02` | REST + punta a punta |
+| CA5 | Fin igual o anterior al inicio: `ERR-HOR-03` y el horario queda como estaba; 422 por HTTP | `HorarioRecurrenteModificarTest`: `ca5FinNoMayorQueInicio_ERR_HOR_03`; `ModificarHorarioControllerTest`: `ca3Ca4Ca5Ca7LasReglasIncumplidasRespondenSuMensaje` | Dominio + REST |
+| CA6 | Se cruza con otro horario: `ERR-HOR-07` con el día (también el día nuevo al cambiar de día); quedar pegado (12–14 junto a 6–12) sí se puede | `HorarioRecurrenteModificarTest`: `ca6SeCruzaConOtro_ERR_HOR_07`, `ca6SeCruzaConOtroDelDiaNuevo_ERR_HOR_07ConEseDia` y `ca6HorarioPegado_seGuarda`; `ModificarHorarioCasoUsoTest`: `ca6UnHorarioDeOtroEscenarioNoCuenta` | Dominio + caso de uso |
+| CA6 | Dos solicitudes al mismo tiempo: la base rechaza el cruce en el UPDATE y se responde `ERR-HOR-07`; el horario queda como estaba | `ModificacionHorarioPersistenciaTest`: `ca6Actualizar_cruceEnLaBase_ERR_HOR_07` | Persistencia |
+| CA6 | 422 con el texto «…ya definido para el miércoles.» | `ModificarHorarioControllerTest`: `ca6SeCruza_422_ERR_HOR_07ConElDia` | REST |
+| CA7 | Hora de inicio o de fin con minutos (`07:30`): `ERR-HOR-13`; el formato `hh:mm` deja pasar los minutos hasta el dominio | `HorarioRecurrenteModificarTest`: `ca7HoraNoEnPunto_ERR_HOR_13`; `ModificarHorarioControllerTest`: `ca7UnaHoraQueNoEsEnPuntoLlegaAlCasoDeUso` | Dominio + REST |
+| CA8 | Una reserva confirmada que queda por fuera del nuevo horario sigue en la base igual que antes, en todas sus columnas (política 14, D09) | `ModificacionHorarioPersistenciaTest`: `ca8ReservaPorFueraDelNuevoHorario_seConserva` (inserta la reserva con SQL, P3) | Persistencia |
+| CA8 | Con token real: la reserva sigue `CONFIRMADA` y la disponibilidad se calcula con el nuevo horario | `ModificarHorarioPuntaAPuntaTest`: `ca1ModificarHorario_200_EXI_HOR_02_listaYDisponibilidadActualizadas` | Punta a punta |
+
+Además: sin sesión responde 401 `ERR-GEN-05` y un `id` que no es UUID responde 400 `ERR-GEN-07` (`ModificarHorarioControllerTest`). Las pruebas de HU7 (`HorarioRecurrenteTest`, `DefinirHorarioCasoUsoTest`, `HorarioPersistenciaTest`, `HorarioControllerTest` y `DefinirHorarioPuntaAPuntaTest`) siguen pasando con el cambio de `definir` y de las rutas de `HorarioController`.
 
 Las pruebas siguen el estilo del módulo: `ca1Xxx`, con el criterio al principio del nombre.
 
