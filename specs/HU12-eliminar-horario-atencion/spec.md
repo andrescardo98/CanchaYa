@@ -74,7 +74,8 @@ Sin migraciones.
 | CA4, CA5, CA6 | Por HTTP: 404 `ERR-HOR-06`, 403 `ERR-HOR-02` y 422 `ERR-HOR-15`, cada uno con su texto del catálogo; además 401 `ERR-GEN-05` sin sesión y 400 `ERR-GEN-07` si el id no es UUID | `ca4Ca5Ca6LasReglasIncumplidasRespondenSuMensaje` (una vez por código), `sinSesion_401_ERR_GEN_05` y `unIdentificadorQueNoEsUuid_400_ERR_GEN_07` | REST |
 | CA5 | Quien no es el dueño, con cualquier rol (otro administrador de cancha o un encargado de sede, que tienen el mismo rol, el administrador del sistema y el jugador), o sin sesión: `ERR-HOR-02`, aunque haya reservas (el permiso va primero) | `ca5NoPropietario_ERR_HOR_02` (una vez por rol, como en HU11), `ca5SinSolicitante_ERR_HOR_02` y `ca5NoPropietarioConReservas_ERR_HOR_02` | Dominio |
 | CA5 | El caso de uso no borra, ni toma turnos, ni pregunta a Reservas (P5) | `ca5NoPropietario_noBorraNiTomaTurnos` | Caso de uso |
-| CA5 | 403 `ERR-HOR-02` por HTTP con token real | `ca5NoPropietario_403_ERR_HOR_02` | Punta a punta |
+| CA4 | 404 `ERR-HOR-06` por HTTP con token real | `ca4HorarioInexistente_404_ERR_HOR_06` | Punta a punta |
+| CA5 | 403 `ERR-HOR-02` por HTTP con token real y el horario sigue en la base | `ca5NoPropietario_403_ERR_HOR_02` | Punta a punta |
 | CA6 | Con reservas futuras: `ERR-HOR-15` | `ca6ConReservasFuturas_ERR_HOR_15` | Dominio |
 | CA6 | El caso de uso no borra | `ca6ConReservasFuturas_noBorra` | Caso de uso |
 | CA6 | La consulta de Reservas cuenta solo las CONFIRMADAS futuras de esas canchas en ese día que se cruzan con el rango; no cuentan: otro día, fuera del rango, pegada al borde (termina a la hora de inicio), cancelada, ya empezada, otra cancha | `ca6ExistenConfirmadasEnHorario_*` (una por caso, reservas insertadas con SQL) | Persistencia (Reservas) |
