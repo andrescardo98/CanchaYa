@@ -139,6 +139,7 @@ No sirve `buscarReservable`: solo devuelve canchas DISPONIBLES de escenarios ACT
 | CA1 | Se reserva con `POST /api/reservas` y aparece en `vigentes` de `GET /api/reservas/mias` | `MisReservasPuntaAPuntaTest.CA1_reservaHecha_apareceEnVigentes` | Punta a punta |
 | CA1 | El nombre llega aunque la cancha esté INACTIVA | `ConsultaCanchasPersistenciaTest.CA1_canchaInactiva_tambienTraeNombres` | Persistencia |
 | CA2 | Sin reservas: listas vacías y `INF-RES-01` con su texto | `ReservaControllerTest.HU23_CA2_sinReservas_INF_RES_01` | REST |
+| CA2 | Un jugador real sin reservas recibe `INF-RES-01` | `MisReservasPuntaAPuntaTest.CA2_sinReservas_INF_RES_01` | Punta a punta |
 | CA3 | CONFIRMADA y faltan 3 h 1 min → `cancelable` verdadero | `ReservaConsultaTest.CA3_faltanMasDeTresHoras_sePuedeCancelar` | Dominio |
 | CA3 | Faltan exactamente 3 h, o menos → falso (límite estricto de PAR-RES-05) | `ReservaConsultaTest.CA3_faltanTresHorasOMenos_noSePuedeCancelar` | Dominio |
 | CA3 | CANCELADA o NO_ASISTIO → falso | `ReservaConsultaTest.CA3_noConfirmada_noSePuedeCancelar` | Dominio |
