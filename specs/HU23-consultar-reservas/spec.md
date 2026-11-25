@@ -1,6 +1,6 @@
 # HU23 · Consultar mis reservas
 
-**Estado:** Aprobada (24-nov-2026) · **HU:** [HU23](../../docs/historias/HU23.md) · **Módulo:** Reservas (`co.edu.uco.canchaya.reservas`), con `ConsultaCanchas` de Escenarios y canchas
+**Estado:** Implementada (24-nov-2026; aprobada el 24-nov-2026) · **HU:** [HU23](../../docs/historias/HU23.md) · **Módulo:** Reservas (`co.edu.uco.canchaya.reservas`), con `ConsultaCanchas` de Escenarios y canchas
 
 **Depende de [HU21](../HU21-reservar-cancha/spec.md)** (implementada): reutiliza `Reserva`, `reconstruir`, `inicio`, `fin`, `ParametrosReserva`, `RepositorioReservas` y su adaptador, y `ConsultaCanchas`. No cambia la base de datos.
 
@@ -138,6 +138,8 @@ No sirve `buscarReservable`: solo devuelve canchas DISPONIBLES de escenarios ACT
 | CA1 | La respuesta trae escenario, cancha, fecha, horas, precio, estado y confirmación de asistencia | `ReservaControllerTest.HU23_CA1_devuelveLosDatosDeCadaReserva` | REST |
 | CA1 | Se reserva con `POST /api/reservas` y aparece en `vigentes` de `GET /api/reservas/mias` | `MisReservasPuntaAPuntaTest.CA1_reservaHecha_apareceEnVigentes` | Punta a punta |
 | CA1 | El nombre llega aunque la cancha esté INACTIVA | `ConsultaCanchasPersistenciaTest.CA1_canchaInactiva_tambienTraeNombres` | Persistencia |
+| CA1 | Los nombres de todas las canchas se piden en una sola llamada | `ConsultarMisReservasCasoUsoTest.CA1_completaLosNombresDeCanchaYEscenario` | Caso de uso |
+| CA2 | Sin reservas, las dos listas vacías | `ConsultarMisReservasCasoUsoTest.CA2_sinReservas_quedaVacia` | Caso de uso |
 | CA2 | Sin reservas: listas vacías y `INF-RES-01` con su texto | `ReservaControllerTest.HU23_CA2_sinReservas_INF_RES_01` | REST |
 | CA2 | Un jugador real sin reservas recibe `INF-RES-01` | `MisReservasPuntaAPuntaTest.CA2_sinReservas_INF_RES_01` | Punta a punta |
 | CA3 | CONFIRMADA y faltan 3 h 1 min → `cancelable` verdadero | `ReservaConsultaTest.CA3_faltanMasDeTresHoras_sePuedeCancelar` | Dominio |
