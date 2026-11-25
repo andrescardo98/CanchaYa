@@ -55,7 +55,7 @@ No hay servicio nuevo. `POST /api/reservas` responde igual que en HU21 (201 con 
   2. `notificar(confirmada)` (política 13, D15), **fuera** de la transacción y de forma síncrona, como HU13 (P1):
      - Busca `buscarDatosCorreo(canchaId)` y los contactos del jugador y del propietario con una sola llamada a `buscarContactos`.
      - Arma y envía `COR-RES-01` y luego `COR-RES-02`, cada uno en su propio `try/catch (RuntimeException)`: si algo falla, registra `ERR-GEN-08 codigoCorreo=… reservaId=… detalle=<tipo de error>` y sigue. El detalle es el tipo de la excepción, no su mensaje ni los parámetros del correo: así el celular nunca llega al log (P4, RT-12).
-     - Si falta un dato (cancha o usuario no encontrado), registra `ERR-GEN-08` para el correo afectado y no lo envía.
+     - Si falta un dato (cancha o usuario no encontrado), registra `ERR-GEN-08` para el correo afectado y no lo envía. Sin el jugador no sale ninguno de los dos, porque `COR-RES-02` lleva su nombre y su celular; sin el propietario solo falta `COR-RES-02`. Si la consulta de los datos lanza un error, se registran los dos.
   3. Devuelve la misma `ReservaConfirmada`: un error del correo nunca llega al controlador (CA3).
 - `EnvioCorreoSmtp` no cambia: ya registra sus fallas con `ERR-GEN-08`, no lanza el error y no reintenta (PAR-GEN-02 = 0).
 
