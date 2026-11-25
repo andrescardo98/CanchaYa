@@ -14,6 +14,8 @@ CanchaYa/
 ├── .claude/
 │   ├── settings.json               # Permisos compartidos de Claude Code
 │   └── skills/
+│       ├── desarrollar-hu/
+│       │   └── SKILL.md            # Skill que lleva una HU de la especificación al pull request
 │       ├── especificar/
 │       │   └── SKILL.md            # Skill que escribe la especificación técnica de una HU
 │       └── pull-request/
@@ -110,7 +112,7 @@ Resumen de [docs/arquitectura/arquetipo.md](docs/arquitectura/arquetipo.md) (hoj
 
 ## Cómo trabajar una historia de usuario
 
-El desarrollador debe entender y poder sustentar todo el código. Por eso:
+El desarrollador debe entender y poder sustentar todo el código. El skill `desarrollar-hu` (`/desarrollar-hu HUnn`) recorre estos pasos de principio a fin, con puntos de parada para aprobar cada fase. Por eso:
 
 1. **Especificación antes que código.** Con el skill `especificar` (`/especificar HUnn`), lee la HU, las hojas del dominio que cita su «Requisito de información», los mensajes y los parámetros que nombra, y escribe `specs/HUnn-<nombre>/spec.md` y `tareas.md`. No escribas código hasta que el desarrollador resuelva las preguntas abiertas y marque la especificación como **Aprobada**. Implementa una tarea de `tareas.md` a la vez y márcala al terminar. Si al implementar algo no coincide con la especificación, corrige primero la especificación.
 2. **Pruebas a partir de los criterios de aceptación.** Cada `CAn` tiene al menos una prueba, y su nombre o comentario cita el criterio.
