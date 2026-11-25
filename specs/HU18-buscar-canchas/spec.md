@@ -99,7 +99,7 @@ No se crea un objeto de dominio «Búsqueda»: el modelo enriquecido no lo tiene
 | Pieza | Paquete | Qué hace |
 |---|---|---|
 | `BuscarCanchas` (nuevo), con los records `CriteriosBusqueda` y `ResultadoBusqueda` (lista de `CanchaEncontrada`, radio aplicado y límites) | `application.port.in` | Contrato del caso de uso |
-| `RepositorioBusquedaCanchas` (nuevo) | `application.port.out` | `List<Candidata> buscar(FiltroUbicacion)`: canchas con su escenario, filtradas por punto y radio (`ST_DWithin`), departamento, ciudad y tipo, con la distancia en metros (`ST_Distance`) si hay punto. `Candidata` trae lo necesario para reconstruir `Cancha` y `Escenario` (sin fotos) y el nombre del tipo (P7) |
+| `RepositorioBusquedaCanchas` (nuevo) | `application.port.out` | `List<Candidata> buscar(FiltroBusqueda)`: canchas con su escenario, filtradas por punto y radio (`ST_DWithin`), departamento, ciudad y tipo, con la distancia en metros (`ST_Distance`) si hay punto. `Candidata` trae lo necesario para reconstruir `Cancha` y `Escenario` (sin fotos) y el nombre del tipo (P7) |
 | `ConsultaFranjasOcupadas` (nuevo, P1) | `application.port.out` | `Map<UUID, List<RangoOcupado>> confirmadasDelDia(Collection<UUID> canchaIds, LocalDate fecha)`: las horas de las reservas CONFIRMADAS de esas canchas en la fecha, por cancha, sin el jugador. La define Escenarios y la implementa Reservas. Devuelve las horas y no solo «ocupada sí o no» porque con fecha sin hora hay que revisar todas las franjas del día (P2) |
 | `RepositorioBloqueos.rangosDelDia(Collection<UUID> canchaIds, LocalDate fecha)` | `application.port.out` (ya existe) | Sobrecarga nueva del método de HU20: los bloqueos de varias canchas en una sola consulta, por cancha |
 | `RepositorioHorarios.buscarPorEscenarios(Collection<UUID> escenarioIds)` | `application.port.out` (ya existe) | Método nuevo: los horarios de varios escenarios en una sola consulta, para no hacer una por escenario |
@@ -154,32 +154,42 @@ Si el spike muestra algo distinto, se corrige esta especificación antes de segu
 
 ## Criterios de aceptación → pruebas
 
-| CA | Qué se verifica | Prueba | Capa |
+Clases de prueba: **Dom** = `HorarioRecurrenteValidarFechaConsultableTest`; **CU** = `BuscarCanchasCasoUsoTest` (dobles en memoria); **Spike** = `BusquedaPostgisSpikeTest`; **Per** = `BusquedaCanchasPersistenciaTest` (`@DataJpaTest` con PostGIS real); **Res** = `ConsultaFranjasOcupadasPersistenciaTest` (Reservas); **REST** = `BusquedaCanchasControllerTest`; **P2P** = `BusquedaCanchasPuntaAPuntaTest` (aplicación completa, sin token, reloj real); **Conf** = `ParametrosBusquedaTest`; **Cat** = `CatalogoMensajesTest`.
+
+| CA | Qué se verifica | Pruebas | Clase |
 |---|---|---|---|
-| CA1 | Con punto y radio de 10 km: salen los escenarios a 2 y 8 km, no el de 15 km; ordenados por distancia y con `distanciaKm` | `CA1_conUbicacion_dentroDelRadioYOrdenadasPorDistancia` | Persistencia (Testcontainers) + REST |
-| CA1 | Solo salen las canchas publicables: cancha INACTIVA, escenario INACTIVO y escenario sin horarios no salen | `CA1_soloCanchasQueCumplenRN04` | Caso de uso + persistencia |
-| CA1 | Spike: columna generada, `ST_Distance` en metros (Rionegro – Medellín, unos 24 km), borde del radio y radio en metros y no en grados | `spike_columnaGenerada_seLlenaYSeRecalcula`, `spike_distancia_enMetrosSobreLaTierra`, `spike_radio_respetaElBordeEnMetros` y `spike_radio_noEsEnGrados` (`BusquedaPostgisSpikeTest`) | Persistencia |
-| CA2 | Sin ubicación: busca por departamento y ciudad, `distanciaKm` null, orden por nombre e `INF-ESC-03` | `CA2_sinUbicacion_INF_ESC_03_sinOrdenarPorDistancia` | Caso de uso + REST |
-| CA2 | `latitud` sin `longitud` → 400 con `ERR-GEN-01` | `CA2_latitudSinLongitud_ERR_GEN_01` | REST |
-| CA3 | Departamento: solo sus escenarios. Departamento y ciudad: solo los de la ciudad. Ciudad de otro departamento: sin resultados | `CA3_porDepartamentoYCiudad_soloLosDeAhi` | Persistencia + caso de uso |
-| CA4 | Tipo de cancha: solo las de ese tipo, aunque el escenario tenga de otros | `CA4_porTipo_soloLasDeEseTipo` | Persistencia |
-| CA5 | Fecha y hora: no sale la cancha con reserva CONFIRMADA en esa franja, ni la bloqueada, ni la de un escenario que no atiende a esa hora; sí sale la que tiene una reserva CANCELADA | `CA5_fechaYHora_soloConLaFranjaLibre` | Caso de uso + punta a punta |
-| CA5 | Hoy a una hora que ya empezó: no sale (política 12) | `CA5_hoyHoraQueYaEmpezo_noSale` | Caso de uso |
-| CA5 | Sin fecha ni hora no se filtra por disponibilidad | `CA5_sinFechaNiHora_noFiltraPorDisponibilidad` | Caso de uso |
-| CA5 (P2) | Solo fecha: sale la cancha con una franja libre ese día; no sale la que tiene todas ocupadas (reservas y bloqueos) ni la de un escenario que no atiende ese día | `CA5_soloFecha_alMenosUnaFranjaLibre` | Caso de uso |
-| CA5 | `hora` sin `fecha` → `ERR-GEN-01`; `hora` 14:30 → `ERR-GEN-02` | `CA5_horaSinFecha_ERR_GEN_01` y `CA5_horaNoEnPunto_ERR_GEN_02` | REST |
-| CA5 | `ConsultaFranjasOcupadasCasoUso`: solo cuentan las CONFIRMADAS de esas canchas en esa fecha, agrupadas por cancha | `ca5SoloConfirmadasDeLaFecha` y `sinCanchas_mapaVacio` (`ConsultaFranjasOcupadasPersistenciaTest`) | Persistencia de Reservas |
-| CA6 | Ayer y hoy + 31 → `ERR-HOR-10`; hoy y hoy + 30 se aceptan; la ventana sale de PAR-RES-01, y `calcularFranjas` usa la misma validación | `ca6FechaFueraDeLaVentana_ErrHor10`, `ca6BordesDeLaVentana_seAceptan`, `ca6LaVentanaSaleDelParametro` y `ca6CalcularFranjasUsaLaMismaValidacion` (`HorarioRecurrenteValidarFechaConsultableTest`) | Dominio |
-| CA6 | 422 con `ERR-HOR-10` aunque ninguna cancha cumpla los demás filtros | `CA6_fechaFueraDeVentana_422_ERR_HOR_10` | REST |
-| CA7 | Ninguna cancha cumple → `resultados` `[]` e `INF-ESC-01` | `CA7_sinResultados_INF_ESC_01` | Caso de uso + REST |
-| CA8 | Cada resultado trae `escenarioId` para ir al perfil (HU19); la navegación se prueba en el frontend | Se cubre con la prueba de CA1 | REST |
-| CA1 (P9) | Cada resultado trae la `latitud` y la `longitud` de su escenario, para el mapa | Se cubre con la prueba de CA1 | REST |
-| CA9 | Sin token → 200. `GET /api/departamentos`, sus ciudades y `GET /api/tipos-cancha` también responden sin token | `CA9_sinSesion_200` y `CA9_filtrosSinSesion_200` | Punta a punta |
-| CA10 | Con ubicación y sin radio: se aplica 5 km (`radioKm` = 5 en la respuesta; el escenario a 7 km no sale) | `CA10_sinRadio_usaElRadioPorDefecto` | Caso de uso |
-| CA11 | Radio 31 → 400 con `ERR-GEN-04` y el texto «entre 1 y 30»; radio 0 también (PAR-ESC-06); 1 y 30 se aceptan | `CA11_radioFueraDeRango_ERR_GEN_04` y `CA11_bordesDelRadio_seAceptan` | Caso de uso + REST |
-| — | PAR-ESC-04 a 06 salen de `application.properties` con 5, 30 y 1, y sus variables `PAR_ESC_nn` los cambian (regla 7) | `losValoresPorDefectoSonLosDelCatalogoDeParametros` y `lasVariablesDeEntornoCambianLosRadios` (`ParametrosBusquedaTest`) | Configuración |
-| — | Cambiar PAR-ESC-05 en la configuración cambia el máximo sin tocar el código (regla 7) | `parametrosDeRadio_seLeenDeLaConfiguracion` | Caso de uso |
-| — | La respuesta no expone estados ni datos del administrador (AG-14) | `respuesta_noExponeEstadosNiAdministrador` | REST |
+| CA1 | Spike: columna generada, `ST_Distance` en metros (Rionegro – Medellín, unos 24 km), borde del radio y radio en metros y no en grados | `spike_columnaGenerada_seLlenaYSeRecalcula`, `spike_distancia_enMetrosSobreLaTierra`, `spike_radio_respetaElBordeEnMetros`, `spike_radio_noEsEnGrados` | Spike |
+| CA1 | Dentro del radio, de la más cercana a la más lejana (nombres al revés de la distancia), con su distancia; borde del radio | `ca1ConUbicacion_dentroDelRadioYOrdenadasPorDistancia`, `ca1ElRadioRespetaElBorde` | Per |
+| CA1 | Distancia en km con un decimal, radio aplicado y filtro en metros | `ca1ConUbicacion_dentroDelRadioYOrdenadasPorDistancia` | CU |
+| CA1, CA8, P9 | Cada resultado trae `escenarioId` (para ir al perfil, HU19), nombre, coordenadas del escenario, cancha, tipo, precio, distancia y calificación | `ca1CadaResultadoTraeLoQueMuestraLaPantalla` (CU), `CA1_conUbicacion_devuelveResultadosConDistancia` (REST) | CU + REST |
+| CA1 (RN-04, P7) | No salen la cancha INACTIVA, el escenario INACTIVO ni el escenario sin horarios; un horario de cualquier día basta; la base no filtra por estado | `ca1SoloCanchasQueCumplenRN04`, `ca1UnHorarioDeOtroDiaBastaParaPublicar` (CU), `p7NoFiltraPorEstado_reconstruyeCanchaYEscenario` (Per) | CU + Per |
+| CA1 (D05) | Calificación vacía sin reseñas, nunca cero; con reseñas, un decimal | `ca1CalificacionPromedioDelEscenario` | CU |
+| CA1, CA9, CA10 | Sin token, con ubicación y sin radio: 5 km, orden por distancia; con 10 km salen los dos | `CA1_CA9_CA10_sinSesionConUbicacionOrdenadasPorDistanciaYRadioPorDefecto` | P2P |
+| CA2 | Sin ubicación: sin radio ni distancia, orden por nombre | `ca2SinUbicacion_sinDistanciaYOrdenadasPorNombre` (CU y Per) | CU + Per |
+| CA2 (P6) | Sin ubicación y con resultados: `INF-ESC-03` | `CA2_sinUbicacion_INF_ESC_03_sinOrdenarPorDistancia` (REST), `CA2_CA3_sinUbicacionPorDepartamento_INF_ESC_03` (P2P) | REST + P2P |
+| CA2 | `latitud` sin `longitud` (o al revés) → 400 con `ERR-GEN-01`; coordenadas fuera de rango → `ERR-GEN-04` | `ca2LatitudSinLongitud_ERR_GEN_01`, `coordenadasFueraDeRango_ERR_GEN_04` (CU), `CA2_latitudSinLongitud_ERR_GEN_01` (REST) | CU + REST |
+| CA3, CA4 | Departamento, ciudad (también de otro departamento) y tipo; los filtros se combinan | `ca3PorDepartamentoYCiudad_soloLosDeAhi`, `ca4PorTipo_soloLasDeEseTipo`, `losFiltrosSeCombinan` (Per); `ca3Ca4LosFiltrosLleganAlRepositorio` y las de CA3 y CA4 (CU) | Per + CU |
+| CA5 | Fecha y hora: no salen la cancha con reserva CONFIRMADA ni la bloqueada ni la de un escenario que no atiende a esa hora; la de la CANCELADA sí | `ca5FechaYHora_soloConLaFranjaLibre` (CU), `CA5_fechaYHora_soloConLaFranjaLibre` (P2P) | CU + P2P |
+| CA5 (P2) | Solo fecha: sale la cancha con al menos una franja libre; no la que está llena ni la de un escenario que no atiende ese día | `ca5SoloFecha_alMenosUnaFranjaLibre` (CU), `CA5_fechaYHora_soloConLaFranjaLibre` (P2P) | CU + P2P |
+| CA5 (pol. 12) | Hoy, una franja que ya empezó no sale | `ca5HoyHoraQueYaEmpezo_noSale` | CU |
+| CA5 | Sin fecha ni hora no se filtra ni se consultan reservas | `ca5SinFechaNiHora_noFiltraPorDisponibilidad` | CU |
+| CA5 (P5) | `hora` sin `fecha` → `ERR-GEN-01`; `14:30` → `ERR-GEN-02` con el formato esperado; ambos 400 | `ca5HoraSinFecha_ERR_GEN_01`, `ca5HoraNoEnPunto_ERR_GEN_02` (CU), `CA5_horaSinFecha_ERR_GEN_01`, `CA5_horaNoEnPunto_ERR_GEN_02` (REST) | CU + REST |
+| CA5 | Bloqueos de varias canchas por cancha y fecha; horarios de varios escenarios | `ca5LosBloqueosDeVariasCanchasPorCancha`, `losHorariosDeVariosEscenarios` | Per |
+| CA5 (P1) | Reservas: solo las CONFIRMADAS de esas canchas en esa fecha, por cancha; sin canchas no consulta | `ca5SoloConfirmadasDeLaFecha`, `sinCanchas_mapaVacio` | Res |
+| CA6 | Ayer y hoy + 31 → `ERR-HOR-10`; hoy y hoy + 30 se aceptan; la ventana sale de PAR-RES-01; `calcularFranjas` usa la misma validación | `ca6FechaFueraDeLaVentana_ErrHor10`, `ca6BordesDeLaVentana_seAceptan`, `ca6LaVentanaSaleDelParametro`, `ca6CalcularFranjasUsaLaMismaValidacion` | Dom |
+| CA6 | Se rechaza antes de buscar, aunque no haya canchas; la respuesta trae `fechaMinima` y `fechaMaxima` | `ca6FechaFueraDeVentana_ERR_HOR_10`, `ca6LaRespuestaTraeLasFechasMinimaYMaxima` | CU |
+| CA6 | 422 con `ERR-HOR-10` | `CA6_fechaFueraDeVentana_422_ERR_HOR_10` (REST y P2P) | REST + P2P |
+| CA7 | Sin resultados → `[]` e `INF-ESC-01`, que gana sobre `INF-ESC-03` (P6) | `ca7SinResultados_listaVacia` (CU), `CA7_sinResultados_INF_ESC_01` (REST y P2P) | CU + REST + P2P |
+| CA9 | Sin token → 200; solo el GET es público | `CA9_sinSesion_200_soloElGet` (REST) y la de CA1, CA9 y CA10 (P2P) | REST + P2P |
+| CA9 (P8) | `GET /api/departamentos`, sus ciudades y `GET /api/tipos-cancha` responden sin token (sin las rutas públicas, 401) | `CA9_filtrosSinSesion_200` | P2P |
+| CA10 | Con ubicación y sin radio: 5 km; el escenario a 7 km no sale | `ca10SinRadio_usaElRadioPorDefecto` | CU |
+| CA11 | Radio 0, 31, 100 y -5 → `ERR-GEN-04` con 1 y 30, también sin ubicación (P3); 1 y 30 se aceptan | `ca11RadioFueraDeRango_ERR_GEN_04`, `ca11BordesDelRadio_seAceptan`, `p3RadioSinUbicacion_noFiltra` | CU |
+| CA11 | 400 con «El valor de radio de búsqueda debe estar entre 1 y 30.» | `CA11_radioFueraDeRango_ERR_GEN_04` (REST y P2P), `hu18ArmaErrGen04ConElCampoYLosLimitesDelRadio` (Cat) | REST + P2P + Cat |
+| P4 | Radio `2.5`, UUID, fecha u hora ilegibles → 400 con `ERR-GEN-07`, sin buscar | `datosIlegibles_400_ERR_GEN_07` | REST |
+| Regla 7 | PAR-ESC-04 a 06 salen de `application.properties` (5, 30 y 1) y sus variables los cambian; un máximo de 50 llega al caso de uso | `losValoresPorDefectoSonLosDelCatalogoDeParametros`, `lasVariablesDeEntornoCambianLosRadios` (Conf), `parametrosDeRadio_seLeenDeLaConfiguracion` (CU) | Conf + CU |
+| Regla 6 | `INF-ESC-01`, `INF-ESC-03`, `ERR-HOR-10` y `ERR-GEN-04` están en el catálogo | `tieneLosCodigosQueCitaLaHu18` | Cat |
+| AG-14 | La respuesta no expone estados ni datos del administrador | `respuesta_noExponeEstadosNiAdministrador` | REST |
+| — | Los parámetros de la URL llegan completos al caso de uso | `losParametrosLleganAlCasoDeUso` | REST |
 
 ## Decisiones tomadas (24-nov-2026)
 
@@ -211,6 +221,9 @@ Ninguna.
 |---|---|---|
 | Diagrama de clases, hoja HorarioRecurrente | Agregar `validarFechaConsultable(fecha, ahora, ventanaReservaDias)` (política 10), que ahora usan `calcularFranjas` y la búsqueda | Pendiente |
 | Decisiones y componentes | Puerto `ConsultaFranjasOcupadas`, que define Escenarios e implementa Reservas (P1) | Pendiente |
+| Catálogo de mensajes, columna de las HU que usan cada código | Agregar HU18 a `ERR-GEN-01` (latitud sin longitud, hora sin fecha) y a `ERR-GEN-02` (hora que no está en punto, P5) | Pendiente |
+| Tallaje, hoja HU18, «Catálogo de mensajes» | Agregar `ERR-GEN-01` y `ERR-GEN-02` a los códigos usados en esta HU | Pendiente |
+| Aspectos generales, AG-11 | Aclarar que los selectores de departamento, ciudad y tipo de cancha tampoco exigen sesión, porque son parte de buscar canchas (P8) | Pendiente |
 
 ## Fuera de alcance
 
