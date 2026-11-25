@@ -6,6 +6,6 @@
 - [x] T2 · Reservas · `ConsultaReservasFuturas.existenConfirmadasFuturasEnHorario`, su implementación en `ConsultaReservasFuturasCasoUso` y `RepositorioReservas.existenConfirmadasEnHorarioQueEmpiezanDespuesDe` en `RepositorioReservasJpa`, con pruebas de persistencia que insertan reservas con SQL (CA6, P2)
 - [x] T3 · Caso de uso · `EliminarHorario` y `EliminarHorarioCasoUso` (turnos en orden dentro de `transaccion.execute`), y `eliminar` en `RepositorioHorarios` y `HorariosEnMemoria`, con `EliminarHorarioCasoUsoTest` (CA1, CA4, CA5, CA6; política 6)
 - [x] T4 · Persistencia · `RepositorioHorariosJpa.eliminar`, con su prueba (CA1)
-- [ ] T5 · REST · `DELETE /api/horarios/{id}` en `HorarioController`, `RespuestaEliminarHorario`, y `EXI-HOR-03` y `ERR-HOR-15` en el catálogo, con `EliminarHorarioControllerTest` (CA1, CA4, CA6)
+- [x] T5 · REST · `DELETE /api/horarios/{id}` en `HorarioController`, `RespuestaEliminarHorario`, y `EXI-HOR-03` y `ERR-HOR-15` en el catálogo, con `EliminarHorarioControllerTest` (CA1, CA4, CA6)
 - [ ] T6 · Punta a punta · `EliminarHorarioPuntaAPuntaTest`: eliminar y ver el cambio en la lista y en la disponibilidad, no propietario y con reservas futuras (CA1, CA5, CA6)
 - [ ] T7 · Verificación · `./mvnw verify` y `/pull-request`

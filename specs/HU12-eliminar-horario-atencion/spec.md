@@ -30,7 +30,7 @@ Respuesta `200` (P3):
 |---|---|---|
 | 200 | `EXI-HOR-03` | Se eliminó |
 | 400 | `ERR-GEN-07` | El `id` no es UUID (`ManejadorErrores`) |
-| 401 | — | Sin sesión (Spring Security, como el resto de rutas privadas) |
+| 401 | `ERR-GEN-05` | Sin sesión (Spring Security, como el resto de rutas privadas) |
 | 403 | `ERR-HOR-02` | No es el propietario, incluido el encargado de sede y el administrador del sistema (ya está en `ManejadorErrores`) |
 | 404 | `ERR-HOR-06` | No existe el horario (la entrada la agrega HU11, P1) |
 | 422 | `ERR-HOR-15` | Hay reservas confirmadas futuras dentro del horario. Va con el 422 por defecto, igual que no inactivar con reservas futuras en HU10 y HU13 |
@@ -66,11 +66,12 @@ Sin migraciones.
 | CA1 | Solo se borra el horario pedido; los demás del escenario siguen | `ca1Eliminar_noTocaLosOtrosHorarios` | Caso de uso |
 | CA1 | `eliminar` borra la fila y `buscarPorId` ya no la encuentra; los demás horarios siguen | `ca1Eliminar_borraLaFila` | Persistencia |
 | CA1 | Con la base real, el caso de uso abre la transacción antes de tomar los turnos (`tomarTurno` la exige, D36) y borra | `ca1EliminarConCanchas_tomaLosTurnosDentroDeLaTransaccionYBorra` | Persistencia + caso de uso |
+| CA1 | 200 con `EXI-HOR-03` y su texto del catálogo; llama al caso de uso con el id y el solicitante del token | `ca1EliminarHorario_200_EXI_HOR_03` | REST |
 | CA1 | 200 con `EXI-HOR-03`; la lista del escenario ya no trae el horario y la disponibilidad de una cancha (HU20) ya no ofrece esas franjas | `ca1EliminarHorario_200_EXI_HOR_03_listaYDisponibilidadActualizadas` | Punta a punta |
 | CA2 | Cancelar la confirmación no envía la petición | Solo en la pantalla; el backend no borra nada sin un `DELETE` | Frontend |
 | CA3 | Advertencia CNF-HOR-02 si es el último horario | Solo en la pantalla, con el tamaño de la lista de `GET /api/escenarios/{escenarioId}/horarios` (P4) | Frontend |
 | CA4 | Horario inexistente: `ERR-HOR-06` y no se borra ni se consulta nada | `ca4HorarioInexistente_ERR_HOR_06` | Caso de uso |
-| CA4 | 404 `ERR-HOR-06` por HTTP | `ca4HorarioInexistente_404_ERR_HOR_06` | REST |
+| CA4, CA5, CA6 | Por HTTP: 404 `ERR-HOR-06`, 403 `ERR-HOR-02` y 422 `ERR-HOR-15`, cada uno con su texto del catálogo; además 401 `ERR-GEN-05` sin sesión y 400 `ERR-GEN-07` si el id no es UUID | `ca4Ca5Ca6LasReglasIncumplidasRespondenSuMensaje` (una vez por código), `sinSesion_401_ERR_GEN_05` y `unIdentificadorQueNoEsUuid_400_ERR_GEN_07` | REST |
 | CA5 | Quien no es el dueño, con cualquier rol (otro administrador de cancha o un encargado de sede, que tienen el mismo rol, el administrador del sistema y el jugador), o sin sesión: `ERR-HOR-02`, aunque haya reservas (el permiso va primero) | `ca5NoPropietario_ERR_HOR_02` (una vez por rol, como en HU11), `ca5SinSolicitante_ERR_HOR_02` y `ca5NoPropietarioConReservas_ERR_HOR_02` | Dominio |
 | CA5 | El caso de uso no borra, ni toma turnos, ni pregunta a Reservas (P5) | `ca5NoPropietario_noBorraNiTomaTurnos` | Caso de uso |
 | CA5 | 403 `ERR-HOR-02` por HTTP con token real | `ca5NoPropietario_403_ERR_HOR_02` | Punta a punta |
