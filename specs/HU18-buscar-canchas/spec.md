@@ -158,7 +158,7 @@ Si el spike muestra algo distinto, se corrige esta especificación antes de segu
 |---|---|---|---|
 | CA1 | Con punto y radio de 10 km: salen los escenarios a 2 y 8 km, no el de 15 km; ordenados por distancia y con `distanciaKm` | `CA1_conUbicacion_dentroDelRadioYOrdenadasPorDistancia` | Persistencia (Testcontainers) + REST |
 | CA1 | Solo salen las canchas publicables: cancha INACTIVA, escenario INACTIVO y escenario sin horarios no salen | `CA1_soloCanchasQueCumplenRN04` | Caso de uso + persistencia |
-| CA1 | Spike: `ST_DWithin` y `ST_Distance` en metros, borde del radio | `spike_distanciaYRadioEnMetros` | Persistencia |
+| CA1 | Spike: columna generada, `ST_Distance` en metros (Rionegro – Medellín, unos 24 km), borde del radio y radio en metros y no en grados | `spike_columnaGenerada_seLlenaYSeRecalcula`, `spike_distancia_enMetrosSobreLaTierra`, `spike_radio_respetaElBordeEnMetros` y `spike_radio_noEsEnGrados` (`BusquedaPostgisSpikeTest`) | Persistencia |
 | CA2 | Sin ubicación: busca por departamento y ciudad, `distanciaKm` null, orden por nombre e `INF-ESC-03` | `CA2_sinUbicacion_INF_ESC_03_sinOrdenarPorDistancia` | Caso de uso + REST |
 | CA2 | `latitud` sin `longitud` → 400 con `ERR-GEN-01` | `CA2_latitudSinLongitud_ERR_GEN_01` | REST |
 | CA3 | Departamento: solo sus escenarios. Departamento y ciudad: solo los de la ciudad. Ciudad de otro departamento: sin resultados | `CA3_porDepartamentoYCiudad_soloLosDeAhi` | Persistencia + caso de uso |

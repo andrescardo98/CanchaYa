@@ -2,7 +2,7 @@
 
 [spec.md](spec.md) está **Aprobada** (24-nov-2026). En cada tarea se escribe primero la prueba del criterio.
 
-- [ ] T1 · Spike · Prueba con Testcontainers de `ST_DWithin` y `ST_Distance` sobre `escenario.ubicacion`: medidas en metros, borde del radio y columna generada (CA1, restricción de diseño de HU18). Si algo no coincide, se corrige `spec.md` antes de seguir
+- [x] T1 · Spike · Prueba con Testcontainers de `ST_DWithin` y `ST_Distance` sobre `escenario.ubicacion`: medidas en metros, borde del radio y columna generada (CA1, restricción de diseño de HU18). Si algo no coincide, se corrige `spec.md` antes de seguir. Hecho el 24-nov-2026: `BusquedaPostgisSpikeTest` con 4 pruebas en verde; todo coincide con la especificación, no hubo que cambiarla
 - [ ] T2 · Dominio · `HorarioRecurrente.validarFechaConsultable`, que `calcularFranjas` pasa a llamar, con sus pruebas de bordes (hoy, hoy + 30, ayer y hoy + 31) y sin romper `HorarioRecurrenteCalcularFranjasTest` (CA6, política 10)
 - [ ] T3 · Configuración · PAR-ESC-04 a PAR-ESC-06 en `application.properties` (`canchaya.escenario.radio-busqueda-*`, con su variable `PAR_ESC_nn`) y en la tabla de `projects/api/AGENTS.md` (CA10, CA11; regla 7)
 - [ ] T4 · Puertos y caso de uso · `BuscarCanchas` (con `CriteriosBusqueda`, `ResultadoBusqueda` y `CanchaEncontrada`), `RepositorioBusquedaCanchas`, `ConsultaFranjasOcupadas` (P1), `RepositorioBloqueos.rangosDelDia(canchaIds, fecha)`, `RepositorioHorarios.buscarPorEscenarios` y `BuscarCanchasCasoUso`, con dobles en memoria y `BuscarCanchasCasoUsoTest` (CA1 a CA7, CA10, CA11; política 11 de Cancha, políticas 10 a 12 de HorarioRecurrente; P2, P3, P7, P9)
