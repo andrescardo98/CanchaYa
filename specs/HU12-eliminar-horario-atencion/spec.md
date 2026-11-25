@@ -1,6 +1,6 @@
 # HU12 · Eliminar un horario de atención
 
-**Estado:** Aprobada (24-nov-2026) · **HU:** [HU12](../../docs/historias/HU12.md) · **Módulo:** Escenarios y canchas (`co.edu.uco.canchaya.escenarios`), con un cambio pequeño en Reservas (implementa `ConsultaReservasFuturas`)
+**Estado:** Implementada (24-nov-2026) · **HU:** [HU12](../../docs/historias/HU12.md) · **Módulo:** Escenarios y canchas (`co.edu.uco.canchaya.escenarios`), con un cambio pequeño en Reservas (implementa `ConsultaReservasFuturas`)
 
 ## Fuentes
 
