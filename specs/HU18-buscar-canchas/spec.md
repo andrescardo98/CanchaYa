@@ -177,6 +177,7 @@ Si el spike muestra algo distinto, se corrige esta especificación antes de segu
 | CA9 | Sin token → 200. `GET /api/departamentos`, sus ciudades y `GET /api/tipos-cancha` también responden sin token | `CA9_sinSesion_200` y `CA9_filtrosSinSesion_200` | Punta a punta |
 | CA10 | Con ubicación y sin radio: se aplica 5 km (`radioKm` = 5 en la respuesta; el escenario a 7 km no sale) | `CA10_sinRadio_usaElRadioPorDefecto` | Caso de uso |
 | CA11 | Radio 31 → 400 con `ERR-GEN-04` y el texto «entre 1 y 30»; radio 0 también (PAR-ESC-06); 1 y 30 se aceptan | `CA11_radioFueraDeRango_ERR_GEN_04` y `CA11_bordesDelRadio_seAceptan` | Caso de uso + REST |
+| — | PAR-ESC-04 a 06 salen de `application.properties` con 5, 30 y 1, y sus variables `PAR_ESC_nn` los cambian (regla 7) | `losValoresPorDefectoSonLosDelCatalogoDeParametros` y `lasVariablesDeEntornoCambianLosRadios` (`ParametrosBusquedaTest`) | Configuración |
 | — | Cambiar PAR-ESC-05 en la configuración cambia el máximo sin tocar el código (regla 7) | `parametrosDeRadio_seLeenDeLaConfiguracion` | Caso de uso |
 | — | La respuesta no expone estados ni datos del administrador (AG-14) | `respuesta_noExponeEstadosNiAdministrador` | REST |
 

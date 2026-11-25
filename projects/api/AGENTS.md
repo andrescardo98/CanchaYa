@@ -40,6 +40,7 @@ En local, la base escucha en el puerto **5434** (no en el 5432) para no chocar c
 | `CORREO_AUTENTICACION` / `CORREO_STARTTLS` | Si el SMTP pide usuario y conexión cifrada. En Render ambas en `true` (RT-11) | `false` / `false` |
 | `CORREO_REMITENTE` | Remitente de los correos. En Brevo debe ser un remitente verificado | `CanchaYa <no-responder@canchaya.local>` |
 | `PAR_ESC_01` a `PAR_ESC_03` | Fotos máximas, peso máximo en MB y formatos admitidos | `5`, `2`, `JPG,PNG` |
+| `PAR_ESC_04` a `PAR_ESC_06` | Radio de la búsqueda de canchas (HU18), en km enteros: por defecto, máximo y mínimo | `5`, `30`, `1` |
 | `PAR_RES_01` a `PAR_RES_10` y `PAR_RES_12` | Reglas de las reservas (HU20, HU21): ventana en días, franjas por reserva, horas por día, reservas activas, horas para cancelar, anticipación, hora mínima (`HH:mm`) y plazo de la confirmación, plazo de la inasistencia, caracteres de la justificación y si la confirmación está activa | `30`, `2`, `2`, `5`, `3`, `5`, `12:00`, `3`, `24`, `250`, `false` |
 
 Las variables `ADMIN_*` solo se leen la primera vez que se aplica la V2 en una base; cambiarlas después no modifica al administrador. Los valores reales de Render y Supabase nunca se escriben en el código ni en el repositorio: van como variables secretas de Render (RT-10, D35).
