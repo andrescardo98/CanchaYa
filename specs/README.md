@@ -65,6 +65,7 @@ Lo que se ve relacionado pero esta HU no pide (regla 5 de «Cómo trabajar una h
 | HU9 | [HU9-modificar-cancha](HU9-modificar-cancha/spec.md) | Implementada |
 | HU10 | [HU10-cambiar-estado-cancha](HU10-cambiar-estado-cancha/spec.md) | Implementada |
 | HU11 | [HU11-modificar-horario-atencion](HU11-modificar-horario-atencion/spec.md) | Implementada |
+| HU12 | [HU12-eliminar-horario-atencion](HU12-eliminar-horario-atencion/spec.md) | Aprobada |
 | HU13 | [HU13-activar-inactivar-escenario](HU13-activar-inactivar-escenario/spec.md) (solo el arreglo de concurrencia) | Implementada |
 | HU19 | [HU19-perfil-escenario](HU19-perfil-escenario/spec.md) | Implementada |
 | HU20 | [HU20-consultar-disponibilidad](HU20-consultar-disponibilidad/spec.md) | Implementada |
