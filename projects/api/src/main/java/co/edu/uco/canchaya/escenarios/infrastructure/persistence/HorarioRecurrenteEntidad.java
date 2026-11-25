@@ -60,6 +60,13 @@ class HorarioRecurrenteEntidad implements Persistable<UUID> {
 		return entidad;
 	}
 
+	// HU11: el id y el escenario no cambian; rango_horas lo recalcula la base
+	void cambiar(HorarioRecurrente horario) {
+		diaSemana = horario.getDiaSemana();
+		horaInicio = horario.getHoraInicio();
+		horaFin = horario.getHoraFin();
+	}
+
 	HorarioRecurrente aDominio() {
 		return HorarioRecurrente.reconstruir(id, escenarioId, diaSemana, horaInicio, horaFin);
 	}

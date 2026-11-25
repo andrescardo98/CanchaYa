@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import co.edu.uco.canchaya.escenarios.application.port.in.DefinirHorario;
 import co.edu.uco.canchaya.escenarios.application.port.in.ListarHorarios;
+import co.edu.uco.canchaya.escenarios.application.port.in.ModificarHorario;
 import co.edu.uco.canchaya.escenarios.domain.DiaSemana;
 import co.edu.uco.canchaya.escenarios.domain.HorarioRecurrente;
 import co.edu.uco.canchaya.identidad.domain.Rol;
@@ -54,6 +55,10 @@ class HorarioControllerTest {
 
 	@MockitoBean
 	private ListarHorarios listarHorarios;
+
+	// HU11: lo pide HorarioController; sus pruebas están en ModificarHorarioControllerTest
+	@MockitoBean
+	private ModificarHorario modificarHorario;
 
 	private static MockHttpServletRequestBuilder conToken(MockHttpServletRequestBuilder peticion) {
 		return peticion.with(jwt().jwt(token -> token.subject(USUARIO.toString())

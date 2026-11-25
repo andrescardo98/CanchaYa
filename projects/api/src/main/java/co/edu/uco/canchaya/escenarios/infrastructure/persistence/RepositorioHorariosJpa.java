@@ -3,6 +3,7 @@ package co.edu.uco.canchaya.escenarios.infrastructure.persistence;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -47,6 +48,31 @@ class RepositorioHorariosJpa implements RepositorioHorarios {
 			// Dos peticiones al mismo tiempo pasaron la política 4 y la base frenó la segunda
 			if (esCruce(e)) {
 				throw new ReglaNegocioException("ERR-HOR-04", new TextoCatalogo("dia." + horario.getDiaSemana().name()));
+			}
+			throw e;
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<HorarioRecurrente> buscarPorId(UUID id) {
+		return jpa.findById(id).map(HorarioRecurrenteEntidad::aDominio);
+	}
+
+	@Override
+	@Transactional
+	public void actualizar(HorarioRecurrente horario) {
+		// El caso de uso acaba de leerlo, así que si no está es un error de datos y no del usuario
+		HorarioRecurrenteEntidad entidad = jpa.findById(horario.getId())
+				.orElseThrow(() -> new IllegalStateException("No existe el horario " + horario.getId()));
+		entidad.cambiar(horario);
+		try {
+			// flush para que la base rechace aquí y no al confirmar, donde ya no se podría traducir
+			jpa.saveAndFlush(entidad);
+		} catch (DataIntegrityViolationException e) {
+			// Dos peticiones al mismo tiempo pasaron la política 7 y la base frenó la segunda
+			if (esCruce(e)) {
+				throw new ReglaNegocioException("ERR-HOR-07", new TextoCatalogo("dia." + horario.getDiaSemana().name()));
 			}
 			throw e;
 		}
