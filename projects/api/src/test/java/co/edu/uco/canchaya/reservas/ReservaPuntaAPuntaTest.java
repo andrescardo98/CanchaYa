@@ -1,6 +1,11 @@
 package co.edu.uco.canchaya.reservas;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,23 +24,32 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.test.web.servlet.client.RestTestClient.ResponseSpec;
 
 import co.edu.uco.canchaya.TestcontainersConfiguration;
 import co.edu.uco.canchaya.escenarios.domain.DiaSemana;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 
 /**
  * HU21 completa: petición HTTP con token real → seguridad → caso de uso de Reservas →
  * ConsultaCanchas de Escenarios → base en Docker. Usa el reloj real del servidor (D27), por eso
- * las fechas se calculan desde hoy en Bogotá.
+ * las fechas se calculan desde hoy en Bogotá. HU22: después de guardar salen los dos correos.
  */
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -46,12 +60,17 @@ class ReservaPuntaAPuntaTest {
 	// Pasado mañana: ninguna franja ha empezado, sea cual sea la hora en que corra la prueba
 	private static final LocalDate FECHA = LocalDate.now(ZoneId.of("America/Bogota")).plusDays(2);
 	private static final String FECHA_MENSAJE = FECHA.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+	private static final String CELULAR_JUGADOR = "+573000000212";
 
 	@Autowired
 	private RestTestClient cliente;
 
 	@Autowired
 	private JdbcTemplate jdbc;
+
+	// HU22: el servidor SMTP es un doble; así se revisan los correos que arma el adaptador real
+	@MockitoBean
+	private JavaMailSender servidorCorreo;
 
 	private UUID cancha;
 	private String tokenPropietario;
@@ -70,9 +89,11 @@ class ReservaPuntaAPuntaTest {
 	@BeforeEach
 	void preparar() {
 		// Correos e IP propios: InicioSesionPuntaAPuntaTest deja bloqueado a ana@correo.com (D28)
-		UUID propietario = usuario("propietario.hu21@correo.com", "1000000211", "ADMINISTRADOR_CANCHA");
-		usuario("jugador.hu21@correo.com", "1000000212", "JUGADOR");
-		usuario("otro.jugador.hu21@correo.com", "1000000213", "JUGADOR");
+		when(servidorCorreo.createMimeMessage()).thenAnswer(invocacion -> new MimeMessage((Session) null));
+		UUID propietario = usuario("Ana Pérez", "propietario.hu21@correo.com", "1000000211", "+573000000211",
+				"ADMINISTRADOR_CANCHA");
+		usuario("Juan Gómez", "jugador.hu21@correo.com", "1000000212", CELULAR_JUGADOR, "JUGADOR");
+		usuario("Luis Restrepo", "otro.jugador.hu21@correo.com", "1000000213", "+573000000213", "JUGADOR");
 		tokenPropietario = token("propietario.hu21@correo.com", "203.0.113.211");
 		tokenJugador = token("jugador.hu21@correo.com", "203.0.113.212");
 		tokenOtroJugador = token("otro.jugador.hu21@correo.com", "203.0.113.213");
@@ -102,13 +123,13 @@ class ReservaPuntaAPuntaTest {
 		jdbc.update("delete from usuario where rol <> 'ADMINISTRADOR_SISTEMA'");
 	}
 
-	private UUID usuario(String correo, String documento, String rol) {
+	private UUID usuario(String nombre, String correo, String documento, String celular, String rol) {
 		cliente.post().uri("/api/usuarios").contentType(MediaType.APPLICATION_JSON)
 				.body("""
-						{"nombre": "Ana Pérez", "correoElectronico": "%s", "contrasena": "Clave2026",
-						 "tipoDocumento": "CC", "numeroDocumento": "%s", "numeroCelular": "+573001234567",
+						{"nombre": "%s", "correoElectronico": "%s", "contrasena": "Clave2026",
+						 "tipoDocumento": "CC", "numeroDocumento": "%s", "numeroCelular": "%s",
 						 "rol": "%s"}
-						""".formatted(correo, documento, rol))
+						""".formatted(nombre, correo, documento, celular, rol))
 				.exchange().expectStatus().isCreated();
 		return jdbc.queryForObject("select id from usuario where correo_electronico = ?", UUID.class, correo);
 	}
@@ -168,6 +189,58 @@ class ReservaPuntaAPuntaTest {
 					.containsEntry("confirmacion_asistencia", "NO_REQUERIDA");
 			assertThat((BigDecimal) fila.get("precio")).isEqualByComparingTo("80000");
 		});
+	}
+
+	private List<MimeMessage> correosEnviados(int cuantos) {
+		ArgumentCaptor<MimeMessage> correos = ArgumentCaptor.forClass(MimeMessage.class);
+		verify(servidorCorreo, times(cuantos)).send(correos.capture());
+		return correos.getAllValues();
+	}
+
+	// HU22 CA1 y CA2: a las direcciones registradas, con la plantilla del catálogo y después de guardar
+	@Test
+	void HU22_CA1_CA2_reservarEnviaLosDosCorreos() throws Exception {
+		reservar(tokenJugador, "18:00", "19:00").expectStatus().isCreated();
+
+		List<MimeMessage> correos = correosEnviados(2);
+		MimeMessage alJugador = correos.get(0);
+		assertThat(alJugador.getAllRecipients()).extracting(Object::toString)
+				.containsExactly("jugador.hu21@correo.com");
+		assertThat(alJugador.getSubject()).isEqualTo("Reserva confirmada: Canchas La 70, " + FECHA_MENSAJE + " a las 18:00");
+		assertThat((String) alJugador.getContent())
+				.startsWith("Hola, Juan Gómez:")
+				.contains("Escenario: Canchas La 70<br>Dirección: Calle 70, Rionegro<br>Cancha: Cancha 1")
+				.contains("Fecha: " + FECHA_MENSAJE + "<br>Hora: 18:00 a 19:00<br>Valor: $ 80.000")
+				// D33: PAR-RES-12 está en «No»
+				.doesNotContain("confirme su asistencia");
+
+		MimeMessage alPropietario = correos.get(1);
+		assertThat(alPropietario.getAllRecipients()).extracting(Object::toString)
+				.containsExactly("propietario.hu21@correo.com");
+		assertThat(alPropietario.getSubject())
+				.isEqualTo("Nueva reserva en Canchas La 70: Cancha 1, " + FECHA_MENSAJE + " a las 18:00");
+		assertThat((String) alPropietario.getContent())
+				.startsWith("Hola, Ana Pérez:")
+				.contains("Hora: 18:00 a 19:00<br>Jugador: Juan Gómez<br>Celular: " + CELULAR_JUGADOR);
+	}
+
+	// HU22 CA3: con el SMTP caído la reserva queda CONFIRMADA, cada correo se intenta una sola vez
+	// (PAR-GEN-02 = 0) y el error queda en el log sin el celular (RT-12)
+	@Test
+	@ExtendWith(OutputCaptureExtension.class)
+	void HU22_CA3_smtpFalla_reservaSigueConfirmada(CapturedOutput salida) {
+		doThrow(new MailSendException("servidor SMTP caído")).when(servidorCorreo).send(any(MimeMessage.class));
+
+		reservar(tokenJugador, "18:00", "19:00").expectStatus().isCreated()
+				.expectBody().jsonPath("$.codigo").isEqualTo("EXI-RES-01");
+
+		assertThat(reservasGuardadas()).singleElement()
+				.satisfies(fila -> assertThat(fila).containsEntry("estado", "CONFIRMADA"));
+		correosEnviados(2);
+		assertThat(salida.getAll())
+				.contains("ERR-GEN-08 No se pudo enviar el correo COR-RES-01 a jugador.hu21@correo.com")
+				.contains("ERR-GEN-08 No se pudo enviar el correo COR-RES-02 a propietario.hu21@correo.com")
+				.doesNotContain(CELULAR_JUGADOR);
 	}
 
 	@Test
