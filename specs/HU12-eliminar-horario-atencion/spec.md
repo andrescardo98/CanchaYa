@@ -69,7 +69,7 @@ Sin migraciones.
 | CA3 | Advertencia CNF-HOR-02 si es el último horario | Solo en la pantalla, con el tamaño de la lista de `GET /api/escenarios/{escenarioId}/horarios` (P4) | Frontend |
 | CA4 | Horario inexistente: `ERR-HOR-06` y no se borra ni se consulta nada | `ca4HorarioInexistente_ERR_HOR_06` | Caso de uso |
 | CA4 | 404 `ERR-HOR-06` por HTTP | `ca4HorarioInexistente_404_ERR_HOR_06` | REST |
-| CA5 | Otro administrador de cancha, un encargado de sede y el administrador del sistema: `ERR-HOR-02`, aunque haya reservas (el permiso va primero) | `ca5NoPropietario_ERR_HOR_02`, `ca5EncargadoDeSede_ERR_HOR_02`, `ca5AdministradorDelSistema_ERR_HOR_02` y `ca5NoPropietarioConReservas_ERR_HOR_02` | Dominio |
+| CA5 | Quien no es el dueño, con cualquier rol (otro administrador de cancha o un encargado de sede, que tienen el mismo rol, el administrador del sistema y el jugador), o sin sesión: `ERR-HOR-02`, aunque haya reservas (el permiso va primero) | `ca5NoPropietario_ERR_HOR_02` (una vez por rol, como en HU11), `ca5SinSolicitante_ERR_HOR_02` y `ca5NoPropietarioConReservas_ERR_HOR_02` | Dominio |
 | CA5 | El caso de uso no borra | `ca5NoPropietario_noBorra` | Caso de uso |
 | CA5 | 403 `ERR-HOR-02` por HTTP con token real | `ca5NoPropietario_403_ERR_HOR_02` | Punta a punta |
 | CA6 | Con reservas futuras: `ERR-HOR-15` | `ca6ConReservasFuturas_ERR_HOR_15` | Dominio |

@@ -1,8 +1,8 @@
 # HU12 · Tareas
 
-[spec.md](spec.md) está **Aprobada**. En cada tarea se escribe primero la prueba del criterio. De T2 en adelante se espera a que HU11 esté en `main` y se rebasa la rama (P1).
+[spec.md](spec.md) está **Aprobada**. En cada tarea se escribe primero la prueba del criterio. HU11 ya está en `main` y la rama parte de ella (P1).
 
-- [ ] T1 · Dominio · `HorarioRecurrente.validarEliminacion(escenario, solicitante, tieneReservasConfirmadasFuturas)` y `DiaSemana.aDayOfWeek()`, con `HorarioRecurrenteEliminarTest` (CA1, CA5, CA6; políticas 2 y 15)
+- [x] T1 · Dominio · `HorarioRecurrente.validarEliminacion(escenario, solicitante, tieneReservasConfirmadasFuturas)` y `DiaSemana.aDayOfWeek()`, con `HorarioRecurrenteEliminarTest` (CA1, CA5, CA6; políticas 2 y 15)
 - [ ] T2 · Reservas · `ConsultaReservasFuturas.existenConfirmadasFuturasEnHorario`, su implementación en `ConsultaReservasFuturasCasoUso` y `RepositorioReservas.existenConfirmadasEnHorarioQueEmpiezanDespuesDe` en `RepositorioReservasJpa`, con pruebas de persistencia que insertan reservas con SQL (CA6, P2)
 - [ ] T3 · Caso de uso · `EliminarHorario` y `EliminarHorarioCasoUso` (turnos en orden dentro de `transaccion.execute`), y `eliminar` en `RepositorioHorarios` y `HorariosEnMemoria`, con `EliminarHorarioCasoUsoTest` (CA1, CA4, CA5, CA6; política 6)
 - [ ] T4 · Persistencia · `RepositorioHorariosJpa.eliminar`, con su prueba (CA1)
