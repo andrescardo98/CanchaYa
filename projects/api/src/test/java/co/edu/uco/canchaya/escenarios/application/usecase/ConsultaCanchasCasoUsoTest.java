@@ -49,7 +49,7 @@ class ConsultaCanchasCasoUsoTest {
 		horarios = new HorariosEnMemoria();
 		bloqueos = List.of(new RangoBloqueado(LocalTime.of(18, 0), LocalTime.of(20, 0)));
 		consulta = new ConsultaCanchasCasoUso(memoria.repositorioCanchas(), memoria.repositorioEscenarios(), horarios,
-				(canchaId, fecha) -> canchaId.equals(cancha.getId()) && fecha.equals(HOY) ? bloqueos : List.of(),
+				new BloqueosEnMemoria((canchaId, fecha) -> canchaId.equals(cancha.getId()) && fecha.equals(HOY) ? bloqueos : List.of()),
 				RELOJ, VENTANA_DIAS);
 		escenario = memoria.escenarioDe(UUID.randomUUID(), EstadoEscenario.ACTIVO);
 		cancha = memoria.cancha(escenario, "Cancha 1", EstadoCancha.DISPONIBLE);
@@ -118,7 +118,7 @@ class ConsultaCanchasCasoUsoTest {
 	void ca5LaVentanaSaleDeLaConfiguracion() {
 		horario(DiaSemana.LUNES, 8, 9);
 		ConsultaCanchasCasoUso conVentanaDeSieteDias = new ConsultaCanchasCasoUso(memoria.repositorioCanchas(),
-				memoria.repositorioEscenarios(), horarios, (canchaId, fecha) -> List.of(), RELOJ, 7);
+				memoria.repositorioEscenarios(), horarios, BloqueosEnMemoria.sinBloqueos(), RELOJ, 7);
 
 		assertThat(conVentanaDeSieteDias.franjasDelDia(cancha.getId(), HOY.plusDays(7))).hasSize(1);
 		esperarError(() -> conVentanaDeSieteDias.franjasDelDia(cancha.getId(), HOY.plusDays(8)), "ERR-HOR-10");

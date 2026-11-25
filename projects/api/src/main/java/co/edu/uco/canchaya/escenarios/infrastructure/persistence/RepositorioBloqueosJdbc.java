@@ -2,6 +2,9 @@ package co.edu.uco.canchaya.escenarios.infrastructure.persistence;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,6 +37,26 @@ class RepositorioBloqueosJdbc implements RepositorioBloqueos {
 				""", Map.of("cancha", canchaId, "fecha", fecha),
 				(fila, numero) -> new RangoBloqueado(fila.getObject("hora_inicio", LocalTime.class),
 						fila.getObject("hora_fin", LocalTime.class)));
+	}
+
+	@Override
+	public Map<UUID, List<RangoBloqueado>> rangosDelDia(Collection<UUID> canchaIds, LocalDate fecha) {
+		// HU18: una sola consulta para todas las canchas; sin canchas no se consulta
+		if (canchaIds.isEmpty()) {
+			return Map.of();
+		}
+		Map<UUID, List<RangoBloqueado>> porCancha = new HashMap<>();
+		jdbc.query("""
+				select cancha_id, hora_inicio, hora_fin from bloqueo
+				where cancha_id in (:canchas) and fecha = :fecha
+				order by hora_inicio
+				""", Map.of("canchas", canchaIds, "fecha", fecha),
+				fila -> {
+					porCancha.computeIfAbsent(fila.getObject("cancha_id", UUID.class), id -> new ArrayList<>())
+							.add(new RangoBloqueado(fila.getObject("hora_inicio", LocalTime.class),
+									fila.getObject("hora_fin", LocalTime.class)));
+				});
+		return porCancha;
 	}
 
 }

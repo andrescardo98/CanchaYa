@@ -221,6 +221,11 @@ class ConsultarDisponibilidadCasoUsoTest {
 			return confirmadas.stream().filter(r -> r.getFecha().equals(fecha)).toList();
 		}
 
+		@Override
+		public List<Reserva> confirmadasDeCanchasEnFecha(Collection<UUID> canchaIds, LocalDate fecha) {
+			throw new UnsupportedOperationException("Es de HU18");
+		}
+
 		// HU20 solo lee: lo que sigue es de HU21
 		@Override
 		public boolean existePorId(UUID id) {

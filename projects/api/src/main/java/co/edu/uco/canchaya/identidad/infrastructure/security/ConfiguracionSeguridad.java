@@ -28,6 +28,10 @@ class ConfiguracionSeguridad {
 						.requestMatchers(HttpMethod.POST, "/api/sesiones").permitAll() // HU2
 						.requestMatchers(HttpMethod.GET, "/api/escenarios/*/perfil").permitAll() // HU19, AG-11
 						.requestMatchers(HttpMethod.GET, "/api/canchas/*/disponibilidad").permitAll() // HU20, AG-11
+						.requestMatchers(HttpMethod.GET, "/api/canchas/busqueda").permitAll() // HU18, AG-11
+						// HU18 (P8): un visitante llena los filtros de departamento, ciudad y tipo (CA9)
+						.requestMatchers(HttpMethod.GET, "/api/departamentos", "/api/departamentos/*/ciudades").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/tipos-cancha").permitAll()
 						// Fotos de escenarios en desarrollo local; en Render las sirve Supabase (HU5)
 						.requestMatchers(HttpMethod.GET, "/fotos-locales/**").permitAll()
 						.requestMatchers("/actuator/health").permitAll() // monitor de UptimeRobot (D31)

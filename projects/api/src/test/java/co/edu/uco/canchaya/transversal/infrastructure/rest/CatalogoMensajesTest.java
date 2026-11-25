@@ -52,6 +52,18 @@ class CatalogoMensajesTest {
 		assertThat(catalogo.texto(codigo)).isNotBlank();
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "INF-ESC-01", "INF-ESC-03", "ERR-HOR-10", "ERR-GEN-04" })
+	void tieneLosCodigosQueCitaLaHu18(String codigo) {
+		assertThat(catalogo.texto(codigo)).isNotBlank();
+	}
+
+	@Test
+	void hu18ArmaErrGen04ConElCampoYLosLimitesDelRadio() {
+		assertThat(catalogo.texto("ERR-GEN-04", List.of(new TextoCatalogo("campo.radioKm"), 1, 30)))
+				.isEqualTo("El valor de radio de búsqueda debe estar entre 1 y 30.");
+	}
+
 	@Test
 	void hu7ArmaErrHor04ConElDiaQueTambienSaleDelCatalogo() {
 		assertThat(catalogo.texto("ERR-HOR-04", List.of(new TextoCatalogo("dia.MIERCOLES"))))

@@ -134,6 +134,25 @@ public final class HorarioRecurrente {
 	}
 
 	/**
+	 * Política 10 (RN-11) de «calcularFranjas»: solo se consultan fechas desde hoy hasta hoy +
+	 * ventanaReservaDias, los dos incluidos (P6 de HU20). Va aparte porque la búsqueda (HU18, CA6)
+	 * debe rechazar la fecha aunque no haya ninguna cancha a la que calcularle franjas.
+	 *
+	 * @param ahora              fecha y hora actual en America/Bogota (D27); hoy es su fecha
+	 * @param ventanaReservaDias PAR-RES-01
+	 * @throws ReglaNegocioException ERR-HOR-10 si la fecha es anterior a hoy o posterior a hoy + ventanaReservaDias
+	 */
+	public static void validarFechaConsultable(LocalDate fecha, LocalDateTime ahora, int ventanaReservaDias) {
+		Objects.requireNonNull(fecha, "fecha");
+		Objects.requireNonNull(ahora, "ahora");
+
+		LocalDate hoy = ahora.toLocalDate();
+		if (fecha.isBefore(hoy) || fecha.isAfter(hoy.plusDays(ventanaReservaDias))) {
+			throw new ReglaNegocioException("ERR-HOR-10");
+		}
+	}
+
+	/**
 	 * Responsabilidad «calcularFranjas» (HU20, y HU21 para revalidar). La política 9 (que exista la
 	 * cancha) la revisa el caso de uso antes de llamarlo. Las reservas y los bloqueos no se quitan
 	 * aquí: eso lo hace Reservas con Reserva.verificarDisponibilidad.
@@ -147,14 +166,7 @@ public final class HorarioRecurrente {
 	public static List<Franja> calcularFranjas(List<HorarioRecurrente> horariosEscenario, LocalDate fecha,
 			LocalDateTime ahora, int ventanaReservaDias) {
 		Objects.requireNonNull(horariosEscenario, "horariosEscenario");
-		Objects.requireNonNull(fecha, "fecha");
-		Objects.requireNonNull(ahora, "ahora");
-
-		// Política 10 (RN-11). La ventana incluye hoy y hoy + ventanaReservaDias (P6 de HU20)
-		LocalDate hoy = ahora.toLocalDate();
-		if (fecha.isBefore(hoy) || fecha.isAfter(hoy.plusDays(ventanaReservaDias))) {
-			throw new ReglaNegocioException("ERR-HOR-10");
-		}
+		validarFechaConsultable(fecha, ahora, ventanaReservaDias);
 
 		DiaSemana dia = DiaSemana.de(fecha.getDayOfWeek());
 		List<Franja> franjas = new ArrayList<>();

@@ -59,11 +59,14 @@ class UbicacionControllerTest {
 				.andExpect(jsonPath("$[*].nombre").value(org.hamcrest.Matchers.contains("Marinilla", "Rionegro")));
 	}
 
+	// HU18 (P8, CA9): antes exigía sesión; ahora un visitante sin sesión llena los filtros de la búsqueda
 	@Test
-	void sinTokenRespondeErrGen05() throws Exception {
-		mvc.perform(get("/api/departamentos"))
-				.andExpect(status().isUnauthorized())
-				.andExpect(jsonPath("$.errores[0].codigo").value("ERR-GEN-05"));
+	void sinToken_esPublico() throws Exception {
+		when(consultaUbicacion.listarDepartamentos()).thenReturn(List.of());
+		when(consultaUbicacion.listarCiudades(ANTIOQUIA)).thenReturn(List.of());
+
+		mvc.perform(get("/api/departamentos")).andExpect(status().isOk());
+		mvc.perform(get("/api/departamentos/{id}/ciudades", ANTIOQUIA)).andExpect(status().isOk());
 	}
 
 }

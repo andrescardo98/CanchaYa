@@ -1,6 +1,7 @@
 package co.edu.uco.canchaya.escenarios.application.usecase;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -75,6 +76,11 @@ final class HorariosEnMemoria implements RepositorioHorarios {
 				.sorted(Comparator.comparing(HorarioRecurrente::getDiaSemana)
 						.thenComparing(HorarioRecurrente::getHoraInicio))
 				.toList();
+	}
+
+	@Override
+	public List<HorarioRecurrente> buscarPorEscenarios(Collection<UUID> escenarioIds) {
+		return guardados.stream().filter(h -> escenarioIds.contains(h.getEscenarioId())).toList();
 	}
 
 	static final class Escenarios implements RepositorioEscenarios {
