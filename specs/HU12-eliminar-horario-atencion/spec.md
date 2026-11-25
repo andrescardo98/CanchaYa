@@ -75,6 +75,7 @@ Sin migraciones.
 | CA6 | Con reservas futuras: `ERR-HOR-15` | `ca6ConReservasFuturas_ERR_HOR_15` | Dominio |
 | CA6 | El caso de uso no borra | `ca6ConReservasFuturas_noBorra` | Caso de uso |
 | CA6 | La consulta de Reservas cuenta solo las CONFIRMADAS futuras de esas canchas en ese día que se cruzan con el rango; no cuentan: otro día, fuera del rango, pegada al borde (termina a la hora de inicio), cancelada, ya empezada, otra cancha | `ca6ExistenConfirmadasEnHorario_*` (una por caso, reservas insertadas con SQL) | Persistencia (Reservas) |
+| CA6 | Reservas pregunta con la hora de Bogotá (D27) y, sin canchas, responde `false` sin ir a la base | `ca6EnHorario_preguntaConElDiaLasHorasYLaHoraDeBogota`, `ca6EnHorario_sinReservasResponde_false` y `ca6EnHorario_sinCanchasNoVaALaBase` | Caso de uso (Reservas) |
 | CA6 | 422 `ERR-HOR-15` por HTTP y el horario sigue en la lista | `ca6ConReservasFuturas_422_ERR_HOR_15` | Punta a punta |
 
 Las pruebas siguen el estilo del módulo: `caNXxx`, con el criterio al principio del nombre.

@@ -1,7 +1,9 @@
 package co.edu.uco.canchaya.reservas.application.port.out;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +17,13 @@ public interface RepositorioReservas {
 	 * (fecha y hora de America/Bogota, D27). HU13, D08.
 	 */
 	boolean existenConfirmadasQueEmpiezanDespuesDe(Collection<UUID> canchaIds, LocalDateTime momento);
+
+	/**
+	 * Como la anterior, pero solo las de ese día de la semana que se cruzan con
+	 * [horaInicio, horaFin), aunque sea en parte. HU12, política 15 de HorarioRecurrente (D08, P2).
+	 */
+	boolean existenConfirmadasEnHorarioQueEmpiezanDespuesDe(Collection<UUID> canchaIds, DayOfWeek dia,
+			LocalTime horaInicio, LocalTime horaFin, LocalDateTime momento);
 
 	/**
 	 * Reservas CONFIRMADAS de la cancha en esa fecha, por hora de inicio: son las que ocupan franjas
