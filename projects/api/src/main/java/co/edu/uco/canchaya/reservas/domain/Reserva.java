@@ -24,7 +24,9 @@ import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
  * Reserva de un jugador sobre una cancha para una fecha y 1 o 2 franjas seguidas (D10). La cancha
  * y el jugador se guardan por su identificador: Reservas no usa las clases Cancha ni Usuario.
  *
- * <p>HU20 la crea con lo que necesita la disponibilidad y HU21 agrega {@code confirmar}.
+ * <p>HU20 la crea con lo que necesita la disponibilidad, HU21 agrega {@code confirmar} y HU24
+ * {@code cancelar}. Solo cambian el estado y los datos de la cancelación, y únicamente con los
+ * métodos de negocio (clases.md: no hay métodos set).
  */
 public final class Reserva {
 
@@ -40,13 +42,13 @@ public final class Reserva {
 	private final LocalTime horaInicio;
 	private final LocalTime horaFin;
 	private final BigDecimal precio;
-	private final EstadoReserva estado;
+	private EstadoReserva estado;
 	private final ConfirmacionAsistencia confirmacionAsistencia;
 	private final OffsetDateTime fechaSolicitudConfirmacion;
-	private final OrigenCancelacion origenCancelacion;
+	private OrigenCancelacion origenCancelacion;
 	private final String motivoCancelacion;
 	private final OffsetDateTime fechaCreacion;
-	private final OffsetDateTime fechaCancelacion;
+	private OffsetDateTime fechaCancelacion;
 
 	private Reserva(UUID id, UUID canchaId, UUID jugadorId, LocalDate fecha, LocalTime horaInicio, LocalTime horaFin,
 			BigDecimal precio, EstadoReserva estado, ConfirmacionAsistencia confirmacionAsistencia,
@@ -215,6 +217,41 @@ public final class Reserva {
 		boolean desdeLaHoraMinima = !horaInicio.isBefore(parametros.horaMinimaConfirmacion());
 		return conAnticipacion && desdeLaHoraMinima ? ConfirmacionAsistencia.PENDIENTE
 				: ConfirmacionAsistencia.NO_REQUERIDA;
+	}
+
+	/**
+	 * Responsabilidad «cancelar» (HU24), solo la parte del jugador (P4 de HU24): el propietario por
+	 * fuerza mayor, con las políticas 17 y 18, lo agrega HU32. Las políticas van en el orden de
+	 * clases.md. La 20 (la franja queda libre) no necesita código: la restricción de exclusión y las
+	 * consultas de disponibilidad solo cuentan las reservas CONFIRMADAS. La 21 (correo) es de HU25.
+	 *
+	 * @param solicitante quien cancela, tomado del token de acceso
+	 * @param ahora fecha y hora actual del servidor en America/Bogota (D27), no la del dispositivo
+	 * @throws ReglaNegocioException ERR-RES-14 (política 14), ERR-RES-15 (política 15) o ERR-RES-16
+	 *         (política 16)
+	 */
+	public void cancelar(Solicitante solicitante, LocalDateTime ahora, ParametrosReserva parametros) {
+		Objects.requireNonNull(solicitante, "solicitante");
+		Objects.requireNonNull(ahora, "ahora");
+		Objects.requireNonNull(parametros, "parametros");
+
+		// Política 14: el caso de uso ya lo revisó al buscarla; aquí se repite para no depender de él
+		if (!estaConfirmada()) {
+			throw new ReglaNegocioException("ERR-RES-14");
+		}
+		// Política 15: va antes que la 16, así a otro usuario no se le habla del plazo
+		if (!jugadorId.equals(solicitante.usuarioId())) {
+			throw new ReglaNegocioException("ERR-RES-15");
+		}
+		// Política 16 (RN-10, D06, PAR-RES-05): deben faltar MÁS de esas horas; con exactamente 3 no
+		if (Duration.between(ahora, inicio()).compareTo(Duration.ofHours(parametros.horasMinimasCancelacion())) <= 0) {
+			throw new ReglaNegocioException("ERR-RES-16");
+		}
+
+		// Política 19
+		this.estado = EstadoReserva.CANCELADA;
+		this.origenCancelacion = OrigenCancelacion.JUGADOR;
+		this.fechaCancelacion = ahora.atZone(BOGOTA).toOffsetDateTime();
 	}
 
 	/**
