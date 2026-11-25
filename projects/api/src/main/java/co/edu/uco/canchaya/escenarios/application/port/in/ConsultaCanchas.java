@@ -36,6 +36,17 @@ public interface ConsultaCanchas {
 	 */
 	void tomarTurno(UUID canchaId);
 
+	/**
+	 * HU22 (P2): lo que necesitan COR-RES-01 y COR-RES-02 sobre la cancha y su escenario. No filtra
+	 * por estado: la reserva ya quedó confirmada y el correo se envía aunque la cancha cambie justo
+	 * después. Vacío si la cancha, su escenario o su ciudad no existen.
+	 */
+	Optional<DatosCorreoCancha> buscarDatosCorreo(UUID canchaId);
+
+	/** ciudad es el nombre, no el id: Reservas no puede usar Ubicación. */
+	record DatosCorreoCancha(String cancha, String escenario, String direccion, String ciudad, UUID administradorId) {
+	}
+
 	/** nombre y nombreEscenario los usa EXI-RES-01 (HU21); precioHora, la política 11 de confirmar. */
 	record CanchaReservable(UUID id, UUID escenarioId, String nombre, String nombreEscenario, BigDecimal precioHora) {
 	}

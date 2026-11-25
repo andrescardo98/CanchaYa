@@ -197,6 +197,11 @@ class ConsultarDisponibilidadCasoUsoTest {
 			throw new UnsupportedOperationException("HU20 no toma el turno");
 		}
 
+		@Override
+		public Optional<DatosCorreoCancha> buscarDatosCorreo(UUID canchaId) {
+			throw new UnsupportedOperationException("HU20 no envía correos");
+		}
+
 	}
 
 	private static final class ReservasFalsas implements RepositorioReservas {

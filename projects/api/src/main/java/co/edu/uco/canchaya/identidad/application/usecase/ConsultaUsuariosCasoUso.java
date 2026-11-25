@@ -28,7 +28,7 @@ public class ConsultaUsuariosCasoUso implements ConsultaUsuarios {
 		}
 		return repositorio.buscarPorIds(usuarioIds).stream()
 				.map(usuario -> new ContactoUsuario(usuario.getId(), usuario.getNombre(),
-						usuario.getCorreoElectronico()))
+						usuario.getCorreoElectronico(), usuario.getNumeroCelular()))
 				.toList();
 	}
 

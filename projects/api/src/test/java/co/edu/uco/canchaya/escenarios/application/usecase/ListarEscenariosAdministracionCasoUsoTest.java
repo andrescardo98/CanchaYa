@@ -154,8 +154,8 @@ class ListarEscenariosAdministracionCasoUsoTest {
 
 		@Override
 		public List<ContactoUsuario> buscarContactos(Collection<UUID> usuarioIds) {
-			return List.of(new ContactoUsuario(ANA, "Ana Pérez", "ana@correo.com"),
-					new ContactoUsuario(LUIS, "Luis Gómez", "luis@correo.com"));
+			return List.of(new ContactoUsuario(ANA, "Ana Pérez", "ana@correo.com", "+573001234567"),
+					new ContactoUsuario(LUIS, "Luis Gómez", "luis@correo.com", "+573007654321"));
 		}
 
 	}

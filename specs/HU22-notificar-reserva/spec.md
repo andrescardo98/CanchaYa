@@ -46,7 +46,7 @@ No hay servicio nuevo. `POST /api/reservas` responde igual que en HU21 (201 con 
 
 ### Escenarios (puerto de entrada)
 
-- `ConsultaCanchas.buscarDatosCorreo(UUID canchaId)` → `Optional<DatosCorreoCancha>` con `cancha`, `escenario`, `direccion`, `ciudad` (nombre, por `ConsultaUbicacion.buscarCiudades`) y `administradorId` (P2). No filtra por estado: la reserva ya quedó confirmada y el correo se envía aunque la cancha cambie justo después. Vacío si la cancha no existe.
+- `ConsultaCanchas.buscarDatosCorreo(UUID canchaId)` → `Optional<DatosCorreoCancha>` con `cancha`, `escenario`, `direccion`, `ciudad` (nombre, por `ConsultaUbicacion.buscarCiudades`) y `administradorId` (P2). No filtra por estado: la reserva ya quedó confirmada y el correo se envía aunque la cancha cambie justo después. Vacío si la cancha, su escenario o su ciudad no existen (el caso de uso lo registra con `ERR-GEN-08`, CA3).
 
 ### Caso de uso (`reservas.application.usecase`)
 
