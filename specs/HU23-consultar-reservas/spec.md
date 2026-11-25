@@ -137,7 +137,7 @@ No sirve `buscarReservable`: solo devuelve canchas DISPONIBLES de escenarios ACT
 | CA1 | Reserva en curso (empezó y no terminó) es vigente; terminada o no CONFIRMADA es pasada (P1) | `ReservaConsultaTest.CA1_esVigente_*` | Dominio |
 | CA1 | La respuesta trae escenario, cancha, fecha, horas, precio, estado y confirmación de asistencia | `ReservaControllerTest.CA1_devuelveLosDatosDeCadaReserva` | REST |
 | CA1 | Se reserva con `POST /api/reservas` y aparece en `vigentes` de `GET /api/reservas/mias` | `MisReservasPuntaAPuntaTest.CA1_reservaHecha_apareceEnVigentes` | Punta a punta |
-| CA1 | El nombre llega aunque la cancha esté INACTIVA | `ConsultaCanchasNombresPersistenciaTest.CA1_canchaInactiva_tambienTraeNombres` | Persistencia |
+| CA1 | El nombre llega aunque la cancha esté INACTIVA | `ConsultaCanchasPersistenciaTest.CA1_canchaInactiva_tambienTraeNombres` | Persistencia |
 | CA2 | Sin reservas: listas vacías y `INF-RES-01` con su texto | `ReservaControllerTest.CA2_sinReservas_INF_RES_01` | REST |
 | CA3 | CONFIRMADA y faltan 3 h 1 min → `cancelable` verdadero | `ReservaConsultaTest.CA3_faltanMasDeTresHoras_sePuedeCancelar` | Dominio |
 | CA3 | Faltan exactamente 3 h, o menos → falso (límite estricto de PAR-RES-05) | `ReservaConsultaTest.CA3_faltanTresHorasOMenos_noSePuedeCancelar` | Dominio |

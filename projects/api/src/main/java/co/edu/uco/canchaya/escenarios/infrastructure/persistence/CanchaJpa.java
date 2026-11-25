@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.escenarios.infrastructure.persistence;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,5 +35,11 @@ interface CanchaJpa extends JpaRepository<CanchaEntidad, UUID> {
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("update CanchaEntidad c set c.estado = :estado where c.id = :id")
 	int actualizarEstado(UUID id, EstadoCancha estado);
+
+	// HU23: [id, nombre de la cancha, nombre del escenario], en cualquier estado
+	@Query("""
+			select c.id, c.nombre, e.nombre from CanchaEntidad c join EscenarioEntidad e on e.id = c.escenarioId
+			where c.id in :ids""")
+	List<Object[]> nombresConEscenario(Collection<UUID> ids);
 
 }

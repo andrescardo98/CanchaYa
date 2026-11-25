@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -22,6 +24,7 @@ import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import co.edu.uco.canchaya.TestcontainersConfiguration;
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.NombresCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.RangoBloqueado;
 import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioBloqueos;
 import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioCanchas;
@@ -169,6 +172,23 @@ class ConsultaCanchasPersistenciaTest {
 		});
 
 		assertThat(otraNoEspero).isTrue();
+	}
+
+	// HU23, CA1: los nombres llegan aunque la cancha esté INACTIVA o el escenario INACTIVO; una
+	// cancha que no existe no viene
+	@Test
+	void CA1_canchaInactiva_tambienTraeNombres() {
+		jdbc.update("update cancha set estado = 'INACTIVA' where id = ?", otraCancha);
+		jdbc.update("update escenario set estado = 'INACTIVO' where id = ?", escenario);
+		UUID inexistente = UUID.randomUUID();
+
+		Map<UUID, NombresCancha> nombres = repositorioCanchas.nombresConEscenario(List.of(cancha, otraCancha,
+				inexistente));
+
+		assertThat(nombres).containsOnly(
+				Map.entry(cancha, new NombresCancha("Cancha 1", "Cancha La 80")),
+				Map.entry(otraCancha, new NombresCancha("Cancha 2", "Cancha La 80")));
+		assertThat(repositorioCanchas.nombresConEscenario(List.of())).isEmpty();
 	}
 
 	private static boolean esperar(CountDownLatch senal, int segundos) {

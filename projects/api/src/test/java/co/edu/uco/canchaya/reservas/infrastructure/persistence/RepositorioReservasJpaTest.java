@@ -347,4 +347,27 @@ class RepositorioReservasJpaTest {
 		assertThat(repositorio.horasConfirmadasDeJugadorEnFecha(UUID.randomUUID(), HOY)).isZero();
 	}
 
+	// HU23, CA5: solo las reservas del jugador pedido, en cualquier estado y fecha
+	@Test
+	void CA5_deJugador_soloLasSuyas() {
+		UUID suyaFutura = confirmada(cancha, HOY.plusDays(1), 8, 10);
+		UUID suyaPasada = confirmada(otraCancha, HOY.minusDays(3), 18, 19);
+		cancelada(cancha, HOY.plusDays(2), 8);
+		UUID otroJugador = usuario("1000000043", "JUGADOR");
+		jdbc.update("""
+				insert into reserva (id, cancha_id, jugador_id, fecha, hora_inicio, hora_fin, precio, estado,
+				  confirmacion_asistencia, fecha_creacion)
+				values (?, ?, ?, ?, '12:00', '13:00', 80000, 'CONFIRMADA', 'NO_REQUERIDA', now())""",
+				UUID.randomUUID(), cancha, otroJugador, HOY.plusDays(1));
+
+		List<Reserva> suyas = repositorio.deJugador(jugador);
+
+		assertThat(suyas).hasSize(3).allSatisfy(r -> assertThat(r.getJugadorId()).isEqualTo(jugador));
+		assertThat(suyas).extracting(Reserva::getId).contains(suyaFutura, suyaPasada);
+		assertThat(suyas).extracting(Reserva::getEstado)
+				.containsExactlyInAnyOrder(EstadoReserva.CONFIRMADA, EstadoReserva.CONFIRMADA, EstadoReserva.CANCELADA);
+		assertThat(repositorio.deJugador(otroJugador)).hasSize(1);
+		assertThat(repositorio.deJugador(UUID.randomUUID())).isEmpty();
+	}
+
 }

@@ -14,12 +14,14 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.NombresCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas;
 import co.edu.uco.canchaya.escenarios.domain.Franja;
 import co.edu.uco.canchaya.reservas.application.port.in.ConsultarDisponibilidad.Disponibilidad;
@@ -202,6 +204,11 @@ class ConsultarDisponibilidadCasoUsoTest {
 			throw new UnsupportedOperationException("HU20 no envía correos");
 		}
 
+		@Override
+		public Map<UUID, NombresCancha> nombres(Collection<UUID> canchaIds) {
+			throw new UnsupportedOperationException("Es de HU23");
+		}
+
 	}
 
 	private static final class ReservasFalsas implements RepositorioReservas {
@@ -250,6 +257,11 @@ class ConsultarDisponibilidadCasoUsoTest {
 		@Override
 		public int horasConfirmadasDeJugadorEnFecha(UUID jugadorId, LocalDate fecha) {
 			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public List<Reserva> deJugador(UUID jugadorId) {
+			throw new UnsupportedOperationException("Es de HU23");
 		}
 
 	}

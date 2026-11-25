@@ -55,4 +55,10 @@ public interface RepositorioReservas {
 	/** Política 9 (HU21): horas de las reservas CONFIRMADAS del jugador en esa fecha, en cualquier cancha. */
 	int horasConfirmadasDeJugadorEnFecha(UUID jugadorId, LocalDate fecha);
 
+	/**
+	 * HU23 (CA5): todas las reservas del jugador, en cualquier estado y fecha, y solo las suyas. El
+	 * orden lo pone el caso de uso, porque depende de la hora actual.
+	 */
+	List<Reserva> deJugador(UUID jugadorId);
+
 }

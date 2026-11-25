@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.NombresCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.RegistrarCancha.DatosRegistroCancha;
 import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioCanchas;
 import co.edu.uco.canchaya.escenarios.domain.Cancha;
@@ -193,6 +196,11 @@ class RegistrarCanchaCasoUsoTest {
 		@Override
 		public void actualizarEstado(Cancha cancha) {
 			real.actualizarEstado(cancha);
+		}
+
+		@Override
+		public Map<UUID, NombresCancha> nombresConEscenario(Collection<UUID> canchaIds) {
+			throw new UnsupportedOperationException("Es de HU23");
 		}
 	}
 
