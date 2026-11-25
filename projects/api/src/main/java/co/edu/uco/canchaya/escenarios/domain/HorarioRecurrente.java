@@ -21,9 +21,10 @@ public final class HorarioRecurrente {
 
 	private final UUID id;
 	private final UUID escenarioId;
-	private final DiaSemana diaSemana;
-	private final LocalTime horaInicio;
-	private final LocalTime horaFin;
+	// Los cambia «modificar» (HU11); el id y el escenario no
+	private DiaSemana diaSemana;
+	private LocalTime horaInicio;
+	private LocalTime horaFin;
 
 	private HorarioRecurrente(UUID id, UUID escenarioId, DiaSemana diaSemana, LocalTime horaInicio,
 			LocalTime horaFin) {
@@ -49,14 +50,7 @@ public final class HorarioRecurrente {
 		Objects.requireNonNull(horaFin, "horaFin");
 
 		validarPropietario(escenario, solicitante);
-		// Política 13 (RN-18, PAR-HOR-02)
-		if (!enPunto(horaInicio) || !enPunto(horaFin)) {
-			throw new ReglaNegocioException("ERR-HOR-13");
-		}
-		// Política 3
-		if (!horaFin.isAfter(horaInicio)) {
-			throw new ReglaNegocioException("ERR-HOR-03");
-		}
+		validarHoras(horaInicio, horaFin);
 
 		HorarioRecurrente nuevo = new HorarioRecurrente(UUID.randomUUID(), escenario.getId(), diaSemana, horaInicio,
 				horaFin);
@@ -65,6 +59,40 @@ public final class HorarioRecurrente {
 			throw new ReglaNegocioException("ERR-HOR-04", new TextoCatalogo("dia." + diaSemana.name()));
 		}
 		return nuevo;
+	}
+
+	/**
+	 * Responsabilidad «modificar» (HU11). La política 6 (que exista el horario) la revisa el caso de
+	 * uso antes de llamarlo. La política 14 (RN-17, D09) se cumple por diseño: el cambio aplica hacia
+	 * adelante y no toca las reservas ya hechas.
+	 *
+	 * @param escenario           el escenario de este horario, para saber quién es el propietario
+	 * @param otrosHorariosDelDia horarios del escenario en el día nuevo; puede incluir a este mismo
+	 * @throws ReglaNegocioException ERR-HOR-02, ERR-HOR-13, ERR-HOR-03 o ERR-HOR-07
+	 * @throws IllegalArgumentException si el escenario no es el del horario (error de programación)
+	 */
+	public void modificar(Escenario escenario, DiaSemana diaSemana, LocalTime horaInicio, LocalTime horaFin,
+			List<HorarioRecurrente> otrosHorariosDelDia, Solicitante solicitante) {
+		Objects.requireNonNull(escenario, "escenario");
+		Objects.requireNonNull(diaSemana, "diaSemana");
+		Objects.requireNonNull(horaInicio, "horaInicio");
+		Objects.requireNonNull(horaFin, "horaFin");
+		if (!escenario.getId().equals(escenarioId)) {
+			throw new IllegalArgumentException("El escenario " + escenario.getId() + " no es el del horario " + id);
+		}
+
+		validarPropietario(escenario, solicitante);
+		validarHoras(horaInicio, horaFin);
+		// Política 7: como la 4, pero sin contar el horario que se modifica
+		HorarioRecurrente propuesto = new HorarioRecurrente(id, escenarioId, diaSemana, horaInicio, horaFin);
+		if (otrosHorariosDelDia.stream().filter(otro -> !otro.id.equals(id)).anyMatch(propuesto::seCruzaCon)) {
+			throw new ReglaNegocioException("ERR-HOR-07", new TextoCatalogo("dia." + diaSemana.name()));
+		}
+
+		// Se cambia todo después de validar, así un error no deja el horario a medias
+		this.diaSemana = diaSemana;
+		this.horaInicio = horaInicio;
+		this.horaFin = horaFin;
 	}
 
 	/**
@@ -141,6 +169,18 @@ public final class HorarioRecurrente {
 		return diaSemana == otro.diaSemana
 				&& horaInicio.isBefore(otro.horaFin)
 				&& otro.horaInicio.isBefore(horaFin);
+	}
+
+	// Políticas 13 y 3, iguales al definir y al modificar
+	private static void validarHoras(LocalTime horaInicio, LocalTime horaFin) {
+		// Política 13 (RN-18, PAR-HOR-02)
+		if (!enPunto(horaInicio) || !enPunto(horaFin)) {
+			throw new ReglaNegocioException("ERR-HOR-13");
+		}
+		// Política 3
+		if (!horaFin.isAfter(horaInicio)) {
+			throw new ReglaNegocioException("ERR-HOR-03");
+		}
 	}
 
 	private static boolean enPunto(LocalTime hora) {
