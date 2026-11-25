@@ -64,7 +64,8 @@ Sin migraciones.
 | CA1 | Toma los turnos en orden, consulta las reservas con el día y las horas del horario y lo borra | `ca1Eliminar_tomaTurnosConsultaYBorra` | Caso de uso |
 | CA1 | Escenario sin canchas: borra sin preguntar a Reservas | `ca1EscenarioSinCanchas_borraSinConsultarReservas` | Caso de uso |
 | CA1 | Solo se borra el horario pedido; los demás del escenario siguen | `ca1Eliminar_noTocaLosOtrosHorarios` | Caso de uso |
-| CA1 | `eliminar` borra la fila y `buscarPorId` ya no la encuentra | `ca1Eliminar_borraLaFila` | Persistencia |
+| CA1 | `eliminar` borra la fila y `buscarPorId` ya no la encuentra; los demás horarios siguen | `ca1Eliminar_borraLaFila` | Persistencia |
+| CA1 | Con la base real, el caso de uso abre la transacción antes de tomar los turnos (`tomarTurno` la exige, D36) y borra | `ca1EliminarConCanchas_tomaLosTurnosDentroDeLaTransaccionYBorra` | Persistencia + caso de uso |
 | CA1 | 200 con `EXI-HOR-03`; la lista del escenario ya no trae el horario y la disponibilidad de una cancha (HU20) ya no ofrece esas franjas | `ca1EliminarHorario_200_EXI_HOR_03_listaYDisponibilidadActualizadas` | Punta a punta |
 | CA2 | Cancelar la confirmación no envía la petición | Solo en la pantalla; el backend no borra nada sin un `DELETE` | Frontend |
 | CA3 | Advertencia CNF-HOR-02 si es el último horario | Solo en la pantalla, con el tamaño de la lista de `GET /api/escenarios/{escenarioId}/horarios` (P4) | Frontend |

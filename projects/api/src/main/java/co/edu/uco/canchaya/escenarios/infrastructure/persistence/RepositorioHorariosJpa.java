@@ -78,10 +78,12 @@ class RepositorioHorariosJpa implements RepositorioHorarios {
 		}
 	}
 
-	// HU12: se implementa en la T4, con su prueba contra la base
+	// HU12. Si no existe no hace nada: dos eliminaciones al mismo tiempo no dejan datos malos (spec, concurrencia)
 	@Override
+	@Transactional
 	public void eliminar(UUID id) {
-		throw new UnsupportedOperationException("Pendiente: T4 de HU12");
+		jpa.deleteById(id);
+		jpa.flush();
 	}
 
 	@Override
