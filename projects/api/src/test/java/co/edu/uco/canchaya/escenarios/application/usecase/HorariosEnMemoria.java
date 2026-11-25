@@ -13,7 +13,7 @@ import co.edu.uco.canchaya.escenarios.domain.Escenario;
 import co.edu.uco.canchaya.escenarios.domain.EstadoEscenario;
 import co.edu.uco.canchaya.escenarios.domain.HorarioRecurrente;
 
-/** Repositorios falsos para las pruebas de HU7. Solo hacen lo que usan los casos de uso de horarios. */
+/** Repositorios falsos para las pruebas de HU7 y HU11. Solo hacen lo que usan los casos de uso de horarios. */
 final class HorariosEnMemoria implements RepositorioHorarios {
 
 	final List<HorarioRecurrente> guardados = new ArrayList<>();
@@ -34,6 +34,23 @@ final class HorariosEnMemoria implements RepositorioHorarios {
 	@Override
 	public void guardar(HorarioRecurrente horario) {
 		guardados.add(horario);
+	}
+
+	// HU11. Devuelve una copia, como la base: cambiar el objeto no cambia lo guardado hasta actualizar
+	@Override
+	public Optional<HorarioRecurrente> buscarPorId(UUID id) {
+		return guardados.stream().filter(h -> h.getId().equals(id)).findFirst().map(HorariosEnMemoria::copia);
+	}
+
+	// HU11
+	@Override
+	public void actualizar(HorarioRecurrente horario) {
+		guardados.replaceAll(h -> h.getId().equals(horario.getId()) ? copia(horario) : h);
+	}
+
+	private static HorarioRecurrente copia(HorarioRecurrente h) {
+		return HorarioRecurrente.reconstruir(h.getId(), h.getEscenarioId(), h.getDiaSemana(), h.getHoraInicio(),
+				h.getHoraFin());
 	}
 
 	@Override

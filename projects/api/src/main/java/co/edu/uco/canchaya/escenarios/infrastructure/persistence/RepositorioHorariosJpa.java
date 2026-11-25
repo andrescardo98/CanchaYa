@@ -3,6 +3,7 @@ package co.edu.uco.canchaya.escenarios.infrastructure.persistence;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -50,6 +51,16 @@ class RepositorioHorariosJpa implements RepositorioHorarios {
 			}
 			throw e;
 		}
+	}
+
+	@Override
+	public Optional<HorarioRecurrente> buscarPorId(UUID id) {
+		throw new UnsupportedOperationException("HU11: pendiente hasta T3");
+	}
+
+	@Override
+	public void actualizar(HorarioRecurrente horario) {
+		throw new UnsupportedOperationException("HU11: pendiente hasta T3");
 	}
 
 	@Override
