@@ -78,6 +78,12 @@ class RepositorioHorariosJpa implements RepositorioHorarios {
 		}
 	}
 
+	// HU12: se implementa en la T4, con su prueba contra la base
+	@Override
+	public void eliminar(UUID id) {
+		throw new UnsupportedOperationException("Pendiente: T4 de HU12");
+	}
+
 	@Override
 	@Transactional(readOnly = true)
 	public List<HorarioRecurrente> buscarPorEscenarioYDia(UUID escenarioId, DiaSemana diaSemana) {

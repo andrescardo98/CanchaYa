@@ -41,7 +41,7 @@ Respuesta `200` (P3):
 |---|---|---|
 | Dominio | `HorarioRecurrente.validarEliminacion(Escenario, Solicitante, boolean tieneReservasConfirmadasFuturas)` | Política 2 (`validarPropietario`, ERR-HOR-02) → política 15 (ERR-HOR-15 si `tieneReservasConfirmadasFuturas`). El permiso va primero: quien no es el dueño no se entera de si hay reservas. Si el escenario recibido no es el del horario, `IllegalArgumentException` (error de programación), como en HU11. La política 8 (RN-04) no tiene código aquí: la cumple la búsqueda (HU18) al no mostrar canchas de escenarios sin horarios |
 | Puerto de entrada | `EliminarHorario` con `ejecutar(UUID horarioId, Solicitante)` | Contrato del caso de uso; no devuelve nada |
-| Caso de uso | `EliminarHorarioCasoUso` | Sin `@Transactional`; dentro de `transaccion.execute`, como HU13: política 6 (`horarios.buscarPorId`, ERR-HOR-06) → `escenarios.buscarPorId(horario.getEscenarioId())` → tomar el turno de cada cancha del escenario (`idsCanchas`, ordenadas por id) → `consultaReservasFuturas.existenConfirmadasFuturasEnHorario(...)` solo si el escenario tiene canchas → `horario.validarEliminacion(...)` → `horarios.eliminar(id)` |
+| Caso de uso | `EliminarHorarioCasoUso` | Sin `@Transactional`; dentro de `transaccion.execute`, como HU13: política 6 (`horarios.buscarPorId`, ERR-HOR-06) → `escenarios.buscarPorId(horario.getEscenarioId())` → política 2 (`HorarioRecurrente.validarPropietario`, ERR-HOR-02, P5) → tomar el turno de cada cancha del escenario (`idsCanchas`, ordenadas por id) → `consultaReservasFuturas.existenConfirmadasFuturasEnHorario(...)` solo si el escenario tiene canchas → `horario.validarEliminacion(...)` → `horarios.eliminar(id)` |
 | Puerto de salida (Escenarios) | `RepositorioHorarios.buscarPorId(UUID)` | `Optional<HorarioRecurrente>`. Lo agrega HU11; HU12 lo reutiliza (P1) |
 | Puerto de salida (Escenarios) | `RepositorioHorarios.eliminar(UUID)` | Nuevo: borra la fila |
 | Puerto de salida (Escenarios) | `ConsultaReservasFuturas.existenConfirmadasFuturasEnHorario(Collection<UUID> canchaIds, DayOfWeek dia, LocalTime horaInicio, LocalTime horaFin)` | Nuevo. Usa `java.time.DayOfWeek` y no `DiaSemana`, para que Reservas no dependa del dominio de Escenarios. `DiaSemana` gana el método inverso `aDayOfWeek()` |
@@ -63,6 +63,7 @@ Sin migraciones.
 | CA1 | El propietario sin reservas futuras puede eliminar | `ca1ValidarEliminacion_propietarioSinReservas_noLanza` | Dominio |
 | CA1 | Toma los turnos en orden, consulta las reservas con el día y las horas del horario y lo borra | `ca1Eliminar_tomaTurnosConsultaYBorra` | Caso de uso |
 | CA1 | Escenario sin canchas: borra sin preguntar a Reservas | `ca1EscenarioSinCanchas_borraSinConsultarReservas` | Caso de uso |
+| CA1 | Solo se borra el horario pedido; los demás del escenario siguen | `ca1Eliminar_noTocaLosOtrosHorarios` | Caso de uso |
 | CA1 | `eliminar` borra la fila y `buscarPorId` ya no la encuentra | `ca1Eliminar_borraLaFila` | Persistencia |
 | CA1 | 200 con `EXI-HOR-03`; la lista del escenario ya no trae el horario y la disponibilidad de una cancha (HU20) ya no ofrece esas franjas | `ca1EliminarHorario_200_EXI_HOR_03_listaYDisponibilidadActualizadas` | Punta a punta |
 | CA2 | Cancelar la confirmación no envía la petición | Solo en la pantalla; el backend no borra nada sin un `DELETE` | Frontend |
@@ -70,7 +71,7 @@ Sin migraciones.
 | CA4 | Horario inexistente: `ERR-HOR-06` y no se borra ni se consulta nada | `ca4HorarioInexistente_ERR_HOR_06` | Caso de uso |
 | CA4 | 404 `ERR-HOR-06` por HTTP | `ca4HorarioInexistente_404_ERR_HOR_06` | REST |
 | CA5 | Quien no es el dueño, con cualquier rol (otro administrador de cancha o un encargado de sede, que tienen el mismo rol, el administrador del sistema y el jugador), o sin sesión: `ERR-HOR-02`, aunque haya reservas (el permiso va primero) | `ca5NoPropietario_ERR_HOR_02` (una vez por rol, como en HU11), `ca5SinSolicitante_ERR_HOR_02` y `ca5NoPropietarioConReservas_ERR_HOR_02` | Dominio |
-| CA5 | El caso de uso no borra | `ca5NoPropietario_noBorra` | Caso de uso |
+| CA5 | El caso de uso no borra, ni toma turnos, ni pregunta a Reservas (P5) | `ca5NoPropietario_noBorraNiTomaTurnos` | Caso de uso |
 | CA5 | 403 `ERR-HOR-02` por HTTP con token real | `ca5NoPropietario_403_ERR_HOR_02` | Punta a punta |
 | CA6 | Con reservas futuras: `ERR-HOR-15` | `ca6ConReservasFuturas_ERR_HOR_15` | Dominio |
 | CA6 | El caso de uso no borra | `ca6ConReservasFuturas_noBorra` | Caso de uso |
@@ -93,6 +94,9 @@ Cuenta toda reserva CONFIRMADA futura que **se cruce** con el rango `[horaInicio
 
 **P4 · Confirmaciones CNF-HOR-01 y CNF-HOR-02 (decidida el 24-nov-2026: opción A)**
 Son de la pantalla: con la lista de HU7 sabe el día y las horas (CNF-HOR-01) y si es el último horario (CNF-HOR-02). El backend no cambia y no se agregan al `catalogo-mensajes.properties`. Se descartó un servicio que diga si es el último horario (B).
+
+**P5 · El permiso antes de los turnos (decidida el 24-nov-2026 al implementar la T3)**
+El caso de uso revisa la política 2 con `HorarioRecurrente.validarPropietario` antes de tomar los turnos de las canchas y de preguntar a Reservas. Así quien no es el dueño no detiene las reservas de nadie, como en HU13. `validarEliminacion` vuelve a revisar el permiso: es la regla completa del dominio y no cuesta nada.
 
 ## Fuera de alcance
 
