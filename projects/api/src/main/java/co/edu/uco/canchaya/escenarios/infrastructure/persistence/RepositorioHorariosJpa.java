@@ -2,6 +2,7 @@ package co.edu.uco.canchaya.escenarios.infrastructure.persistence;
 
 import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,6 +68,15 @@ class RepositorioHorariosJpa implements RepositorioHorarios {
 				.map(HorarioRecurrenteEntidad::aDominio)
 				.sorted(POR_DIA_Y_HORA)
 				.toList();
+	}
+
+	@Override
+	public List<HorarioRecurrente> buscarPorEscenarios(Collection<UUID> escenarioIds) {
+		// Sin escenarios no se consulta: un "in ()" vacío no aporta nada
+		if (escenarioIds.isEmpty()) {
+			return List.of();
+		}
+		return jpa.findByEscenarioIdIn(escenarioIds).stream().map(HorarioRecurrenteEntidad::aDominio).toList();
 	}
 
 	// Hibernate no saca el nombre de una restricción de exclusión, así que se mira el estado SQL.

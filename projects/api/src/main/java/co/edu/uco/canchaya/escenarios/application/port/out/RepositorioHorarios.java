@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.escenarios.application.port.out;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,5 +22,8 @@ public interface RepositorioHorarios {
 
 	/** De lunes a domingo y por hora de inicio. */
 	List<HorarioRecurrente> buscarPorEscenario(UUID escenarioId);
+
+	/** HU18: los de varios escenarios en una sola consulta, de cualquier día. */
+	List<HorarioRecurrente> buscarPorEscenarios(Collection<UUID> escenarioIds);
 
 }
