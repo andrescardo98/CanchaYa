@@ -73,7 +73,7 @@ Respuesta `200`:
 | HTTP | Código | Cuándo |
 |---|---|---|
 | 200 | —, `INF-ESC-01` o `INF-ESC-03` | La búsqueda se ejecutó |
-| 400 | `ERR-GEN-04` | Radio fuera de 1 a 30 km (CA11), o latitud o longitud fuera de rango. Se agrega `ERR-GEN-04 → 400` en `ManejadorErrores`, igual que los demás `ERR-GEN-01` a `04` |
+| 400 | `ERR-GEN-04` | Radio fuera de 1 a 30 km (CA11), o latitud o longitud fuera de rango. Se agrega `ERR-GEN-04 → 400` en `ManejadorErrores` (también `ERR-GEN-01` y `ERR-GEN-02`), igual que los de la validación de datos |
 | 400 | `ERR-GEN-01` | Llega `latitud` sin `longitud` (o al revés), o `hora` sin `fecha` |
 | 400 | `ERR-GEN-02` | `hora` no está en punto (P5) |
 | 400 | `ERR-GEN-07` | Un UUID, una fecha o una hora que no se pueden leer (ya lo maneja `ManejadorErrores`) |
@@ -135,8 +135,8 @@ Sin migraciones: `escenario.ubicacion` y su índice ya existen en V1.
 | `application.properties` | PAR-ESC-04 a PAR-ESC-06: `canchaya.escenario.radio-busqueda-defecto-km=${PAR_ESC_04:5}`, `…-maximo-km=${PAR_ESC_05:30}` y `…-minimo-km=${PAR_ESC_06:1}`. PAR-RES-01 ya existe (`canchaya.reserva.ventana-dias`). Las variables se agregan a la tabla de `projects/api/AGENTS.md` |
 | `escenarios.infrastructure.rest.BusquedaCanchasController` y `RespuestaBusquedaCanchas` | `GET /api/canchas/busqueda`. Un controlador propio para no mezclar lo público con `CanchaController`, que es del propietario |
 | `ConfiguracionSeguridad` | `GET /api/canchas/busqueda` público. También `GET /api/departamentos/**` y `GET /api/tipos-cancha`, que hoy exigen sesión y sin ellos un visitante no puede llenar los filtros (CA9, P8) |
-| `ManejadorErrores` | `ERR-GEN-04 → 400`, y que el texto de `ERR-GEN-04` reciba `{minimo}` y `{maximo}` (hoy el manejador solo le pasa `{campo}`) |
-| `catalogo-mensajes.properties` | `INF-ESC-01`, `INF-ESC-03` y los nombres de campo `campo.radioKm`, `campo.fecha`, `campo.hora`, `campo.departamentoId`; el formato esperado de `hora` para `ERR-GEN-02`. `ERR-GEN-04` y `ERR-HOR-10` ya están |
+| `ManejadorErrores` | `ERR-GEN-01`, `ERR-GEN-02` y `ERR-GEN-04 → 400`, para que respondan igual que los de la validación de datos. Ningún otro caso de uso los lanza, así que no cambia otras HU. El texto de `ERR-GEN-04` ya recibe `{minimo}` y `{maximo}` como parámetros de la `ReglaNegocioException` |
+| `catalogo-mensajes.properties` | `INF-ESC-01`, `INF-ESC-03`, los nombres de campo `campo.radioKm` y `campo.hora` y el formato esperado `formato.hora` para `ERR-GEN-02`. `campo.fecha`, `campo.latitud`, `campo.longitud`, `ERR-GEN-04` y `ERR-HOR-10` ya estaban |
 
 ### Arquitectura
 
