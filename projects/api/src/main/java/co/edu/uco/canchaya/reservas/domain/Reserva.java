@@ -260,6 +260,14 @@ public final class Reserva {
 		return estado == EstadoReserva.CONFIRMADA;
 	}
 
+	/**
+	 * Política 13 y D33 (HU22, CA1): si el jugador deberá confirmar su asistencia, COR-RES-01 lleva
+	 * el aviso. Con PAR-RES-12 en «No» la reserva nace NO_REQUERIDA y esto da falso.
+	 */
+	public boolean requiereConfirmacionAsistencia() {
+		return confirmacionAsistencia == ConfirmacionAsistencia.PENDIENTE;
+	}
+
 	private static boolean enPunto(LocalTime hora) {
 		return hora.getMinute() == 0 && hora.getSecond() == 0 && hora.getNano() == 0;
 	}

@@ -72,4 +72,16 @@ class ReservaTest {
 		assertThat(guardada("18:00", "19:00", estado).estaConfirmada()).isEqualTo(estado == EstadoReserva.CONFIRMADA);
 	}
 
+	// HU22 CA1, política 13 y D33: el aviso de COR-RES-01 solo va si la confirmación quedó PENDIENTE
+	@ParameterizedTest
+	@EnumSource(ConfirmacionAsistencia.class)
+	void CA1_requiereConfirmacionAsistencia_soloSiPendiente(ConfirmacionAsistencia confirmacion) {
+		Reserva reserva = Reserva.reconstruir(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+				LocalDate.of(2026, 11, 23), LocalTime.of(18, 0), LocalTime.of(19, 0), new BigDecimal("80000.00"),
+				EstadoReserva.CONFIRMADA, confirmacion, null, null, CREADA, null, null);
+
+		assertThat(reserva.requiereConfirmacionAsistencia())
+				.isEqualTo(confirmacion == ConfirmacionAsistencia.PENDIENTE);
+	}
+
 }
