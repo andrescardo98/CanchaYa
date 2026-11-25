@@ -125,8 +125,8 @@ No sirve `buscarReservable`: solo devuelve canchas DISPONIBLES de escenarios ACT
 
 ### REST
 
-- Un método nuevo en `ReservaController` (ya es el de `/api/reservas`): `GET /api/reservas/mias` con `Solicitante` del token. Si `vacia()`, responde con `INF-RES-01` del catálogo.
-- `RespuestaMisReservas` y `RespuestaReservaDelJugador` (records), con `motivoCancelacion` solo si el origen es `ADMINISTRADOR`.
+- Un método nuevo en `ReservaController` (ya es el de `/api/reservas`): `GET /api/reservas/mias`. Las pruebas de HU23 en `ReservaControllerTest` llevan el prefijo `HU23_`, para no confundirlas con las de HU21 que tienen el mismo número de criterio con `Solicitante` del token. Si `vacia()`, responde con `INF-RES-01` del catálogo.
+- `RespuestaMisReservas` con `RespuestaReservaDelJugador` anidado (records), con `motivoCancelacion` solo si el origen es `ADMINISTRADOR`.
 - `catalogo-mensajes.properties`: agregar `INF-RES-01` (hoy no está).
 
 ## Criterios de aceptación → pruebas
@@ -135,20 +135,21 @@ No sirve `buscarReservable`: solo devuelve canchas DISPONIBLES de escenarios ACT
 |---|---|---|---|
 | CA1 | Vigentes por `inicio` ascendente y pasadas descendente, con nombres de cancha y escenario | `ConsultarMisReservasCasoUsoTest.CA1_separaVigentesYPasadas_yLasOrdena` | Caso de uso |
 | CA1 | Reserva en curso (empezó y no terminó) es vigente; terminada o no CONFIRMADA es pasada (P1) | `ReservaConsultaTest.CA1_esVigente_*` | Dominio |
-| CA1 | La respuesta trae escenario, cancha, fecha, horas, precio, estado y confirmación de asistencia | `ReservaControllerTest.CA1_devuelveLosDatosDeCadaReserva` | REST |
+| CA1 | La respuesta trae escenario, cancha, fecha, horas, precio, estado y confirmación de asistencia | `ReservaControllerTest.HU23_CA1_devuelveLosDatosDeCadaReserva` | REST |
 | CA1 | Se reserva con `POST /api/reservas` y aparece en `vigentes` de `GET /api/reservas/mias` | `MisReservasPuntaAPuntaTest.CA1_reservaHecha_apareceEnVigentes` | Punta a punta |
 | CA1 | El nombre llega aunque la cancha esté INACTIVA | `ConsultaCanchasPersistenciaTest.CA1_canchaInactiva_tambienTraeNombres` | Persistencia |
-| CA2 | Sin reservas: listas vacías y `INF-RES-01` con su texto | `ReservaControllerTest.CA2_sinReservas_INF_RES_01` | REST |
+| CA2 | Sin reservas: listas vacías y `INF-RES-01` con su texto | `ReservaControllerTest.HU23_CA2_sinReservas_INF_RES_01` | REST |
 | CA3 | CONFIRMADA y faltan 3 h 1 min → `cancelable` verdadero | `ReservaConsultaTest.CA3_faltanMasDeTresHoras_sePuedeCancelar` | Dominio |
 | CA3 | Faltan exactamente 3 h, o menos → falso (límite estricto de PAR-RES-05) | `ReservaConsultaTest.CA3_faltanTresHorasOMenos_noSePuedeCancelar` | Dominio |
 | CA3 | CANCELADA o NO_ASISTIO → falso | `ReservaConsultaTest.CA3_noConfirmada_noSePuedeCancelar` | Dominio |
 | CA3 | El caso de uso calcula `cancelable` con el reloj y PAR-RES-05 | `ConsultarMisReservasCasoUsoTest.CA3_marcaCancelableConElReloj` | Caso de uso |
-| CA4 | CANCELADA por ADMINISTRADOR trae origen y justificación; por JUGADOR o SISTEMA_SIN_CONFIRMACION, origen y `motivoCancelacion` nulo | `ReservaControllerTest.CA4_cancelada_muestraOrigenYJustificacion` | REST |
+| CA4 | CANCELADA por ADMINISTRADOR trae origen y justificación; por JUGADOR o SISTEMA_SIN_CONFIRMACION, origen y `motivoCancelacion` nulo | `ReservaControllerTest.HU23_CA4_cancelada_muestraOrigenYJustificacion` | REST |
 | CA4 | Con una reserva cancelada guardada en la base (por SQL, porque HU24 aún no existe), llega su origen y su motivo | `MisReservasPuntaAPuntaTest.CA4_reservaCancelada_traeOrigenYMotivo` | Punta a punta |
 | CA5 | El repositorio solo devuelve las del jugador pedido | `RepositorioReservasJpaTest.CA5_deJugador_soloLasSuyas` | Persistencia |
 | CA5 | El caso de uso consulta con el id del token | `ConsultarMisReservasCasoUsoTest.CA5_consultaConElIdDelSolicitante` | Caso de uso |
 | CA5 | Dos jugadores reservan; cada uno ve solo la suya. Sin token → 401 | `MisReservasPuntaAPuntaTest.CA5_cadaJugadorVeSoloLasSuyas` y `sinToken_401` | Punta a punta |
 | P2 | Un solicitante sin rol JUGADOR recibe `ERR-GEN-06` y no se consulta el repositorio | `ConsultarMisReservasCasoUsoTest.P2_noJugador_ERR_GEN_06` | Caso de uso |
+| P2 | El servicio responde 403 con `ERR-GEN-06` y sin token 401 con `ERR-GEN-05` | `ReservaControllerTest.HU23_P2_noJugador_403_ERR_GEN_06` y `HU23_sinSesion_401` | REST |
 | P2 | Un administrador con token recibe 403 con `ERR-GEN-06` | `MisReservasPuntaAPuntaTest.P2_administrador_403_ERR_GEN_06` | Punta a punta |
 
 ## Decisiones tomadas (24-nov-2026)
