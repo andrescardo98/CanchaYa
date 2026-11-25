@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -205,6 +206,12 @@ class ConsultarDisponibilidadCasoUsoTest {
 
 		@Override
 		public boolean existenConfirmadasQueEmpiezanDespuesDe(Collection<UUID> canchaIds, LocalDateTime momento) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean existenConfirmadasEnHorarioQueEmpiezanDespuesDe(Collection<UUID> canchaIds, DayOfWeek dia,
+				LocalTime horaInicio, LocalTime horaFin, LocalDateTime momento) {
 			throw new UnsupportedOperationException();
 		}
 

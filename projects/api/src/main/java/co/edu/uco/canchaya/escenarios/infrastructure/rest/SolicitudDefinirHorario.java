@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 /**
- * HU7. Los tres campos llegan como texto para que un valor mal escrito responda ERR-GEN-02 con el
+ * HU7, y HU11 al modificar (P2). Los tres campos llegan como texto para que un valor mal escrito responda ERR-GEN-02 con el
  * campo, y no ERR-GEN-07 como pasaría si Jackson no pudiera leerlo. El patrón de la hora deja
  * pasar minutos distintos de 00: eso es la política 13 (ERR-HOR-13) y lo revisa el dominio.
  */

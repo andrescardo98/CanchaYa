@@ -1,8 +1,10 @@
 package co.edu.uco.canchaya.reservas.infrastructure.persistence;
 
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,27 @@ class RepositorioReservasJpa implements RepositorioReservas {
 				    and fecha >= cast(:momento as date)
 				    and fecha + hora_inicio > :momento)
 				""", Map.of("canchas", canchaIds, "momento", momento), Boolean.class);
+		return Boolean.TRUE.equals(existen);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public boolean existenConfirmadasEnHorarioQueEmpiezanDespuesDe(Collection<UUID> canchaIds, DayOfWeek dia,
+			LocalTime horaInicio, LocalTime horaFin, LocalDateTime momento) {
+		// isodow va de 1 (lunes) a 7 (domingo), igual que DayOfWeek.getValue(). El cruce toma la hora
+		// de fin como abierta, como la restricción de exclusión: pegadas al borde no se cruzan (P2)
+		Boolean existen = jdbc.queryForObject("""
+				select exists (
+				  select 1 from reserva
+				  where cancha_id in (:canchas)
+				    and estado = 'CONFIRMADA'
+				    and extract(isodow from fecha) = :dia
+				    and hora_inicio < :horaFin
+				    and hora_fin > :horaInicio
+				    and fecha >= cast(:momento as date)
+				    and fecha + hora_inicio > :momento)
+				""", Map.of("canchas", canchaIds, "dia", dia.getValue(), "horaInicio", horaInicio, "horaFin", horaFin,
+				"momento", momento), Boolean.class);
 		return Boolean.TRUE.equals(existen);
 	}
 
