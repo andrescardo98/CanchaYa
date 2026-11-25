@@ -1,6 +1,6 @@
 # HU18 · Buscar canchas cercanas
 
-**Estado:** Aprobada (24-nov-2026) · **HU:** [HU18](../../docs/historias/HU18.md) · **Módulos:** Escenarios y canchas (`co.edu.uco.canchaya.escenarios`), que hace la búsqueda, y Reservas (`co.edu.uco.canchaya.reservas`), que solo dice qué canchas tienen una reserva confirmada en la franja pedida
+**Estado:** Implementada (24-nov-2026) · **HU:** [HU18](../../docs/historias/HU18.md) · **Módulos:** Escenarios y canchas (`co.edu.uco.canchaya.escenarios`), que hace la búsqueda, y Reservas (`co.edu.uco.canchaya.reservas`), que solo dice qué canchas tienen una reserva confirmada en la franja pedida
 
 ## Fuentes
 
