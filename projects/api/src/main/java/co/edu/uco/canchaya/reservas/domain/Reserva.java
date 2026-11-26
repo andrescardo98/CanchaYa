@@ -268,6 +268,32 @@ public final class Reserva {
 		return confirmacionAsistencia == ConfirmacionAsistencia.PENDIENTE;
 	}
 
+	/**
+	 * HU23, P1: vigente es una reserva CONFIRMADA que todavía no termina, aunque ya haya empezado.
+	 * Es la misma idea de «reserva activa» de HU21 (P4). Las CANCELADAS y NO_ASISTIO son pasadas
+	 * aunque su fecha sea futura.
+	 *
+	 * @param ahora fecha y hora actual en America/Bogota (D27)
+	 */
+	public boolean esVigente(LocalDateTime ahora) {
+		Objects.requireNonNull(ahora, "ahora");
+		return estaConfirmada() && fin().isAfter(ahora);
+	}
+
+	/**
+	 * Política 16 (RN-10, D06): el jugador puede cancelar una reserva CONFIRMADA solo si faltan más de
+	 * PAR-RES-05 horas para el inicio; con exactamente esas horas ya no. HU23 la usa para mostrar la
+	 * opción de cancelar (CA3) y HU24 la usará para lanzar ERR-RES-16.
+	 *
+	 * @param ahora fecha y hora actual en America/Bogota (D27)
+	 */
+	public boolean sePuedeCancelarPorJugador(LocalDateTime ahora, ParametrosReserva parametros) {
+		Objects.requireNonNull(ahora, "ahora");
+		Objects.requireNonNull(parametros, "parametros");
+		return estaConfirmada()
+				&& Duration.between(ahora, inicio()).compareTo(Duration.ofHours(parametros.horasMinimasCancelacion())) > 0;
+	}
+
 	private static boolean enPunto(LocalTime hora) {
 		return hora.getMinute() == 0 && hora.getSecond() == 0 && hora.getNano() == 0;
 	}

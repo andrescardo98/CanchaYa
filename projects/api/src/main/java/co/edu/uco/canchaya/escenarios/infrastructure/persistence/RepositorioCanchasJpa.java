@@ -1,6 +1,9 @@
 package co.edu.uco.canchaya.escenarios.infrastructure.persistence;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.NombresCancha;
 import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioCanchas;
 import co.edu.uco.canchaya.escenarios.domain.Cancha;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
@@ -96,6 +100,19 @@ class RepositorioCanchasJpa implements RepositorioCanchas {
 	@Transactional
 	public void actualizarEstado(Cancha cancha) {
 		jpa.actualizarEstado(cancha.getId(), cancha.getEstado());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Map<UUID, NombresCancha> nombresConEscenario(Collection<UUID> canchaIds) {
+		if (canchaIds.isEmpty()) {
+			return Map.of();
+		}
+		Map<UUID, NombresCancha> nombres = new HashMap<>();
+		for (Object[] fila : jpa.nombresConEscenario(canchaIds)) {
+			nombres.put((UUID) fila[0], new NombresCancha((String) fila[1], (String) fila[2]));
+		}
+		return nombres;
 	}
 
 	private static String nombreRestriccion(Throwable error) {

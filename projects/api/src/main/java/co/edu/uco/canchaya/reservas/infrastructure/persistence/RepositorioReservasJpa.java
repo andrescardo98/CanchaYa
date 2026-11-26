@@ -155,6 +155,12 @@ class RepositorioReservasJpa implements RepositorioReservas {
 		return horas == null ? 0 : horas;
 	}
 
+	@Override
+	@Transactional(readOnly = true)
+	public List<Reserva> deJugador(UUID jugadorId) {
+		return jpa.findByJugadorId(jugadorId).stream().map(ReservaEntidad::aDominio).toList();
+	}
+
 	// Hibernate no saca el nombre de una restricción de exclusión, así que se mira el estado SQL
 	private static boolean tieneEstado(Throwable error, String estadoSql) {
 		for (Throwable causa = error; causa != null; causa = causa.getCause()) {

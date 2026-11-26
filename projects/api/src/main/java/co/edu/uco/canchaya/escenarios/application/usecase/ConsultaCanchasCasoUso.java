@@ -3,7 +3,9 @@ package co.edu.uco.canchaya.escenarios.application.usecase;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -88,6 +90,12 @@ public class ConsultaCanchasCasoUso implements ConsultaCanchas {
 	public void tomarTurno(UUID canchaId) {
 		// La transacción la abre quien llama (HU21); el repositorio exige que exista
 		repositorioCanchas.tomarTurno(canchaId);
+	}
+
+	@Override
+	public Map<UUID, NombresCancha> nombres(Collection<UUID> canchaIds) {
+		// HU23: sin filtrar por estado; una reserva pasada puede ser de una cancha que hoy está inactiva
+		return repositorioCanchas.nombresConEscenario(canchaIds);
 	}
 
 }

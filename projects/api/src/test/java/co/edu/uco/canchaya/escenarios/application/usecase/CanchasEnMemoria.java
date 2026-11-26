@@ -2,6 +2,7 @@ package co.edu.uco.canchaya.escenarios.application.usecase;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.NombresCancha;
 import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioCanchas;
 import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioEscenarios;
 import co.edu.uco.canchaya.escenarios.application.port.out.RepositorioTiposCancha;
@@ -154,6 +156,11 @@ final class CanchasEnMemoria {
 			public void actualizarEstado(Cancha cancha) {
 				estadosActualizados.add(cancha.getId());
 				canchas.replaceAll(c -> c.getId().equals(cancha.getId()) ? copia(cancha) : c);
+			}
+
+			@Override
+			public Map<UUID, NombresCancha> nombresConEscenario(Collection<UUID> canchaIds) {
+				throw new UnsupportedOperationException("Es de HU23");
 			}
 		};
 	}

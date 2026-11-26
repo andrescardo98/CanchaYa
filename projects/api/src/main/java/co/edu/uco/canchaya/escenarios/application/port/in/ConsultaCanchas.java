@@ -3,7 +3,9 @@ package co.edu.uco.canchaya.escenarios.application.port.in;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,6 +47,17 @@ public interface ConsultaCanchas {
 
 	/** ciudad es el nombre, no el id: Reservas no puede usar Ubicación. */
 	record DatosCorreoCancha(String cancha, String escenario, String direccion, String ciudad, UUID administradorId) {
+	}
+
+	/**
+	 * HU23: el nombre de cada cancha y el de su escenario, en cualquier estado, porque una reserva
+	 * pasada puede ser de una cancha que hoy está inactiva. Las que no existen no vienen; vacío si no
+	 * se pide ninguna.
+	 */
+	Map<UUID, NombresCancha> nombres(Collection<UUID> canchaIds);
+
+	/** Nombres que muestra «Mis reservas» (HU23, CA1). */
+	record NombresCancha(String cancha, String escenario) {
 	}
 
 	/** nombre y nombreEscenario los usa EXI-RES-01 (HU21); precioHora, la política 11 de confirmar. */

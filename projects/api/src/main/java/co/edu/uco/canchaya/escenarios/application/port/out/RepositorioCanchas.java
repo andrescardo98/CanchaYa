@@ -1,9 +1,12 @@
 package co.edu.uco.canchaya.escenarios.application.port.out;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.NombresCancha;
 import co.edu.uco.canchaya.escenarios.domain.Cancha;
 
 public interface RepositorioCanchas {
@@ -48,5 +51,11 @@ public interface RepositorioCanchas {
 
 	/** HU10: guarda solo el estado. */
 	void actualizarEstado(Cancha cancha);
+
+	/**
+	 * HU23: nombre de cada cancha y de su escenario, en una sola consulta y sin mirar el estado.
+	 * Las que no existen no vienen; vacío si no se pide ninguna.
+	 */
+	Map<UUID, NombresCancha> nombresConEscenario(Collection<UUID> canchaIds);
 
 }
