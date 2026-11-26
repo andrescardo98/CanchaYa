@@ -1,6 +1,6 @@
 # HU25 · Recibir la notificación de una cancelación
 
-**Estado:** Aprobada (25-nov-2026) · **HU:** [HU25](../../docs/historias/HU25.md) · **Módulo:** Reservas (con un cambio pequeño en Transversal)
+**Estado:** Implementada (25-nov-2026) · **HU:** [HU25](../../docs/historias/HU25.md) · **Módulo:** Reservas (con un cambio pequeño en Transversal)
 
 ## Fuentes
 
