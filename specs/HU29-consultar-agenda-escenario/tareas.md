@@ -6,4 +6,4 @@
 - [x] T4 · Caso de uso de Reservas · `ConsultarAgenda` con `RepositorioReservas.deCanchasEntre` (y su adaptador) y `ConsultaUsuarios` (CA1, CA2, CA3)
 - [x] T5 · Persistencia · pruebas contra la base de `RepositorioEncargadosJdbc`, `listarPorAdministrador`/`listarPorIds`, `RepositorioBloqueosJdbc.deCanchasEntre` y `RepositorioReservasJpa.deCanchasEntre`
 - [x] T6 · REST · `GET /api/agenda/escenarios` y `GET /api/escenarios/{escenarioId}/agenda`, con `AgendaPuntaAPuntaTest` (CA1 a CA6)
-- [ ] T7 · Verificación · `./mvnw verify`, revisar la tabla de criterios → pruebas y `/pull-request`
+- [x] T7 · Verificación · `./mvnw verify`, revisar la tabla de criterios → pruebas y `/pull-request`

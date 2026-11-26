@@ -1,6 +1,6 @@
 # HU29 · Consultar la agenda del escenario
 
-**Estado:** Aprobada (25-nov-2026) · **HU:** [HU29](../../docs/historias/HU29.md) · **Módulo:** Reservas (`co.edu.uco.canchaya.reservas`) para la agenda, y Escenarios y canchas (`co.edu.uco.canchaya.escenarios`) para la lista de escenarios, los permisos, las franjas y los bloqueos
+**Estado:** Implementada (26-nov-2026; aprobada el 25-nov-2026) · **HU:** [HU29](../../docs/historias/HU29.md) · **Módulo:** Reservas (`co.edu.uco.canchaya.reservas`) para la agenda, y Escenarios y canchas (`co.edu.uco.canchaya.escenarios`) para la lista de escenarios, los permisos, las franjas y los bloqueos
 
 **Depende de** [HU7](../../docs/historias/HU7.md) (horarios), [HU20](../HU20-consultar-disponibilidad/spec.md) (`Franja`, `calcularFranjas`), [HU21](../HU21-reservar-cancha/spec.md) (`Reserva`, `RepositorioReservas`) y [HU23](../HU23-consultar-reservas/spec.md), todas implementadas. Toca tres HU que **no** están implementadas: HU30 (bloqueos, Release 2), HU32/HU33 (fuerza mayor e inasistencia, Release 2) y HU34 (encargados, Release 3). Ver P1 a P3. No cambia la base de datos: las tablas `bloqueo` y `encargado_escenario` ya están en la V1, y los índices `ix_reserva_cancha_fecha` y `ex_bloqueo_sin_cruce` sirven para estas consultas.
 
