@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import co.edu.uco.canchaya.reservas.domain.Reserva;
@@ -60,5 +61,16 @@ public interface RepositorioReservas {
 	 * orden lo pone el caso de uso, porque depende de la hora actual.
 	 */
 	List<Reserva> deJugador(UUID jugadorId);
+
+	/** Política 14 (HU24): la reserva con ese id, en cualquier estado. */
+	Optional<Reserva> buscarPorId(UUID id);
+
+	/**
+	 * HU24, P3 (D29 punto 3): guarda el estado, el origen y la fecha de cancelación solo si la
+	 * reserva sigue CONFIRMADA en la base.
+	 *
+	 * @return falso si otra operación ya la había cambiado, y entonces no se toca nada
+	 */
+	boolean cancelarSiSigueConfirmada(Reserva reserva);
 
 }

@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -22,16 +23,21 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import co.edu.uco.canchaya.TestcontainersConfiguration;
+import co.edu.uco.canchaya.identidad.domain.Rol;
+import co.edu.uco.canchaya.identidad.domain.Solicitante;
 import co.edu.uco.canchaya.reservas.application.port.out.RepositorioReservas;
 import co.edu.uco.canchaya.reservas.domain.ConfirmacionAsistencia;
 import co.edu.uco.canchaya.reservas.domain.EstadoReserva;
+import co.edu.uco.canchaya.reservas.domain.OrigenCancelacion;
+import co.edu.uco.canchaya.reservas.domain.ParametrosReserva;
 import co.edu.uco.canchaya.reservas.domain.Reserva;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 
 /**
  * Con la base real: HU12, CA6 (reservas confirmadas futuras dentro de un horario, D08), HU13, CA7
  * (qué cuenta como reserva confirmada futura, RN-17, D08), HU20, CA2 (las reservas que ocupan
- * franjas de una cancha en una fecha) y HU21 (guardar y los límites del jugador).
+ * franjas de una cancha en una fecha), HU21 (guardar y los límites del jugador) y HU24 (buscar y
+ * cancelar con actualización condicional).
  */
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
@@ -368,6 +374,68 @@ class RepositorioReservasJpaTest {
 				.containsExactlyInAnyOrder(EstadoReserva.CONFIRMADA, EstadoReserva.CONFIRMADA, EstadoReserva.CANCELADA);
 		assertThat(repositorio.deJugador(otroJugador)).hasSize(1);
 		assertThat(repositorio.deJugador(UUID.randomUUID())).isEmpty();
+	}
+
+	// HU24: buscarPorId y cancelarSiSigueConfirmada (P3, D29 punto 3)
+
+	private static final ParametrosReserva PARAMETROS = new ParametrosReserva(30, 2, 2, 5, 3, 5, LocalTime.NOON, 3,
+			24, 250, false);
+
+	/** Guarda una reserva de HOY de 18:00 a 19:00 y la devuelve leída de la base. */
+	private Reserva guardadaALas18() {
+		Reserva reserva = nueva(cancha, HOY, 18, 19);
+		repositorio.guardar(reserva);
+		return repositorio.buscarPorId(reserva.getId()).orElseThrow();
+	}
+
+	@Test
+	void ca1BuscarPorId_devuelveLaReserva() {
+		Reserva guardada = nueva(cancha, HOY, 18, 20);
+		repositorio.guardar(guardada);
+
+		Reserva leida = repositorio.buscarPorId(guardada.getId()).orElseThrow();
+
+		// La base devuelve el mismo instante en UTC: se compara como instante, igual que en HU21
+		assertThat(leida).usingRecursiveComparison().ignoringFields("fechaCreacion").isEqualTo(guardada);
+		assertThat(leida.getFechaCreacion().toInstant()).isEqualTo(guardada.getFechaCreacion().toInstant());
+		assertThat(repositorio.buscarPorId(UUID.randomUUID())).isEmpty();
+	}
+
+	@Test
+	void ca1CancelarSiSigueConfirmada_cambiaLaFilaYLiberaLaFranja() {
+		Reserva reserva = guardadaALas18();
+		reserva.cancelar(new Solicitante(jugador, Rol.JUGADOR), AHORA, PARAMETROS);
+
+		assertThat(repositorio.cancelarSiSigueConfirmada(reserva)).isTrue();
+
+		// Política 19: estado, origen y fecha guardados; ck_reserva_cancelacion los exige juntos
+		Reserva leida = repositorio.buscarPorId(reserva.getId()).orElseThrow();
+		assertThat(leida.getEstado()).isEqualTo(EstadoReserva.CANCELADA);
+		assertThat(leida.getOrigenCancelacion()).isEqualTo(OrigenCancelacion.JUGADOR);
+		assertThat(leida.getFechaCancelacion().toInstant())
+				.isEqualTo(AHORA.atZone(ZoneId.of("America/Bogota")).toInstant());
+		// Política 20: la franja vuelve a estar libre; la restricción de exclusión ya no la cuenta
+		assertThat(repositorio.confirmadasDeCanchaEnFecha(cancha, HOY)).isEmpty();
+		repositorio.guardar(nueva(cancha, HOY, 18, 19));
+		assertThat(repositorio.confirmadasDeCanchaEnFecha(cancha, HOY)).hasSize(1);
+	}
+
+	@Test
+	void ca4CancelarSiSigueConfirmada_yaCancelada_devuelveFalso() {
+		Solicitante solicitante = new Solicitante(jugador, Rol.JUGADOR);
+		Reserva primera = guardadaALas18();
+		// Otra operación leyó la misma reserva cuando todavía estaba CONFIRMADA
+		Reserva segunda = repositorio.buscarPorId(primera.getId()).orElseThrow();
+		primera.cancelar(solicitante, AHORA, PARAMETROS);
+		assertThat(repositorio.cancelarSiSigueConfirmada(primera)).isTrue();
+
+		segunda.cancelar(solicitante, AHORA.plusMinutes(5), PARAMETROS);
+
+		assertThat(repositorio.cancelarSiSigueConfirmada(segunda)).isFalse();
+		// No se pisa lo que guardó la primera
+		Reserva leida = repositorio.buscarPorId(primera.getId()).orElseThrow();
+		assertThat(leida.getFechaCancelacion().toInstant())
+				.isEqualTo(AHORA.atZone(ZoneId.of("America/Bogota")).toInstant());
 	}
 
 }

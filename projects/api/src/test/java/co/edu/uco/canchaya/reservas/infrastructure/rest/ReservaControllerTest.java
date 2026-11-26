@@ -31,6 +31,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.Solicitante;
 import co.edu.uco.canchaya.identidad.infrastructure.security.SeguridadParaPruebas;
+import co.edu.uco.canchaya.reservas.application.port.in.CancelarReserva;
 import co.edu.uco.canchaya.reservas.application.port.in.ConsultarMisReservas;
 import co.edu.uco.canchaya.reservas.application.port.in.ConsultarMisReservas.MisReservas;
 import co.edu.uco.canchaya.reservas.application.port.in.ConsultarMisReservas.ReservaDelJugador;
@@ -43,7 +44,10 @@ import co.edu.uco.canchaya.reservas.domain.Reserva;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 import co.edu.uco.canchaya.transversal.infrastructure.rest.CatalogoMensajes;
 
-/** HU21: POST /api/reservas y HU23: GET /api/reservas/mias. Los casos de uso son dobles: sus reglas se prueban aparte. */
+/**
+ * HU21: POST /api/reservas, HU23: GET /api/reservas/mias y HU24: POST /api/reservas/{id}/cancelacion.
+ * Los casos de uso son dobles: sus reglas se prueban aparte.
+ */
 @WebMvcTest(ReservaController.class)
 @Import({ CatalogoMensajes.class, SeguridadParaPruebas.class })
 class ReservaControllerTest {
@@ -63,6 +67,9 @@ class ReservaControllerTest {
 
 	@MockitoBean
 	private ConsultarMisReservas consultarMisReservas;
+
+	@MockitoBean
+	private CancelarReserva cancelarReserva;
 
 	private static MockHttpServletRequestBuilder reservar(Rol rol, String cuerpo) {
 		return post("/api/reservas").contentType(MediaType.APPLICATION_JSON).content(cuerpo)
@@ -295,6 +302,65 @@ class ReservaControllerTest {
 				.andExpect(status().isUnauthorized())
 				.andExpect(jsonPath("$.errores[0].codigo").value("ERR-GEN-05"));
 		verifyNoInteractions(consultarMisReservas);
+	}
+
+	// HU24: POST /api/reservas/{id}/cancelacion (P1)
+
+	private static MockHttpServletRequestBuilder cancelar(Object id) {
+		return post("/api/reservas/{id}/cancelacion", id)
+				.with(jwt().jwt(token -> token.subject(USUARIO.toString()).claim("rol", Rol.JUGADOR.name())));
+	}
+
+	@Test
+	void ca1Cancelar_200_EXI_RES_02() throws Exception {
+		UUID id = UUID.randomUUID();
+		Reserva cancelada = Reserva.reconstruir(id, CANCHA, USUARIO, FECHA, LocalTime.of(18, 0), LocalTime.of(19, 0),
+				new BigDecimal("80000.00"), EstadoReserva.CANCELADA, ConfirmacionAsistencia.NO_REQUERIDA,
+				OrigenCancelacion.JUGADOR, null, OffsetDateTime.now(), OffsetDateTime.now(), null);
+		// El solicitante sale del token, no de la petición
+		when(cancelarReserva.ejecutar(id, JUGADOR)).thenReturn(cancelada);
+
+		mvc.perform(cancelar(id))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.codigo").value("EXI-RES-02"))
+				.andExpect(jsonPath("$.mensaje").value("La reserva se canceló correctamente."))
+				.andExpect(jsonPath("$.id").value(id.toString()))
+				.andExpect(jsonPath("$.estado").value("CANCELADA"))
+				// AG-14: ni el origen ni la fecha de cancelación
+				.andExpect(jsonPath("$.origenCancelacion").doesNotExist())
+				.andExpect(jsonPath("$.fechaCancelacion").doesNotExist());
+	}
+
+	@ParameterizedTest
+	@CsvSource(delimiter = '|', textBlock = """
+			ERR-RES-14 | 404 | La reserva no existe o ya no está confirmada.
+			ERR-RES-15 | 403 | No tiene permiso para cancelar esta reserva.
+			ERR-RES-16 | 422 | Ya no es posible cancelar la reserva porque faltan 3 horas o menos para su inicio.
+			""")
+	void ca3Ca4Ca5LasReglasIncumplidasRespondenSuMensaje(String codigo, int estado, String texto) throws Exception {
+		when(cancelarReserva.ejecutar(any(), any())).thenThrow(new ReglaNegocioException(codigo));
+
+		mvc.perform(cancelar(UUID.randomUUID()))
+				.andExpect(status().is(estado))
+				.andExpect(jsonPath("$.errores[0].codigo").value(codigo))
+				.andExpect(jsonPath("$.errores[0].mensaje").value(texto));
+	}
+
+	@Test
+	void idInvalido_400_ERR_GEN_07() throws Exception {
+		mvc.perform(cancelar("no-es-un-uuid"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.errores[0].codigo").value("ERR-GEN-07"));
+		verifyNoInteractions(cancelarReserva);
+	}
+
+	// AG-11: sin sesión
+	@Test
+	void sinSesion_401_ERR_GEN_05() throws Exception {
+		mvc.perform(post("/api/reservas/{id}/cancelacion", UUID.randomUUID()))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.errores[0].codigo").value("ERR-GEN-05"));
+		verifyNoInteractions(cancelarReserva);
 	}
 
 }

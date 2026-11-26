@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -25,7 +26,8 @@ import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 
 /**
  * Único adaptador de RepositorioReservas (HU21). Guarda y lee reservas con JPA; las consultas
- * que suman o comparan fecha + hora van en SQL, porque JPQL no suma una fecha con una hora.
+ * que suman o comparan fecha + hora van en SQL, porque JPQL no suma una fecha con una hora, y
+ * también la cancelación condicional de HU24.
  */
 @Repository
 class RepositorioReservasJpa implements RepositorioReservas {
@@ -159,6 +161,26 @@ class RepositorioReservasJpa implements RepositorioReservas {
 	@Transactional(readOnly = true)
 	public List<Reserva> deJugador(UUID jugadorId) {
 		return jpa.findByJugadorId(jugadorId).stream().map(ReservaEntidad::aDominio).toList();
+	}
+
+		@Override
+	@Transactional(readOnly = true)
+	public Optional<Reserva> buscarPorId(UUID id) {
+		return jpa.findById(id).map(ReservaEntidad::aDominio);
+	}
+
+	@Override
+	public boolean cancelarSiSigueConfirmada(Reserva reserva) {
+		// P3 (D29 punto 3): el where con estado = 'CONFIRMADA' hace que solo una de dos cancelaciones
+		// simultáneas cambie la fila. PostgreSQL hace esperar a la segunda hasta que la primera termina,
+		// vuelve a revisar el where y, como ya no está CONFIRMADA, no la toca
+		int filas = jdbc.update("""
+				update reserva
+				set estado = 'CANCELADA', origen_cancelacion = :origen, fecha_cancelacion = :fecha
+				where id = :id and estado = 'CONFIRMADA'
+				""", Map.of("id", reserva.getId(), "origen", reserva.getOrigenCancelacion().name(), "fecha",
+				reserva.getFechaCancelacion()));
+		return filas == 1;
 	}
 
 	// Hibernate no saca el nombre de una restricción de exclusión, así que se mira el estado SQL
