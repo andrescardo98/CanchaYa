@@ -243,8 +243,8 @@ public final class Reserva {
 		if (!jugadorId.equals(solicitante.usuarioId())) {
 			throw new ReglaNegocioException("ERR-RES-15");
 		}
-		// Política 16 (RN-10, D06, PAR-RES-05): deben faltar MÁS de esas horas; con exactamente 3 no
-		if (Duration.between(ahora, inicio()).compareTo(Duration.ofHours(parametros.horasMinimasCancelacion())) <= 0) {
+		// Política 16 (RN-10, D06, PAR-RES-05): la misma regla con la que HU23 muestra la opción de cancelar
+		if (!sePuedeCancelarPorJugador(ahora, parametros)) {
 			throw new ReglaNegocioException("ERR-RES-16");
 		}
 
@@ -320,7 +320,7 @@ public final class Reserva {
 	/**
 	 * Política 16 (RN-10, D06): el jugador puede cancelar una reserva CONFIRMADA solo si faltan más de
 	 * PAR-RES-05 horas para el inicio; con exactamente esas horas ya no. HU23 la usa para mostrar la
-	 * opción de cancelar (CA3) y HU24 la usará para lanzar ERR-RES-16.
+	 * opción de cancelar (CA3) y HU24 para lanzar ERR-RES-16.
 	 *
 	 * @param ahora fecha y hora actual en America/Bogota (D27)
 	 */
