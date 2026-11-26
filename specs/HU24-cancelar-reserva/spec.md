@@ -1,6 +1,6 @@
 # HU24 · Cancelar una reserva
 
-**Estado:** Aprobada (24-nov-2026) · **HU:** [HU24](../../docs/historias/HU24.md) · **Módulo:** Reservas (`co.edu.uco.canchaya.reservas`)
+**Estado:** Implementada (25-nov-2026) · **HU:** [HU24](../../docs/historias/HU24.md) · **Módulo:** Reservas (`co.edu.uco.canchaya.reservas`)
 
 ## Fuentes
 
