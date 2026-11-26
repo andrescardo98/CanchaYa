@@ -73,4 +73,10 @@ public interface RepositorioReservas {
 	 */
 	boolean cancelarSiSigueConfirmada(Reserva reserva);
 
+	/**
+	 * HU29 (P4): todas las reservas de esas canchas de desde a hasta (las dos incluidas), en cualquier
+	 * estado, por fecha y hora de inicio. Vacía si no se pide ninguna cancha.
+	 */
+	List<Reserva> deCanchasEntre(Collection<UUID> canchaIds, LocalDate desde, LocalDate hasta);
+
 }
