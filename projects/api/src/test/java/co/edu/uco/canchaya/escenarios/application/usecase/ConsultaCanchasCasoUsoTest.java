@@ -2,6 +2,8 @@ package co.edu.uco.canchaya.escenarios.application.usecase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.CanchaReservable;
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.DatosCorreoCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.RangoBloqueado;
 import co.edu.uco.canchaya.escenarios.domain.Cancha;
 import co.edu.uco.canchaya.escenarios.domain.DiaSemana;
@@ -25,6 +28,8 @@ import co.edu.uco.canchaya.escenarios.domain.EstadoEscenario;
 import co.edu.uco.canchaya.escenarios.domain.Franja;
 import co.edu.uco.canchaya.escenarios.domain.HorarioRecurrente;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
+import co.edu.uco.canchaya.ubicacion.application.port.in.ConsultaUbicacion;
+import co.edu.uco.canchaya.ubicacion.domain.Ciudad;
 
 /** HU20: lo que Escenarios le ofrece a Reservas sobre una cancha (puerto ConsultaCanchas, D36). */
 class ConsultaCanchasCasoUsoTest {
@@ -39,6 +44,7 @@ class ConsultaCanchasCasoUsoTest {
 	private CanchasEnMemoria memoria;
 	private HorariosEnMemoria horarios;
 	private List<RangoBloqueado> bloqueos;
+	private ConsultaUbicacion ubicacion;
 	private ConsultaCanchasCasoUso consulta;
 	private Escenario escenario;
 	private Cancha cancha;
@@ -48,9 +54,10 @@ class ConsultaCanchasCasoUsoTest {
 		memoria = new CanchasEnMemoria();
 		horarios = new HorariosEnMemoria();
 		bloqueos = List.of(new RangoBloqueado(LocalTime.of(18, 0), LocalTime.of(20, 0)));
+		ubicacion = mock(ConsultaUbicacion.class);
 		consulta = new ConsultaCanchasCasoUso(memoria.repositorioCanchas(), memoria.repositorioEscenarios(), horarios,
 				new BloqueosEnMemoria((canchaId, fecha) -> canchaId.equals(cancha.getId()) && fecha.equals(HOY) ? bloqueos : List.of()),
-				RELOJ, VENTANA_DIAS);
+				ubicacion, RELOJ, VENTANA_DIAS);
 		escenario = memoria.escenarioDe(UUID.randomUUID(), EstadoEscenario.ACTIVO);
 		cancha = memoria.cancha(escenario, "Cancha 1", EstadoCancha.DISPONIBLE);
 	}
@@ -118,7 +125,7 @@ class ConsultaCanchasCasoUsoTest {
 	void ca5LaVentanaSaleDeLaConfiguracion() {
 		horario(DiaSemana.LUNES, 8, 9);
 		ConsultaCanchasCasoUso conVentanaDeSieteDias = new ConsultaCanchasCasoUso(memoria.repositorioCanchas(),
-				memoria.repositorioEscenarios(), horarios, BloqueosEnMemoria.sinBloqueos(), RELOJ, 7);
+				memoria.repositorioEscenarios(), horarios, BloqueosEnMemoria.sinBloqueos(), ubicacion, RELOJ, 7);
 
 		assertThat(conVentanaDeSieteDias.franjasDelDia(cancha.getId(), HOY.plusDays(7))).hasSize(1);
 		esperarError(() -> conVentanaDeSieteDias.franjasDelDia(cancha.getId(), HOY.plusDays(8)), "ERR-HOR-10");
@@ -148,6 +155,37 @@ class ConsultaCanchasCasoUsoTest {
 		consulta.tomarTurno(cancha.getId());
 
 		assertThat(memoria.turnosTomados).containsExactly(cancha.getId());
+	}
+
+	// buscarDatosCorreo: lo que piden COR-RES-01 y COR-RES-02 (HU22, P2)
+
+	@Test
+	void HU22_CA2_buscarDatosCorreo() {
+		when(ubicacion.buscarCiudades(List.of(escenario.getCiudadId())))
+				.thenReturn(List.of(Ciudad.reconstruir(escenario.getCiudadId(), "05615", UUID.randomUUID(), "Rionegro")));
+
+		assertThat(consulta.buscarDatosCorreo(cancha.getId())).contains(new DatosCorreoCancha("Cancha 1",
+				"Cancha La 80", "Calle 80 # 45-10", "Rionegro", escenario.getAdministradorId()));
+	}
+
+	// La reserva ya quedó confirmada: el correo sale aunque la cancha cambie justo después
+	@Test
+	void HU22_buscarDatosCorreo_noFiltraPorEstado() {
+		Escenario inactivo = memoria.escenarioDe(UUID.randomUUID(), EstadoEscenario.INACTIVO);
+		Cancha inactiva = memoria.cancha(inactivo, "Cancha 2", EstadoCancha.INACTIVA);
+		when(ubicacion.buscarCiudades(List.of(inactivo.getCiudadId())))
+				.thenReturn(List.of(Ciudad.reconstruir(inactivo.getCiudadId(), "05440", UUID.randomUUID(), "Marinilla")));
+
+		assertThat(consulta.buscarDatosCorreo(inactiva.getId())).isPresent();
+	}
+
+	// CA3: sin datos el caso de uso registra ERR-GEN-08 y la reserva sigue
+	@Test
+	void HU22_buscarDatosCorreo_vacioSiLaCanchaOLaCiudadNoExisten() {
+		when(ubicacion.buscarCiudades(List.of(escenario.getCiudadId()))).thenReturn(List.of());
+
+		assertThat(consulta.buscarDatosCorreo(UUID.randomUUID())).isEmpty();
+		assertThat(consulta.buscarDatosCorreo(cancha.getId())).isEmpty();
 	}
 
 }

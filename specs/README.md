@@ -71,3 +71,4 @@ Lo que se ve relacionado pero esta HU no pide (regla 5 de «Cómo trabajar una h
 | HU19 | [HU19-perfil-escenario](HU19-perfil-escenario/spec.md) | Implementada |
 | HU20 | [HU20-consultar-disponibilidad](HU20-consultar-disponibilidad/spec.md) | Implementada |
 | HU21 | [HU21-reservar-cancha](HU21-reservar-cancha/spec.md) | Implementada |
+| HU22 | [HU22-notificar-reserva](HU22-notificar-reserva/spec.md) | Implementada |

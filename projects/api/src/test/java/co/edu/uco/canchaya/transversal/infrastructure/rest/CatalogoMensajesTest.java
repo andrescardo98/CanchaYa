@@ -77,6 +77,13 @@ class CatalogoMensajesTest {
 						+ "máximo 5 fotos por escenario, en formato JPG o PNG y de hasta 2 MB cada una.");
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "COR-RES-01.asunto", "COR-RES-01.cuerpo", "COR-RES-01.avisoConfirmacion",
+			"COR-RES-02.asunto", "COR-RES-02.cuerpo" })
+	void tieneLasPlantillasDeCorreoQueCitaLaHu22(String clave) {
+		assertThat(catalogo.texto(clave)).isNotBlank();
+	}
+
 	@Test
 	void hu2Ca4ErrUsu06YErrUsu07TienenElMismoTextoParaNoRevelarSiElCorreoExiste() {
 		assertThat(catalogo.texto("ERR-USU-07")).isEqualTo(catalogo.texto("ERR-USU-06"));

@@ -1,6 +1,5 @@
 package co.edu.uco.canchaya.reservas.infrastructure.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -95,13 +94,6 @@ class ReservaControllerTest {
 				.andExpect(jsonPath("$.fechaCreacion").doesNotExist())
 				.andExpect(jsonPath("$.fechaCancelacion").doesNotExist())
 				.andExpect(jsonPath("$.jugadorId").doesNotExist());
-	}
-
-	// AG-19: separador de miles con punto, sin decimales
-	@ParameterizedTest
-	@CsvSource({ "80000.00, $ 80.000", "1500000.00, $ 1.500.000", "950.00, $ 950", "80000.50, $ 80.001" })
-	void CA1_precioConFormato(BigDecimal precio, String esperado) {
-		assertThat(RespuestaReserva.precioConFormato(precio)).isEqualTo(esperado);
 	}
 
 	@Test

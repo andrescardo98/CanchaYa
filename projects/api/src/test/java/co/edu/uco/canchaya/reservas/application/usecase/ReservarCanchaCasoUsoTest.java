@@ -24,14 +24,21 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionOperations;
 
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.CanchaReservable;
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.DatosCorreoCancha;
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.RangoBloqueado;
 import co.edu.uco.canchaya.escenarios.domain.Franja;
+import co.edu.uco.canchaya.identidad.application.port.in.ConsultaUsuarios;
+import co.edu.uco.canchaya.identidad.application.port.in.ConsultaUsuarios.ContactoUsuario;
 import co.edu.uco.canchaya.identidad.domain.Rol;
 import co.edu.uco.canchaya.identidad.domain.Solicitante;
 import co.edu.uco.canchaya.reservas.application.port.in.ReservarCancha.ReservaConfirmada;
@@ -40,9 +47,15 @@ import co.edu.uco.canchaya.reservas.domain.ConfirmacionAsistencia;
 import co.edu.uco.canchaya.reservas.domain.EstadoReserva;
 import co.edu.uco.canchaya.reservas.domain.ParametrosReserva;
 import co.edu.uco.canchaya.reservas.domain.Reserva;
+import co.edu.uco.canchaya.transversal.application.port.out.EnvioCorreo;
+import co.edu.uco.canchaya.transversal.application.port.out.EnvioCorreo.Correo;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
+import co.edu.uco.canchaya.transversal.domain.TextoCatalogo;
 
-/** HU21: el caso de uso reúne lo que necesita confirmar dentro del turno de la cancha. */
+/**
+ * HU21: el caso de uso reúne lo que necesita confirmar dentro del turno de la cancha. HU22: al
+ * terminar la transacción, avisa por correo al jugador y al propietario.
+ */
 class ReservarCanchaCasoUsoTest {
 
 	private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
@@ -55,21 +68,46 @@ class ReservarCanchaCasoUsoTest {
 			24, 250, false);
 	private static final Solicitante JUGADOR = new Solicitante(UUID.randomUUID(), Rol.JUGADOR);
 
+	private static final UUID PROPIETARIO = UUID.randomUUID();
+	private static final String CELULAR_JUGADOR = "+573001234567";
+
 	private final UUID canchaId = UUID.randomUUID();
 	private ConsultaCanchas canchas;
 	private RepositorioReservas reservas;
+	private ConsultaUsuarios usuarios;
+	// Lo que pasa en orden: el fin de la transacción y cada correo enviado (D15)
+	private final List<String> eventos = new ArrayList<>();
+	private CorreoEnMemoria correo;
 	private ReservarCanchaCasoUso casoUso;
 
 	@BeforeEach
 	void preparar() {
 		canchas = mock(ConsultaCanchas.class);
 		reservas = mock(RepositorioReservas.class);
+		usuarios = mock(ConsultaUsuarios.class);
+		correo = new CorreoEnMemoria();
 		when(canchas.buscarReservable(canchaId)).thenReturn(Optional.of(new CanchaReservable(canchaId,
 				UUID.randomUUID(), "Cancha 1", "Canchas La 70", new BigDecimal("80000.00"))));
+		when(canchas.buscarDatosCorreo(canchaId)).thenReturn(Optional.of(new DatosCorreoCancha("Cancha 1",
+				"Canchas La 70", "Calle 70 # 45-10", "Rionegro", PROPIETARIO)));
+		when(usuarios.buscarContactos(List.of(JUGADOR.usuarioId(), PROPIETARIO))).thenReturn(List.of(
+				new ContactoUsuario(JUGADOR.usuarioId(), "Juan Gómez", "juan@correo.com", CELULAR_JUGADOR),
+				new ContactoUsuario(PROPIETARIO, "Ana Pérez", "ana@correo.com", "+573007654321")));
 		horario(MANANA, 6, 22);
-		// Sin transacción real: la prueba revisa el orden y las reglas, no la base
-		casoUso = new ReservarCanchaCasoUso(canchas, reservas, PARAMETROS, RELOJ,
-				TransactionOperations.withoutTransaction());
+		casoUso = casoUsoCon(PARAMETROS);
+	}
+
+	// Sin transacción real: la prueba revisa el orden y las reglas, no la base
+	private ReservarCanchaCasoUso casoUsoCon(ParametrosReserva parametros) {
+		TransactionOperations transaccion = new TransactionOperations() {
+			@Override
+			public <T> T execute(TransactionCallback<T> accion) {
+				T resultado = accion.doInTransaction(null);
+				eventos.add("fin de la transacción");
+				return resultado;
+			}
+		};
+		return new ReservarCanchaCasoUso(canchas, reservas, usuarios, correo, parametros, RELOJ, transaccion);
 	}
 
 	private void horario(LocalDate fecha, int desde, int hasta) {
@@ -234,6 +272,124 @@ class ReservarCanchaCasoUsoTest {
 		orden.verify(canchas).bloqueosDelDia(canchaId, MANANA);
 		orden.verify(reservas).contarActivasDeJugador(eq(JUGADOR.usuarioId()), any());
 		orden.verify(reservas).guardar(any());
+	}
+
+	// --- HU22: los correos de la reserva confirmada (política 13, D15) -------------------------
+
+	// Lo que piden la plantilla y su asunto, en el orden de la hoja «Plantillas de correo»
+	private static Correo corRes01(Object aviso) {
+		return new Correo("COR-RES-01", "juan@correo.com", List.of("Canchas La 70", "24/11/2026", "18:00"),
+				List.of("Juan Gómez", "Canchas La 70", "Calle 70 # 45-10", "Rionegro", "Cancha 1", "24/11/2026",
+						"18:00", "19:00", "$ 80.000", aviso));
+	}
+
+	private static Correo corRes02() {
+		return new Correo("COR-RES-02", "ana@correo.com", List.of("Canchas La 70", "Cancha 1", "24/11/2026", "18:00"),
+				List.of("Ana Pérez", "Cancha 1", "24/11/2026", "18:00", "19:00", "Juan Gómez", CELULAR_JUGADOR));
+	}
+
+	// CA1 y D33: con PAR-RES-12 en «No» la reserva nace NO_REQUERIDA y el aviso va vacío
+	@Test
+	void CA1_alJugadorLeLlegaCorRes01SinAviso() {
+		reservar(MANANA, 18, 19);
+
+		assertThat(correo.enviados).first().isEqualTo(corRes01(""));
+	}
+
+	// CA1: con PAR-RES-12 en «Sí», una reserva de mañana a las 18:00 queda PENDIENTE (política 12)
+	@Test
+	void CA1_conConfirmacionPendiente_llevaElAviso() {
+		ParametrosReserva conConfirmacion = new ParametrosReserva(30, 2, 2, 5, 3, 5, LocalTime.NOON, 3, 24, 250, true);
+
+		ReservaConfirmada confirmada = casoUsoCon(conConfirmacion).ejecutar(canchaId, MANANA, LocalTime.of(18, 0),
+				LocalTime.of(19, 0), JUGADOR);
+
+		assertThat(confirmada.reserva().getConfirmacionAsistencia()).isEqualTo(ConfirmacionAsistencia.PENDIENTE);
+		assertThat(correo.enviados).first()
+				.isEqualTo(corRes01(new TextoCatalogo("COR-RES-01.avisoConfirmacion")));
+	}
+
+	@Test
+	void CA2_alPropietarioLeLlegaCorRes02() {
+		reservar(MANANA, 18, 19);
+
+		assertThat(correo.enviados).containsExactly(corRes01(""), corRes02());
+	}
+
+	// D15: primero se cierra la transacción y después salen los correos; si no se guarda, no sale ninguno
+	@Test
+	void CA1_CA2_losCorreosSalenDespuesDeLaTransaccion() {
+		reservar(MANANA, 18, 19);
+		assertThat(eventos).containsExactly("fin de la transacción", "COR-RES-01", "COR-RES-02");
+
+		// La primera ya llamó a guardar: aquí solo se revisa el error y que no salga ningún correo más
+		when(reservas.confirmadasDeCanchaEnFecha(canchaId, MANANA)).thenReturn(List.of(confirmadaDe(18, 19)));
+		assertThatThrownBy(() -> reservar(MANANA, 18, 19)).isInstanceOf(ReglaNegocioException.class);
+		assertThat(correo.enviados).hasSize(2);
+	}
+
+	@Test
+	void CA3_siUnCorreoFalla_laReservaSeMantieneYElOtroSale() {
+		correo.fallaCon = "COR-RES-01";
+
+		ReservaConfirmada confirmada = reservar(MANANA, 18, 19);
+
+		assertThat(confirmada.reserva().getEstado()).isEqualTo(EstadoReserva.CONFIRMADA);
+		verify(reservas).guardar(confirmada.reserva());
+		assertThat(correo.enviados).containsExactly(corRes02());
+	}
+
+	@Test
+	@ExtendWith(OutputCaptureExtension.class)
+	void CA3_sinDatosParaElCorreo_registraElErrorYNoRevierte(CapturedOutput salida) {
+		// El propietario no aparece: COR-RES-01 sale, COR-RES-02 no
+		when(usuarios.buscarContactos(List.of(JUGADOR.usuarioId(), PROPIETARIO))).thenReturn(List.of(
+				new ContactoUsuario(JUGADOR.usuarioId(), "Juan Gómez", "juan@correo.com", CELULAR_JUGADOR)));
+		ReservaConfirmada primera = reservar(MANANA, 18, 19);
+		assertThat(correo.enviados).containsExactly(corRes01(""));
+		assertThat(salida.getAll()).contains("ERR-GEN-08 codigoCorreo=COR-RES-02 reservaId=" + primera.reserva().getId());
+
+		// La cancha no aparece: no sale ninguno y la reserva sigue
+		when(canchas.buscarDatosCorreo(canchaId)).thenReturn(Optional.empty());
+		ReservaConfirmada segunda = reservar(MANANA, 20, 21);
+		assertThat(segunda.reserva().getEstado()).isEqualTo(EstadoReserva.CONFIRMADA);
+		assertThat(correo.enviados).hasSize(1);
+		assertThat(salida.getAll())
+				.contains("ERR-GEN-08 codigoCorreo=COR-RES-01 reservaId=" + segunda.reserva().getId())
+				.contains("ERR-GEN-08 codigoCorreo=COR-RES-02 reservaId=" + segunda.reserva().getId());
+
+		// Consultar los datos lanza un error (por ejemplo, la base no responde): tampoco se revierte
+		when(canchas.buscarDatosCorreo(canchaId)).thenThrow(new IllegalStateException("sin conexión"));
+		assertThat(reservar(MANANA, 21, 22).reserva().getEstado()).isEqualTo(EstadoReserva.CONFIRMADA);
+	}
+
+	// P4 y RT-12: aunque el error traiga el celular en su mensaje, el log no lo escribe
+	@Test
+	@ExtendWith(OutputCaptureExtension.class)
+	void CA3_elLogNoLlevaElCelular(CapturedOutput salida) {
+		correo.fallaCon = "COR-RES-02";
+
+		reservar(MANANA, 18, 19);
+
+		assertThat(salida.getAll()).contains("ERR-GEN-08 codigoCorreo=COR-RES-02").doesNotContain(CELULAR_JUGADOR);
+	}
+
+	/** EnvioCorreo falso: guarda lo enviado y anota el código en los eventos. */
+	private final class CorreoEnMemoria implements EnvioCorreo {
+
+		final List<Correo> enviados = new ArrayList<>();
+		String fallaCon;
+
+		@Override
+		public void enviar(Correo correo) {
+			// El adaptador real nunca lanza; el caso de uso igual se protege (D15)
+			if (correo.codigo().equals(fallaCon)) {
+				throw new IllegalStateException("no se pudo enviar a " + CELULAR_JUGADOR);
+			}
+			enviados.add(correo);
+			eventos.add(correo.codigo());
+		}
+
 	}
 
 }

@@ -20,6 +20,7 @@ import co.edu.uco.canchaya.escenarios.domain.DiaSemana;
 import co.edu.uco.canchaya.escenarios.domain.Franja;
 import co.edu.uco.canchaya.escenarios.domain.HorarioRecurrente;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
+import co.edu.uco.canchaya.ubicacion.application.port.in.ConsultaUbicacion;
 
 @Service
 public class ConsultaCanchasCasoUso implements ConsultaCanchas {
@@ -28,16 +29,19 @@ public class ConsultaCanchasCasoUso implements ConsultaCanchas {
 	private final RepositorioEscenarios repositorioEscenarios;
 	private final RepositorioHorarios repositorioHorarios;
 	private final RepositorioBloqueos repositorioBloqueos;
+	private final ConsultaUbicacion consultaUbicacion;
 	private final Clock reloj;
 	private final int ventanaReservaDias;
 
 	public ConsultaCanchasCasoUso(RepositorioCanchas repositorioCanchas, RepositorioEscenarios repositorioEscenarios,
-			RepositorioHorarios repositorioHorarios, RepositorioBloqueos repositorioBloqueos, Clock reloj,
+			RepositorioHorarios repositorioHorarios, RepositorioBloqueos repositorioBloqueos,
+			ConsultaUbicacion consultaUbicacion, Clock reloj,
 			@Value("${canchaya.reserva.ventana-dias}") int ventanaReservaDias) {
 		this.repositorioCanchas = repositorioCanchas;
 		this.repositorioEscenarios = repositorioEscenarios;
 		this.repositorioHorarios = repositorioHorarios;
 		this.repositorioBloqueos = repositorioBloqueos;
+		this.consultaUbicacion = consultaUbicacion;
 		this.reloj = reloj;
 		this.ventanaReservaDias = ventanaReservaDias;
 	}
@@ -51,6 +55,17 @@ public class ConsultaCanchasCasoUso implements ConsultaCanchas {
 						.filter(escenario -> escenario.estaActivo())
 						.map(escenario -> new CanchaReservable(cancha.getId(), escenario.getId(), cancha.getNombre(),
 								escenario.getNombre(), cancha.getPrecioHora())));
+	}
+
+	@Override
+	public Optional<DatosCorreoCancha> buscarDatosCorreo(UUID canchaId) {
+		// HU22, P2: sin filtrar por estado, a diferencia de buscarReservable
+		return repositorioCanchas.buscarPorId(canchaId)
+				.flatMap(cancha -> repositorioEscenarios.buscarPorId(cancha.getEscenarioId())
+						.flatMap(escenario -> consultaUbicacion.buscarCiudades(List.of(escenario.getCiudadId()))
+								.stream().findFirst()
+								.map(ciudad -> new DatosCorreoCancha(cancha.getNombre(), escenario.getNombre(),
+										escenario.getDireccion(), ciudad.getNombre(), escenario.getAdministradorId()))));
 	}
 
 	@Override

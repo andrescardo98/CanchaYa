@@ -13,7 +13,11 @@ public interface ConsultaUsuarios {
 	/** Los identificadores que no existen simplemente no vienen en la respuesta. */
 	List<ContactoUsuario> buscarContactos(Collection<UUID> usuarioIds);
 
-	record ContactoUsuario(UUID id, String nombre, String correoElectronico) {
+	/**
+	 * numeroCelular lo usa COR-RES-02 (HU22, P4). Es un dato de contacto: va en el cuerpo del
+	 * correo, nunca en el log (RT-12).
+	 */
+	record ContactoUsuario(UUID id, String nombre, String correoElectronico, String numeroCelular) {
 	}
 
 }

@@ -66,7 +66,7 @@ class CambiarEstadoEscenarioCasoUsoTest {
 		reservas = new ReservasFalsas();
 		usuarios = new UsuariosFalsos();
 		usuarios.contactos.put(PROPIETARIO,
-				new ConsultaUsuarios.ContactoUsuario(PROPIETARIO, "Ana Pérez", "ana@correo.com"));
+				new ConsultaUsuarios.ContactoUsuario(PROPIETARIO, "Ana Pérez", "ana@correo.com", "+573001234567"));
 		correo = new CorreoFalso();
 		canchas = mock(RepositorioCanchas.class);
 		transaccion = new TransaccionFalsa();
