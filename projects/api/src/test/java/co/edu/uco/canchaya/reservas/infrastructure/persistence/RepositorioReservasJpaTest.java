@@ -2,6 +2,7 @@ package co.edu.uco.canchaya.reservas.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
@@ -436,6 +437,37 @@ class RepositorioReservasJpaTest {
 		Reserva leida = repositorio.buscarPorId(primera.getId()).orElseThrow();
 		assertThat(leida.getFechaCancelacion().toInstant())
 				.isEqualTo(AHORA.atZone(ZoneId.of("America/Bogota")).toInstant());
+	}
+
+	// HU29 (P4): deCanchasEntre trae todas las reservas del rango, en cualquier estado
+
+	@Test
+	void hu29DeCanchasEntre_todasLasDelRangoEnCualquierEstadoYEnOrden() {
+		UUID delDomingo = confirmada(cancha, HOY.plusDays(6), 8, 9);
+		UUID deHoyTarde = confirmada(cancha, HOY, 18, 20);
+		cancelada(otraCancha, HOY, 7);
+		confirmada(cancha, HOY.minusDays(1), 10, 11);
+		confirmada(cancha, HOY.plusDays(7), 10, 11);
+
+		List<Reserva> reservas = repositorio.deCanchasEntre(List.of(cancha, otraCancha), HOY, HOY.plusDays(6));
+
+		assertThat(reservas).extracting(Reserva::getCanchaId, Reserva::getFecha, Reserva::getHoraInicio,
+				Reserva::getEstado)
+				.containsExactly(tuple(otraCancha, HOY, LocalTime.of(7, 0), EstadoReserva.CANCELADA),
+						tuple(cancha, HOY, LocalTime.of(18, 0), EstadoReserva.CONFIRMADA),
+						tuple(cancha, HOY.plusDays(6), LocalTime.of(8, 0), EstadoReserva.CONFIRMADA));
+		assertThat(reservas.get(1).getId()).isEqualTo(deHoyTarde);
+		assertThat(reservas.get(2).getId()).isEqualTo(delDomingo);
+		// La cancelada conserva su origen para mostrarlo en la agenda (ESC-AUD-01)
+		assertThat(reservas.get(0).getOrigenCancelacion()).isEqualTo(OrigenCancelacion.JUGADOR);
+	}
+
+	@Test
+	void hu29DeCanchasEntre_soloLasCanchasPedidas() {
+		confirmada(otraCancha, HOY, 18);
+
+		assertThat(repositorio.deCanchasEntre(List.of(cancha), HOY, HOY)).isEmpty();
+		assertThat(repositorio.deCanchasEntre(List.of(), HOY, HOY)).isEmpty();
 	}
 
 }

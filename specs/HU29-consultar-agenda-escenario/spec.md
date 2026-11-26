@@ -221,7 +221,7 @@ Solo lee: no toma el turno de la cancha ni abre transacción de escritura (D29 y
 | CA5 | El encargado solo ve los escenarios que tiene asignados | `ListarEscenariosAgendaCasoUsoTest.ca5_*`, `AgendaPuntaAPuntaTest.ca5_encargadoSoloVeLosAsignados` | Caso de uso, punta a punta |
 | CA6 | Ni propietario ni encargado asignado → ERR-GEN-06 | `EscenarioAccesoAgendaTest` | Dominio |
 | CA6 | Otro administrador, un jugador o el escenario que no existe → 403 ERR-GEN-06 y no sale ningún dato; sin sesión → 401 | `ConsultaEscenariosCasoUsoTest.ca6_*`, `AgendaPuntaAPuntaTest.ca6_*` | Caso de uso, punta a punta |
-| — | Las consultas nuevas de persistencia filtran por canchas, fechas y usuario | `RepositorioEncargadosJdbcTest`, `RepositorioBloqueosJdbcTest`, `RepositorioReservasJpaTest` | Persistencia |
+| — | Las consultas nuevas de persistencia filtran por canchas, fechas y usuario | `AgendaPersistenciaTest` (encargados, escenarios y bloqueos), `RepositorioReservasJpaTest.hu29DeCanchasEntre_*` | Persistencia |
 | — | Reservas solo usa los puertos de Escenarios e Identidad | `ArquitecturaTest` (ya existe) | Arquitectura |
 
 Las pruebas punta a punta insertan bloqueos y encargados con SQL directo, porque todavía no hay servicios para crearlos (HU30 y HU34).
