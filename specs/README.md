@@ -74,3 +74,4 @@ Lo que se ve relacionado pero esta HU no pide (regla 5 de «Cómo trabajar una h
 | HU22 | [HU22-notificar-reserva](HU22-notificar-reserva/spec.md) | Implementada |
 | HU23 | [HU23-consultar-reservas](HU23-consultar-reservas/spec.md) | Implementada |
 | HU24 | [HU24-cancelar-reserva](HU24-cancelar-reserva/spec.md) | Implementada |
+| HU25 | [HU25-notificar-cancelacion](HU25-notificar-cancelacion/spec.md) | Aprobada |
