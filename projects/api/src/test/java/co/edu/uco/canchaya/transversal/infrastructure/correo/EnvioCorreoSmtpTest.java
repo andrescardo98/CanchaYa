@@ -104,6 +104,63 @@ class EnvioCorreoSmtpTest {
 				.contains("Jugador: Juan Gómez<br>Celular: +573001234567");
 	}
 
+	// HU25 CA1: el jugador canceló
+	@Test
+	void HU25_CA1_armaCorRes03() throws Exception {
+		ServidorEnMemoria servidor = new ServidorEnMemoria();
+
+		new EnvioCorreoSmtp(servidor, new CatalogoMensajes(), REMITENTE).enviar(new Correo("COR-RES-03",
+				"ana@correo.com", List.of("Canchas La 70", "20/11/2026", "18:00"),
+				List.of("Ana Pérez", "18/11/2026 09:15", "Canchas La 70", "Calle 70 # 45-10", "Medellín", "Cancha 1",
+						"20/11/2026", "18:00", "20:00", "$ 160.000", "Juan Gómez")));
+
+		MimeMessage mensaje = servidor.enviados.getFirst();
+		assertThat(mensaje.getSubject()).isEqualTo("Reserva cancelada: Canchas La 70, 20/11/2026 a las 18:00");
+		assertThat((String) mensaje.getContent())
+				.startsWith("Hola, Ana Pérez:<br><br>La siguiente reserva fue cancelada por el jugador el 18/11/2026 09:15.")
+				.contains("Escenario: Canchas La 70<br>Dirección: Calle 70 # 45-10, Medellín<br>Cancha: Cancha 1")
+				.contains("Fecha: 20/11/2026<br>Hora: 18:00 a 20:00<br>Valor: $ 160.000<br>Jugador: Juan Gómez")
+				.contains("El horario volvió a quedar disponible.");
+	}
+
+	// HU25 CA2: el propietario canceló por fuerza mayor. {escenario} aparece dos veces en el cuerpo
+	@Test
+	void HU25_CA2_armaCorRes04() throws Exception {
+		ServidorEnMemoria servidor = new ServidorEnMemoria();
+
+		new EnvioCorreoSmtp(servidor, new CatalogoMensajes(), REMITENTE).enviar(new Correo("COR-RES-04",
+				"juan@correo.com", List.of("Canchas La 70", "20/11/2026", "18:00"),
+				List.of("Juan Gómez", "Canchas La 70", "18/11/2026 09:15", "Canchas La 70", "Calle 70 # 45-10",
+						"Medellín", "Cancha 1", "20/11/2026", "18:00", "20:00", "$ 160.000", "Falla de energía")));
+
+		MimeMessage mensaje = servidor.enviados.getFirst();
+		assertThat(mensaje.getSubject())
+				.isEqualTo("Reserva cancelada por el escenario: Canchas La 70, 20/11/2026 a las 18:00");
+		assertThat((String) mensaje.getContent())
+				.startsWith("Hola, Juan Gómez:<br><br>El escenario Canchas La 70 canceló la siguiente reserva el 18/11/2026 09:15.")
+				.contains("Escenario: Canchas La 70<br>Dirección: Calle 70 # 45-10, Medellín<br>Cancha: Cancha 1")
+				.contains("Valor: $ 160.000<br><br>Motivo: Falla de energía");
+	}
+
+	// HU25 CA3: el sistema canceló por falta de confirmación
+	@Test
+	void HU25_CA3_armaCorRes05() throws Exception {
+		ServidorEnMemoria servidor = new ServidorEnMemoria();
+
+		new EnvioCorreoSmtp(servidor, new CatalogoMensajes(), REMITENTE).enviar(new Correo("COR-RES-05",
+				"ana@correo.com", List.of("Canchas La 70", "20/11/2026", "18:00"),
+				List.of("Ana Pérez", "Canchas La 70", "Calle 70 # 45-10", "Medellín", "Cancha 1", "20/11/2026", "18:00",
+						"20:00", "$ 160.000", "Juan Gómez")));
+
+		MimeMessage mensaje = servidor.enviados.getFirst();
+		assertThat(mensaje.getSubject())
+				.isEqualTo("Reserva cancelada por falta de confirmación: Canchas La 70, 20/11/2026 a las 18:00");
+		assertThat((String) mensaje.getContent())
+				.startsWith("Hola, Ana Pérez:<br><br>La siguiente reserva se canceló automáticamente porque la asistencia no se confirmó")
+				.contains("Escenario: Canchas La 70<br>Dirección: Calle 70 # 45-10, Medellín<br>Cancha: Cancha 1")
+				.contains("Valor: $ 160.000<br>Jugador: Juan Gómez");
+	}
+
 	@Test
 	void ca8SiElServidorNoRespondeSeRegistraErrGen08SinLanzarError(CapturedOutput salida) {
 		// Puerto 1: nadie escucha ahí, así que la conexión falla de verdad
