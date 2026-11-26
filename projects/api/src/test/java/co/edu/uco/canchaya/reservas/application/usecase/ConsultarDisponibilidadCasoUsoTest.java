@@ -274,6 +274,11 @@ class ConsultarDisponibilidadCasoUsoTest {
 			throw new UnsupportedOperationException("Es de HU24");
 		}
 
+		@Override
+		public List<Reserva> deCanchasEntre(Collection<UUID> canchaIds, LocalDate desde, LocalDate hasta) {
+			throw new UnsupportedOperationException("Es de HU29");
+		}
+
 	}
 
 }

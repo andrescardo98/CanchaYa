@@ -22,4 +22,8 @@ interface ReservaJpa extends JpaRepository<ReservaEntidad, UUID> {
 	// HU23, CA5: usa el índice ix_reserva_jugador_fecha
 	List<ReservaEntidad> findByJugadorId(UUID jugadorId);
 
+	// HU29: usa el índice ix_reserva_cancha_fecha
+	List<ReservaEntidad> findByCanchaIdInAndFechaBetweenOrderByFechaAscHoraInicioAsc(Collection<UUID> canchaIds,
+			LocalDate desde, LocalDate hasta);
+
 }

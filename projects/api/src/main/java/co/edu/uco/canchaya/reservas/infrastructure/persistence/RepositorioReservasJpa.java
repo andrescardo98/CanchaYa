@@ -193,4 +193,15 @@ class RepositorioReservasJpa implements RepositorioReservas {
 		return false;
 	}
 
+	@Override
+	@Transactional(readOnly = true)
+	public List<Reserva> deCanchasEntre(Collection<UUID> canchaIds, LocalDate desde, LocalDate hasta) {
+		if (canchaIds.isEmpty()) {
+			return List.of();
+		}
+		return jpa.findByCanchaIdInAndFechaBetweenOrderByFechaAscHoraInicioAsc(canchaIds, desde, hasta).stream()
+				.map(ReservaEntidad::aDominio)
+				.toList();
+	}
+
 }

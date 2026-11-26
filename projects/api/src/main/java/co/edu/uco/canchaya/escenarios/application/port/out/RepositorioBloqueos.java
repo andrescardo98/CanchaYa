@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaCanchas.RangoBloqueado;
+import co.edu.uco.canchaya.escenarios.application.port.in.ConsultaEscenarios.BloqueoAgenda;
 
 /**
  * Lectura de los bloqueos de una cancha. Todavía no hay clase Bloqueo: llega con HU30 (P5 de HU20).
@@ -21,5 +22,11 @@ public interface RepositorioBloqueos {
 	 * cancha sin bloqueos no viene en el mapa.
 	 */
 	Map<UUID, List<RangoBloqueado>> rangosDelDia(Collection<UUID> canchaIds, LocalDate fecha);
+
+	/**
+	 * HU29 (P2): los bloqueos de esas canchas de desde a hasta (las dos incluidas), con su tipo y su
+	 * motivo, por fecha y hora de inicio. Vacía si no se pide ninguna cancha.
+	 */
+	List<BloqueoAgenda> deCanchasEntre(Collection<UUID> canchaIds, LocalDate desde, LocalDate hasta);
 
 }

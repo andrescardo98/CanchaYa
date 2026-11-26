@@ -331,6 +331,43 @@ public final class Reserva {
 				&& Duration.between(ahora, inicio()).compareTo(Duration.ofHours(parametros.horasMinimasCancelacion())) > 0;
 	}
 
+	/**
+	 * HU29, CA1: si la reserva ocupa la franja en la agenda. Las CANCELADAS no la ocupan
+	 * (restricción de la HU, P4); una NO_ASISTIO sí, porque el horario ya se usó.
+	 */
+	public boolean ocupa(Franja franja) {
+		Objects.requireNonNull(franja, "franja");
+		return estado != EstadoReserva.CANCELADA && franja.seCruzaCon(fecha, horaInicio, horaFin);
+	}
+
+	/**
+	 * HU29, CA3: si quien consulta la agenda podría cancelar la reserva por fuerza mayor. Políticas
+	 * 14 (CONFIRMADA), 15 (solo el propietario: el encargado no, D02) y 17 (RN-07: antes de que
+	 * inicie). HU32 la reutilizará en «cancelar».
+	 *
+	 * @param ahora         fecha y hora actual en America/Bogota (D27)
+	 * @param esPropietario si quien consulta es el propietario del escenario y no un encargado
+	 */
+	public boolean sePuedeCancelarPorFuerzaMayor(LocalDateTime ahora, boolean esPropietario) {
+		Objects.requireNonNull(ahora, "ahora");
+		return estaConfirmada() && esPropietario && inicio().isAfter(ahora);
+	}
+
+	/**
+	 * HU29, CA3: si quien consulta la agenda podría marcar la inasistencia. Políticas 14
+	 * (CONFIRMADA), 22 (la hora de fin ya pasó) y 32 (RN-09, D20: hasta PAR-RES-09 horas después,
+	 * incluidas). La 23 (propietario o encargado) ya la cumple quien ve la agenda. HU33 la reutilizará
+	 * en «marcarNoAsistio».
+	 *
+	 * @param ahora fecha y hora actual en America/Bogota (D27)
+	 */
+	public boolean sePuedeMarcarInasistencia(LocalDateTime ahora, ParametrosReserva parametros) {
+		Objects.requireNonNull(ahora, "ahora");
+		Objects.requireNonNull(parametros, "parametros");
+		LocalDateTime limite = fin().plusHours(parametros.horasPlazoInasistencia());
+		return estaConfirmada() && !ahora.isBefore(fin()) && !ahora.isAfter(limite);
+	}
+
 	private static boolean enPunto(LocalTime hora) {
 		return hora.getMinute() == 0 && hora.getSecond() == 0 && hora.getNano() == 0;
 	}

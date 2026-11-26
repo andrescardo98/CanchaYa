@@ -198,6 +198,28 @@ public final class Escenario {
 		}
 	}
 
+	/**
+	 * HU29 (RN-15, AG-12): la agenda la ven el propietario y los encargados asignados, los dos con
+	 * rol ADMINISTRADOR_CANCHA (D07). Que el encargado esté asignado lo consulta el caso de uso y
+	 * llega como valor lógico, como en Bloqueo (clases.md).
+	 *
+	 * @return verdadero si es el propietario y falso si es un encargado asignado; la agenda lo usa
+	 *         para las opciones que solo tiene el propietario (D02)
+	 * @throws ReglaNegocioException ERR-GEN-06 si no es ninguno de los dos (CA6)
+	 */
+	public boolean validarAccesoAgenda(Solicitante solicitante, boolean esEncargadoAsignado) {
+		if (solicitante == null || !solicitante.tieneRol(Rol.ADMINISTRADOR_CANCHA)) {
+			throw new ReglaNegocioException("ERR-GEN-06");
+		}
+		if (esPropietario(solicitante.usuarioId())) {
+			return true;
+		}
+		if (esEncargadoAsignado) {
+			return false;
+		}
+		throw new ReglaNegocioException("ERR-GEN-06");
+	}
+
 	/** RN-05. */
 	public boolean esPropietario(UUID usuarioId) {
 		return administradorId.equals(usuarioId);

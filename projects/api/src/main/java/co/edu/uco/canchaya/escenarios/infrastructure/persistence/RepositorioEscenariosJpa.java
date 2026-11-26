@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.escenarios.infrastructure.persistence;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,6 +69,23 @@ class RepositorioEscenariosJpa implements RepositorioEscenarios {
 				? jpa.findAllByOrderByNombreAsc()
 				: jpa.findByEstadoOrderByNombreAsc(estado);
 		return entidades.stream().map(EscenarioEntidad::aResumen).toList();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ResumenEscenario> listarPorAdministrador(UUID administradorId) {
+		return jpa.findByAdministradorIdOrderByNombreAsc(administradorId).stream().map(EscenarioEntidad::aResumen)
+				.toList();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ResumenEscenario> listarPorIds(Collection<UUID> ids) {
+		// Sin identificadores no se consulta: un "in ()" vacío no es SQL válido en todas las bases
+		if (ids.isEmpty()) {
+			return List.of();
+		}
+		return jpa.findByIdInOrderByNombreAsc(ids).stream().map(EscenarioEntidad::aResumen).toList();
 	}
 
 	@Override
