@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.escenarios.application.port.out;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +34,12 @@ public interface RepositorioEscenarios {
 	 * @param estado si es vacío (null), trae todos
 	 */
 	List<ResumenEscenario> listar(EstadoEscenario estado);
+
+	/** HU29, CA4: los escenarios del propietario, en cualquier estado y sin las fotos. */
+	List<ResumenEscenario> listarPorAdministrador(UUID administradorId);
+
+	/** HU29, CA5: los escenarios con esos identificadores, sin las fotos. Vacía si no se pide ninguno. */
+	List<ResumenEscenario> listarPorIds(Collection<UUID> ids);
 
 	/** Identificadores de las canchas del escenario, para preguntar por sus reservas (D08). */
 	List<UUID> idsCanchas(UUID escenarioId);

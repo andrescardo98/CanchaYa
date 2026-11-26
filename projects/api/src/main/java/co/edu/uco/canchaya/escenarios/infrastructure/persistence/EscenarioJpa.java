@@ -1,5 +1,6 @@
 package co.edu.uco.canchaya.escenarios.infrastructure.persistence;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,12 @@ interface EscenarioJpa extends JpaRepository<EscenarioEntidad, UUID> {
 	List<EscenarioEntidad> findAllByOrderByNombreAsc();
 
 	List<EscenarioEntidad> findByEstadoOrderByNombreAsc(EstadoEscenario estado);
+
+	// HU29, CA4
+	List<EscenarioEntidad> findByAdministradorIdOrderByNombreAsc(UUID administradorId);
+
+	// HU29, CA5
+	List<EscenarioEntidad> findByIdInOrderByNombreAsc(Collection<UUID> ids);
 
 	// Solo la columna estado: no se reescriben los demás datos ni las fotos
 	@Modifying(clearAutomatically = true, flushAutomatically = true)

@@ -207,6 +207,16 @@ class RegistrarEscenarioCasoUsoTest {
 		}
 
 		@Override
+		public List<ResumenEscenario> listarPorAdministrador(UUID administradorId) {
+			throw new UnsupportedOperationException(); // HU29
+		}
+
+		@Override
+		public List<ResumenEscenario> listarPorIds(Collection<UUID> ids) {
+			throw new UnsupportedOperationException(); // HU29
+		}
+
+		@Override
 		public List<UUID> idsCanchas(UUID escenarioId) {
 			throw new UnsupportedOperationException();
 		}

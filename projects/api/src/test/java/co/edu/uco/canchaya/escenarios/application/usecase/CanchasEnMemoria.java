@@ -37,7 +37,12 @@ final class CanchasEnMemoria {
 	}
 
 	Escenario escenarioDe(UUID propietarioId, EstadoEscenario estado) {
-		Escenario escenario = Escenario.reconstruir(UUID.randomUUID(), "Cancha La 80", null, "Calle 80 # 45-10",
+		return escenarioDe(propietarioId, "Cancha La 80", estado);
+	}
+
+	/** HU29: con nombre, para probar el orden de la lista de escenarios con agenda. */
+	Escenario escenarioDe(UUID propietarioId, String nombre, EstadoEscenario estado) {
+		Escenario escenario = Escenario.reconstruir(UUID.randomUUID(), nombre, null, "Calle 80 # 45-10",
 				UUID.randomUUID(), new BigDecimal("6.155123"), new BigDecimal("-75.373700"), "+573001234567", null,
 				List.of(), propietarioId, estado);
 		escenarios.put(escenario.getId(), escenario);
@@ -91,6 +96,19 @@ final class CanchasEnMemoria {
 				throw new UnsupportedOperationException();
 			}
 
+			// HU29: sin ordenar, para que la prueba vea que el caso de uso ordena
+			@Override
+			public List<ResumenEscenario> listarPorAdministrador(UUID administradorId) {
+				return escenarios.values().stream().filter(e -> e.esPropietario(administradorId))
+						.map(CanchasEnMemoria::resumen).toList();
+			}
+
+			@Override
+			public List<ResumenEscenario> listarPorIds(Collection<UUID> ids) {
+				return escenarios.values().stream().filter(e -> ids.contains(e.getId()))
+						.map(CanchasEnMemoria::resumen).toList();
+			}
+
 			// HU19: todas las canchas del escenario, también las INACTIVAS
 			@Override
 			public List<UUID> idsCanchas(UUID escenarioId) {
@@ -98,6 +116,11 @@ final class CanchasEnMemoria {
 						.toList();
 			}
 		};
+	}
+
+	private static RepositorioEscenarios.ResumenEscenario resumen(Escenario e) {
+		return new RepositorioEscenarios.ResumenEscenario(e.getId(), e.getNombre(), e.getCiudadId(),
+				e.getAdministradorId(), e.getEstado());
 	}
 
 	RepositorioCanchas repositorioCanchas() {
