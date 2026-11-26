@@ -52,7 +52,7 @@ Sin cambios. `Reserva` ya trae `origenCancelacion`, `motivoCancelacion` y `fecha
   2. Busca `buscarDatosCorreo(canchaId)` y los contactos del jugador y del propietario con una sola llamada a `buscarContactos`, como HU22.
   3. Arma y envía el correo del jugador y luego el del propietario, cada uno en su propio `try/catch (RuntimeException)`. Si falla, registra `ERR-GEN-08 codigoCorreo=… destinatario=jugador|propietario reservaId=… detalle=<tipo de error>` y sigue.
   4. Si falta un dato, registra `ERR-GEN-08` para el correo afectado y no lo envía. Sin la cancha no sale ninguno. Sin el jugador tampoco sale ninguno, porque `COR-RES-03` y `COR-RES-05` llevan `{nombreJugador}` también en el correo del propietario; en `COR-RES-04`, que no lo lleva, el del propietario sí sale. Sin el propietario solo falta el suyo. Si la consulta de los datos lanza un error, se registran los dos.
-  5. Nunca lanza un error.
+  5. Ni una falla del envío ni la falta de datos lanzan un error. Recibe siempre una reserva ya CANCELADA y guardada, con su origen y su fecha de cancelación: así la llaman los casos de uso que cancelan.
 - `CancelarReservaCasoUso` recibe además `NotificacionCancelacion`. En `ejecutar`: `transaccion.execute(...)` igual que HU24 y, al salir, `notificar(reserva)` **fuera** de la transacción y en el mismo hilo (como HU22, P1 de HU22). Si la cancelación falla (ERR-RES-14, 15 o 16), no se envía nada.
 - HU32 y HU28 solo llaman a `notificar` después de su propia transacción.
 
@@ -72,7 +72,10 @@ Sin cambios. No hay migración nueva.
 | CA2 | Origen ADMINISTRADOR: los dos reciben `COR-RES-04` con `motivoCancelacion` como justificación | `NotificacionCancelacionTest.CA2_canceloElPropietario_losDosRecibenCorRes04ConLaJustificacion` | Caso de uso |
 | CA3 | Origen SISTEMA_SIN_CONFIRMACION: los dos reciben `COR-RES-05` | `NotificacionCancelacionTest.CA3_canceloElSistema_losDosRecibenCorRes05` | Caso de uso |
 | CA4 | Si el envío al jugador lanza un error, se registra `ERR-GEN-08` y el del propietario sí sale; `notificar` no lanza nada | `NotificacionCancelacionTest.CA4_siUnCorreoFalla_elOtroSaleYNoSeLanzaNada` | Caso de uso |
-| CA4 | Sin la cancha o sin un usuario, se registra `ERR-GEN-08` para cada correo que no se pudo armar | `NotificacionCancelacionTest.CA4_sinDatos_registraElErrorPorCorreo` (parametrizada) | Caso de uso |
+| CA4 | Sin la cancha no sale ninguno y se registran los dos | `NotificacionCancelacionTest.CA4_sinLaCancha_noSaleNingunoYSeRegistranLosDos` | Caso de uso |
+| CA4 | Sin el jugador, en `COR-RES-03` no sale ninguno; en `COR-RES-04` el propietario sí recibe el suyo | `NotificacionCancelacionTest.CA4_sinElJugador_enCorRes03NoSaleNinguno` y `CA4_sinElJugador_enCorRes04ElPropietarioSiLoRecibe` | Caso de uso |
+| CA4 | Sin el propietario, solo sale el del jugador | `NotificacionCancelacionTest.CA4_sinElPropietario_soloSaleElDelJugador` | Caso de uso |
+| CA4 | Si la consulta de los datos lanza un error, se registran los dos y no se lanza nada | `NotificacionCancelacionTest.CA4_siLaConsultaDeDatosFalla_seRegistranLosDosYNoSeLanzaNada` | Caso de uso |
 | CA4 | El log no lleva direcciones de correo ni datos del cuerpo (P3) | `NotificacionCancelacionTest.CA4_elLogNoLlevaDatosDelDestinatario` (`OutputCaptureExtension`) | Caso de uso |
 | CA1 | El caso de uso notifica después de cerrar la transacción (D15), con la reserva ya CANCELADA | `CancelarReservaCasoUsoTest.HU25_CA1_notificaDespuesDeLaTransaccion` (`InOrder`) | Caso de uso |
 | CA1 | Si la cancelación falla (ERR-RES-14, 15 o 16), no se notifica | `CancelarReservaCasoUsoTest.HU25_CA1_siNoSeCancela_noSeNotifica` | Caso de uso |
