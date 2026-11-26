@@ -32,7 +32,7 @@ No hay servicio nuevo. `POST /api/reservas/{id}/cancelacion` responde igual que 
 - `{fecha}` en dd/mm/aaaa, horas en hh:mm (AG-18), `{precio}` como `$ 160.000` (AG-19) y `{fechaCancelacion}` en dd/mm/aaaa hh:mm en la hora de Bogotá (D27), como `{fechaHora}` de `COR-ESC-01`.
 - `{justificacion}` es `motivoCancelacion` tal como lo registró el propietario.
 - `COR-RES-04` repite `{escenario}` en el cuerpo: el texto del Excel lo usa dos veces y se pasa dos veces, en el orden en que aparece.
-- Ante una falla (no se encontró la cancha o un usuario, el SMTP falla, etc.) se escribe en el log `ERR-GEN-08` con el código del correo, el destinatario por su papel (`jugador` o `propietario`, nunca la dirección), el id de la reserva y el tipo de error (P3). Un correo que falla no impide enviar el otro.
+- Si falta un dato (la cancha o un usuario) o algo lanza un error antes de llegar al servidor de correo, `NotificacionCancelacion` escribe en el log `ERR-GEN-08` con el código del correo, el destinatario por su papel (`jugador` o `propietario`, nunca la dirección), el id de la reserva y el tipo de error (P3). Si el que falla es el SMTP, el registro lo escribe `EnvioCorreoSmtp` con su formato de siempre (HU13), porque no lanza el error. Un correo que falla no impide enviar el otro.
 
 ## Diseño por capas
 
