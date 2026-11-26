@@ -114,7 +114,7 @@ Respuesta `200`:
 | HTTP | Código | Cuándo |
 |---|---|---|
 | 200 | — | El usuario es el propietario o un encargado asignado |
-| 400 | — | `fecha` o `vista` con un formato que no se entiende (manejo actual de parámetros de `ManejadorErrores`) |
+| 400 | `ERR-GEN-07` | `fecha` o `vista` con un formato que no se entiende (`ManejadorErrores`, como cualquier parámetro ilegible) |
 | 401 | `ERR-GEN-05` | Sin sesión o con la sesión vencida |
 | 403 | `ERR-GEN-06` | El usuario no es el propietario ni un encargado asignado, o el escenario no existe (CA6, P7) |
 
@@ -211,16 +211,16 @@ Solo lee: no toma el turno de la cancha ni abre transacción de escritura (D29 y
 |---|---|---|---|
 | CA1 | Las franjas salen de los horarios del día, incluidas las que ya empezaron | `HorarioRecurrenteFranjasDeLaFechaTest` | Dominio |
 | CA1 | Una franja con reserva CONFIRMADA o NO_ASISTIO es RESERVADA; con bloqueo, BLOQUEADA; con una reserva CANCELADA, LIBRE | `EstadoFranjaTest`, `ReservaAgendaTest.CA1_ocupa_*` | Dominio |
-| CA1 | La vista por día trae todas las canchas del escenario con sus franjas LIBRE, RESERVADA y BLOQUEADA | `ConsultarAgendaCasoUsoTest.ca1_*`, `AgendaPuntaAPuntaTest.ca1_vistaDiaConTodasLasCanchas` | Caso de uso, punta a punta |
+| CA1 | La vista por día trae todas las canchas del escenario con sus franjas LIBRE, RESERVADA y BLOQUEADA | `ConsultarAgendaCasoUsoTest.ca1*`, `AgendaPuntaAPuntaTest.ca1VistaPorDiaConTodasLasCanchas` | Caso de uso, punta a punta |
 | CA2 | SEMANA va de lunes a domingo de la semana de la fecha | `VistaAgendaTest` | Dominio |
-| CA2 | La vista por semana trae los siete días de cada cancha con sus reservas y bloqueos | `AgendaPuntaAPuntaTest.ca2_vistaSemanaConSieteDias` | Punta a punta |
+| CA2 | La vista por semana trae los siete días de cada cancha con sus reservas y bloqueos | `AgendaPuntaAPuntaTest.ca2VistaSemanaConSieteDias` | Punta a punta |
 | CA3 | Cancelar por fuerza mayor: solo el propietario, solo CONFIRMADA y antes del inicio | `ReservaAgendaTest.CA3_fuerzaMayor_*` | Dominio |
 | CA3 | Marcar inasistencia: solo CONFIRMADA, después del fin y hasta 24 h después | `ReservaAgendaTest.CA3_inasistencia_*` | Dominio |
-| CA3 | La reserva trae nombre y celular del jugador, la confirmación de asistencia y los indicadores; al encargado nunca le sale la fuerza mayor | `ConsultarAgendaCasoUsoTest.ca3_*`, `AgendaPuntaAPuntaTest.ca3_datosDelJugadorYOpciones` | Caso de uso, punta a punta |
-| CA4 | El propietario con varios escenarios los ve todos para elegir | `ListarEscenariosAgendaCasoUsoTest.ca4_*`, `AgendaPuntaAPuntaTest.ca4_propietarioVeSusEscenarios` | Caso de uso, punta a punta |
-| CA5 | El encargado solo ve los escenarios que tiene asignados | `ListarEscenariosAgendaCasoUsoTest.ca5_*`, `AgendaPuntaAPuntaTest.ca5_encargadoSoloVeLosAsignados` | Caso de uso, punta a punta |
+| CA3 | La reserva trae nombre y celular del jugador, la confirmación de asistencia y los indicadores; al encargado nunca le sale la fuerza mayor | `ConsultarAgendaCasoUsoTest.ca3*`, `AgendaPuntaAPuntaTest.ca3DatosDelJugadorYOpciones` | Caso de uso, punta a punta |
+| CA4 | El propietario con varios escenarios los ve todos para elegir | `ListarEscenariosAgendaCasoUsoTest.ca4*`, `AgendaPuntaAPuntaTest.ca4PropietarioVeSusEscenarios` | Caso de uso, punta a punta |
+| CA5 | El encargado solo ve los escenarios que tiene asignados | `ListarEscenariosAgendaCasoUsoTest.ca5*`, `AgendaPuntaAPuntaTest.ca5EncargadoSoloVeLosAsignados` | Caso de uso, punta a punta |
 | CA6 | Ni propietario ni encargado asignado → ERR-GEN-06 | `EscenarioAccesoAgendaTest` | Dominio |
-| CA6 | Otro administrador, un jugador o el escenario que no existe → 403 ERR-GEN-06 y no sale ningún dato; sin sesión → 401 | `ConsultaEscenariosCasoUsoTest.ca6_*`, `AgendaPuntaAPuntaTest.ca6_*` | Caso de uso, punta a punta |
+| CA6 | Otro administrador, un jugador o el escenario que no existe → 403 ERR-GEN-06 y no sale ningún dato; sin sesión → 401 | `ConsultaEscenariosCasoUsoTest.ca6*`, `AgendaPuntaAPuntaTest.ca6*` | Caso de uso, punta a punta |
 | — | Las consultas nuevas de persistencia filtran por canchas, fechas y usuario | `AgendaPersistenciaTest` (encargados, escenarios y bloqueos), `RepositorioReservasJpaTest.hu29DeCanchasEntre_*` | Persistencia |
 | — | Reservas solo usa los puertos de Escenarios e Identidad | `ArquitecturaTest` (ya existe) | Arquitectura |
 
