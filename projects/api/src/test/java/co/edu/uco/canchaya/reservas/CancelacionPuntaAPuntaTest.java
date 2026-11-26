@@ -1,10 +1,17 @@
 package co.edu.uco.canchaya.reservas;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -13,22 +20,33 @@ import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.test.web.servlet.client.RestTestClient.ResponseSpec;
 
 import co.edu.uco.canchaya.TestcontainersConfiguration;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 import co.edu.uco.canchaya.escenarios.domain.DiaSemana;
 
 /**
  * HU24 completa: petición HTTP con token real → seguridad → caso de uso de Reservas → base en
  * Docker. Usa el reloj real del servidor (D27): las fechas se calculan desde ahora en Bogotá.
+ *
+ * <p>HU25: el servidor de correo es un doble, para ver qué se envía sin depender de Mailpit.
  */
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -39,12 +57,16 @@ class CancelacionPuntaAPuntaTest {
 	private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
 	// Pasado mañana: faltan más de 3 horas para cualquier franja, sea cual sea la hora de la prueba
 	private static final LocalDate FECHA = LocalDate.now(BOGOTA).plusDays(2);
+	private static final String FECHA_MENSAJE = FECHA.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
 	@Autowired
 	private RestTestClient cliente;
 
 	@Autowired
 	private JdbcTemplate jdbc;
+
+	@MockitoBean
+	private JavaMailSender servidorCorreo;
 
 	private UUID cancha;
 	private UUID jugador;
@@ -74,6 +96,7 @@ class CancelacionPuntaAPuntaTest {
 
 	@BeforeEach
 	void preparar() {
+		when(servidorCorreo.createMimeMessage()).thenAnswer(invocacion -> new MimeMessage((Session) null));
 		// Correos e IP propios: otras pruebas punta a punta pueden dejar bloqueado un correo (D28)
 		UUID propietario = usuario("propietario.hu24@correo.com", "1000000241", "ADMINISTRADOR_CANCHA");
 		jugador = usuario("jugador.hu24@correo.com", "1000000242", "JUGADOR");
@@ -157,6 +180,12 @@ class CancelacionPuntaAPuntaTest {
 		assertThat(errores.errores()).extracting(Error::codigo).containsExactly(codigo);
 	}
 
+	private List<MimeMessage> correosEnviados(int cuantos) {
+		ArgumentCaptor<MimeMessage> correos = ArgumentCaptor.forClass(MimeMessage.class);
+		verify(servidorCorreo, times(cuantos)).send(correos.capture());
+		return correos.getAllValues();
+	}
+
 	private String estadoEnLaBase(UUID reserva) {
 		return jdbc.queryForObject("select estado from reserva where id = ?", String.class, reserva);
 	}
@@ -215,6 +244,47 @@ class CancelacionPuntaAPuntaTest {
 		esperarError(cancelar(reserva, tokenOtroJugador), 403, "ERR-RES-15");
 		assertThat(estadoEnLaBase(reserva)).isEqualTo("CONFIRMADA");
 		assertThat(franjaDeLas18Libre()).isFalse();
+	}
+
+	// HU25 CA1: COR-RES-03 al jugador y al propietario, a las direcciones registradas, después de guardar
+	@Test
+	void HU25_CA1_cancelarEnviaLosDosCorreos() throws Exception {
+		UUID reserva = reservarALas18();
+		// Los dos correos de la reserva (HU22) no cuentan aquí
+		clearInvocations(servidorCorreo);
+
+		cancelar(reserva, tokenJugador).expectStatus().isOk();
+
+		List<MimeMessage> correos = correosEnviados(2);
+		assertThat(correos).extracting(correo -> correo.getAllRecipients()[0].toString())
+				.containsExactly("jugador.hu24@correo.com", "propietario.hu24@correo.com");
+		for (MimeMessage correo : correos) {
+			assertThat(correo.getSubject()).isEqualTo("Reserva cancelada: Canchas La 70, " + FECHA_MENSAJE + " a las 18:00");
+			assertThat((String) correo.getContent())
+					.contains("La siguiente reserva fue cancelada por el jugador el ")
+					.contains("Escenario: Canchas La 70<br>Dirección: Calle 70, Rionegro<br>Cancha: Cancha 1")
+					.contains("Fecha: " + FECHA_MENSAJE + "<br>Hora: 18:00 a 19:00<br>Valor: $ 80.000")
+					.contains("El horario volvió a quedar disponible.");
+		}
+	}
+
+	// HU25 CA4: con el SMTP caído la reserva queda CANCELADA, cada correo se intenta una sola vez
+	// (PAR-GEN-02 = 0) y el error queda en el log
+	@Test
+	@ExtendWith(OutputCaptureExtension.class)
+	void HU25_CA4_smtpFalla_reservaSigueCancelada(CapturedOutput salida) {
+		UUID reserva = reservarALas18();
+		clearInvocations(servidorCorreo);
+		doThrow(new MailSendException("servidor SMTP caído")).when(servidorCorreo).send(any(MimeMessage.class));
+
+		cancelar(reserva, tokenJugador).expectStatus().isOk()
+				.expectBody().jsonPath("$.codigo").isEqualTo("EXI-RES-02");
+
+		assertThat(estadoEnLaBase(reserva)).isEqualTo("CANCELADA");
+		correosEnviados(2);
+		assertThat(salida.getAll())
+				.contains("ERR-GEN-08 No se pudo enviar el correo COR-RES-03 a jugador.hu24@correo.com")
+				.contains("ERR-GEN-08 No se pudo enviar el correo COR-RES-03 a propietario.hu24@correo.com");
 	}
 
 }
