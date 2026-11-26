@@ -168,6 +168,24 @@ public final class HorarioRecurrente {
 		Objects.requireNonNull(horariosEscenario, "horariosEscenario");
 		validarFechaConsultable(fecha, ahora, ventanaReservaDias);
 
+		// Política 12: la que ya empezó no se ofrece
+		return franjasDeLaFecha(horariosEscenario, fecha).stream()
+				.filter(franja -> franja.inicio().isAfter(ahora))
+				.toList();
+	}
+
+	/**
+	 * Política 11 de «calcularFranjas» sola, sin la 10 (ventana) ni la 12 (las que ya empezaron):
+	 * la agenda del administrador (HU29, CA1 y P6) muestra el día completo y cualquier fecha. Las
+	 * franjas salen de los horarios actuales, aunque la fecha sea pasada.
+	 *
+	 * @param horariosEscenario horarios del escenario; solo cuentan los del día de la semana de la fecha
+	 * @return las franjas de una hora en punto de la fecha, por hora de inicio
+	 */
+	public static List<Franja> franjasDeLaFecha(List<HorarioRecurrente> horariosEscenario, LocalDate fecha) {
+		Objects.requireNonNull(horariosEscenario, "horariosEscenario");
+		Objects.requireNonNull(fecha, "fecha");
+
 		DiaSemana dia = DiaSemana.de(fecha.getDayOfWeek());
 		List<Franja> franjas = new ArrayList<>();
 		for (HorarioRecurrente horario : horariosEscenario) {
@@ -177,11 +195,7 @@ public final class HorarioRecurrente {
 			// Política 11: franjas de una hora en punto, desde el inicio hasta el fin del horario
 			for (LocalTime inicio = horario.horaInicio; inicio.isBefore(horario.horaFin);
 					inicio = inicio.plus(Franja.DURACION)) {
-				Franja franja = new Franja(fecha, inicio, inicio.plus(Franja.DURACION));
-				// Política 12: la que ya empezó no se ofrece
-				if (franja.inicio().isAfter(ahora)) {
-					franjas.add(franja);
-				}
+				franjas.add(new Franja(fecha, inicio, inicio.plus(Franja.DURACION)));
 			}
 		}
 		franjas.sort(Comparator.comparing(Franja::horaInicio));

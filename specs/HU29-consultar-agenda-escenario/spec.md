@@ -209,7 +209,7 @@ Solo lee: no toma el turno de la cancha ni abre transacción de escritura (D29 y
 
 | CA | Qué se verifica | Prueba | Capa |
 |---|---|---|---|
-| CA1 | Las franjas salen de los horarios del día, incluidas las que ya empezaron | `HorarioRecurrenteTest.franjasDeLaFecha_*` | Dominio |
+| CA1 | Las franjas salen de los horarios del día, incluidas las que ya empezaron | `HorarioRecurrenteFranjasDeLaFechaTest` | Dominio |
 | CA1 | Una franja con reserva CONFIRMADA o NO_ASISTIO es RESERVADA; con bloqueo, BLOQUEADA; con una reserva CANCELADA, LIBRE | `EstadoFranjaTest`, `ReservaTest.ocupa_*` | Dominio |
 | CA1 | La vista por día trae todas las canchas del escenario con sus franjas LIBRE, RESERVADA y BLOQUEADA | `ConsultarAgendaCasoUsoTest.ca1_*`, `AgendaPuntaAPuntaTest.ca1_vistaDiaConTodasLasCanchas` | Caso de uso, punta a punta |
 | CA2 | SEMANA va de lunes a domingo de la semana de la fecha | `VistaAgendaTest` | Dominio |
@@ -219,7 +219,7 @@ Solo lee: no toma el turno de la cancha ni abre transacción de escritura (D29 y
 | CA3 | La reserva trae nombre y celular del jugador, la confirmación de asistencia y los indicadores; al encargado nunca le sale la fuerza mayor | `ConsultarAgendaCasoUsoTest.ca3_*`, `AgendaPuntaAPuntaTest.ca3_datosDelJugadorYOpciones` | Caso de uso, punta a punta |
 | CA4 | El propietario con varios escenarios los ve todos para elegir | `ListarEscenariosAgendaCasoUsoTest.ca4_*`, `AgendaPuntaAPuntaTest.ca4_propietarioVeSusEscenarios` | Caso de uso, punta a punta |
 | CA5 | El encargado solo ve los escenarios que tiene asignados | `ListarEscenariosAgendaCasoUsoTest.ca5_*`, `AgendaPuntaAPuntaTest.ca5_encargadoSoloVeLosAsignados` | Caso de uso, punta a punta |
-| CA6 | Ni propietario ni encargado asignado → ERR-GEN-06 | `EscenarioTest.ca6_validarAccesoAgenda_*` | Dominio |
+| CA6 | Ni propietario ni encargado asignado → ERR-GEN-06 | `EscenarioAccesoAgendaTest` | Dominio |
 | CA6 | Otro administrador, un jugador o el escenario que no existe → 403 ERR-GEN-06 y no sale ningún dato; sin sesión → 401 | `ConsultaEscenariosCasoUsoTest.ca6_*`, `AgendaPuntaAPuntaTest.ca6_*` | Caso de uso, punta a punta |
 | — | Las consultas nuevas de persistencia filtran por canchas, fechas y usuario | `RepositorioEncargadosJdbcTest`, `RepositorioBloqueosJdbcTest`, `RepositorioReservasJpaTest` | Persistencia |
 | — | Reservas solo usa los puertos de Escenarios e Identidad | `ArquitecturaTest` (ya existe) | Arquitectura |
