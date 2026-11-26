@@ -3,6 +3,7 @@ package co.edu.uco.canchaya.reservas.application.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,7 +35,10 @@ import co.edu.uco.canchaya.reservas.domain.ParametrosReserva;
 import co.edu.uco.canchaya.reservas.domain.Reserva;
 import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
 
-/** HU24: el caso de uso busca la reserva, la cancela con la hora del servidor y la guarda solo si sigue CONFIRMADA (P3). */
+/**
+ * HU24: el caso de uso busca la reserva, la cancela con la hora del servidor y la guarda solo si
+ * sigue CONFIRMADA (P3). HU25: al terminar la transacción, avisa la cancelación por correo.
+ */
 class CancelarReservaCasoUsoTest {
 
 	private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
@@ -46,12 +50,19 @@ class CancelarReservaCasoUsoTest {
 	private static final Solicitante JUGADOR = new Solicitante(UUID.randomUUID(), Rol.JUGADOR);
 
 	private RepositorioReservas reservas;
+	private NotificacionCancelacion notificacion;
 	private final List<String> eventos = new ArrayList<>();
 	private CancelarReservaCasoUso casoUso;
 
 	@BeforeEach
 	void preparar() {
 		reservas = mock(RepositorioReservas.class);
+		notificacion = mock(NotificacionCancelacion.class);
+		doAnswer(invocacion -> {
+			Reserva avisada = invocacion.getArgument(0);
+			eventos.add("notificar " + avisada.getEstado());
+			return null;
+		}).when(notificacion).notificar(any());
 		// Sin transacción real: la prueba revisa que todo pase dentro de ella
 		TransactionOperations transaccion = new TransactionOperations() {
 			@Override
@@ -61,7 +72,7 @@ class CancelarReservaCasoUsoTest {
 				return resultado;
 			}
 		};
-		casoUso = new CancelarReservaCasoUso(reservas, PARAMETROS, RELOJ, transaccion);
+		casoUso = new CancelarReservaCasoUso(reservas, notificacion, PARAMETROS, RELOJ, transaccion);
 	}
 
 	/** Reserva CONFIRMADA de JUGADOR que empieza hoy a las 18:00, 8 horas después de AHORA. */
@@ -94,7 +105,7 @@ class CancelarReservaCasoUsoTest {
 		assertThat(cancelada.getOrigenCancelacion()).isEqualTo(OrigenCancelacion.JUGADOR);
 		assertThat(cancelada.getFechaCancelacion()).isEqualTo(AHORA.atZone(BOGOTA).toOffsetDateTime());
 		verify(reservas).cancelarSiSigueConfirmada(cancelada);
-		assertThat(eventos).containsExactly("guardar", "fin de la transacción");
+		assertThat(eventos).containsExactly("guardar", "fin de la transacción", "notificar CANCELADA");
 	}
 
 	@Test
@@ -127,13 +138,48 @@ class CancelarReservaCasoUsoTest {
 	@Test
 	void ca3TresHorasOMenos_noSeGuarda() {
 		// PAR-RES-05 en 10 horas: con 8 de anticipación ya no se puede
-		casoUso = new CancelarReservaCasoUso(reservas,
+		casoUso = new CancelarReservaCasoUso(reservas, notificacion,
 				new ParametrosReserva(30, 2, 2, 5, 10, 5, LocalTime.NOON, 3, 24, 250, false), RELOJ,
 				TransactionOperations.withoutTransaction());
 		Reserva reserva = confirmada();
 
 		esperarError(() -> casoUso.ejecutar(reserva.getId(), JUGADOR), "ERR-RES-16");
 		verify(reservas, never()).cancelarSiSigueConfirmada(any());
+	}
+
+	// HU25 CA1, D15: el correo sale con la reserva ya CANCELADA y la transacción cerrada. Si
+	// fallara dentro, podría revertir la cancelación o avisar una que al final no se guardó
+	@Test
+	void HU25_CA1_notificaDespuesDeLaTransaccion() {
+		Reserva reserva = confirmada();
+		when(reservas.cancelarSiSigueConfirmada(any())).thenAnswer(invocacion -> {
+			eventos.add("guardar");
+			return true;
+		});
+
+		Reserva cancelada = casoUso.ejecutar(reserva.getId(), JUGADOR);
+
+		assertThat(eventos).containsExactly("guardar", "fin de la transacción", "notificar CANCELADA");
+		verify(notificacion).notificar(cancelada);
+	}
+
+	// HU25 CA1: solo se avisa una cancelación que quedó guardada
+	@Test
+	void HU25_CA1_siNoSeCancela_noSeNotifica() {
+		UUID inexistente = UUID.randomUUID();
+		when(reservas.buscarPorId(inexistente)).thenReturn(Optional.empty());
+		esperarError(() -> casoUso.ejecutar(inexistente, JUGADOR), "ERR-RES-14");
+
+		Reserva ajena = confirmada();
+		esperarError(() -> casoUso.ejecutar(ajena.getId(), new Solicitante(UUID.randomUUID(), Rol.JUGADOR)),
+				"ERR-RES-15");
+
+		// P3 de HU24: otra operación la cambió al mismo tiempo
+		Reserva cambiada = confirmada();
+		when(reservas.cancelarSiSigueConfirmada(any())).thenReturn(false);
+		esperarError(() -> casoUso.ejecutar(cambiada.getId(), JUGADOR), "ERR-RES-14");
+
+		verify(notificacion, never()).notificar(any());
 	}
 
 }
