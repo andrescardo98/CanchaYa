@@ -19,21 +19,23 @@ import co.edu.uco.canchaya.transversal.domain.ReglaNegocioException;
  * crear un cruce. Lo que sí puede pasar es que otra operación cambie la misma reserva al mismo
  * tiempo; por eso se guarda con una actualización condicional (P3, D29 punto 3).
  *
- * <p>Los correos de cancelación los agrega HU25 después de {@code transaccion.execute}, como HU22
- * en {@link ReservarCanchaCasoUso} (P2, D15).
+ * <p>HU25. Los correos van después de {@code transaccion.execute}, en el mismo hilo, como HU22 en
+ * {@link ReservarCanchaCasoUso}: cuando salen, la cancelación ya quedó guardada (D15).
  */
 @Service
 public class CancelarReservaCasoUso implements CancelarReserva {
 
 	private final RepositorioReservas repositorioReservas;
+	private final NotificacionCancelacion notificacion;
 	private final ParametrosReserva parametros;
 	private final Clock reloj;
 	// Es la TransactionTemplate de Spring; la interfaz deja probar el caso de uso sin base
 	private final TransactionOperations transaccion;
 
-	public CancelarReservaCasoUso(RepositorioReservas repositorioReservas, ParametrosReserva parametros, Clock reloj,
-			TransactionOperations transaccion) {
+	public CancelarReservaCasoUso(RepositorioReservas repositorioReservas, NotificacionCancelacion notificacion,
+			ParametrosReserva parametros, Clock reloj, TransactionOperations transaccion) {
 		this.repositorioReservas = repositorioReservas;
+		this.notificacion = notificacion;
 		this.parametros = parametros;
 		this.reloj = reloj;
 		this.transaccion = transaccion;
@@ -41,7 +43,10 @@ public class CancelarReservaCasoUso implements CancelarReserva {
 
 	@Override
 	public Reserva ejecutar(UUID reservaId, Solicitante solicitante) {
-		return transaccion.execute(estado -> cancelar(reservaId, solicitante));
+		Reserva cancelada = transaccion.execute(estado -> cancelar(reservaId, solicitante));
+		// 5. HU25, política 21. Fuera de la transacción: si un correo falla, la reserva sigue CANCELADA (CA4)
+		notificacion.notificar(cancelada);
+		return cancelada;
 	}
 
 	private Reserva cancelar(UUID reservaId, Solicitante solicitante) {
