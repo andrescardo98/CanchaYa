@@ -264,6 +264,16 @@ class ConsultarDisponibilidadCasoUsoTest {
 			throw new UnsupportedOperationException("Es de HU23");
 		}
 
+		@Override
+		public Optional<Reserva> buscarPorId(UUID id) {
+			throw new UnsupportedOperationException("Es de HU24");
+		}
+
+		@Override
+		public boolean cancelarSiSigueConfirmada(Reserva reserva) {
+			throw new UnsupportedOperationException("Es de HU24");
+		}
+
 	}
 
 }

@@ -11,7 +11,8 @@
 - Decisiones: D06 (más de 3 horas), D15 (el correo no revierte la operación), D27 (hora de Bogotá), D29 punto 3 (actualización condicional) y D39 (paquetes).
 - Diseño: `Reserva.cancelar(solicitante, esPropietarioDelEscenario, motivoCancelacion, ahora, parametros)` en [clases.md](../../docs/diseno/clases.md), que devuelve `void` y lanza ERR-RES-14 a ERR-RES-18; el caso de uso revisa ERR-RES-14 antes de llamarlo. «No hay métodos set: el estado solo cambia con los métodos de negocio».
 - Código que se reutiliza:
-  - `Reserva.inicio()`, `estaConfirmada()` y `reconstruir(...)` (HU20 y HU21), y `OrigenCancelacion.JUGADOR`, que ya existe.
+  - `Reserva.inicio()`, `estaConfirmada()` y `reconstruir(...)` (HU20 y HU21), `Reserva.sePuedeCancelarPorJugador(ahora, parametros)` (HU23, la misma política 16 con la que «Mis reservas» muestra la opción de cancelar) y `OrigenCancelacion.JUGADOR`, que ya existe.
+  - El envío de correos después de la transacción de `ReservarCanchaCasoUso` (HU22), que servirá de modelo a HU25.
   - `RepositorioReservas` y `RepositorioReservasJpa` (HU21), el `Clock` de la aplicación y `TransactionOperations`, igual que `ReservarCanchaCasoUso`.
   - `ReservaController` y `ManejadorErrores`, que ya tienen el patrón de códigos HTTP por mensaje.
   - La tabla `reserva` (V1) ya tiene `origen_cancelacion`, `fecha_cancelacion`, el `CHECK` `ck_reserva_cancelacion` y la restricción `ex_reserva_sin_cruce ... WHERE (estado = 'CONFIRMADA')`. Por eso, en cuanto la reserva queda CANCELADA, la base deja de contarla y la franja vuelve a estar libre (política 20) sin código adicional: la disponibilidad (HU20) y la reserva (HU21) ya solo miran las CONFIRMADAS.
@@ -50,7 +51,7 @@ Con `id` y `estado`, la pantalla «Mis reservas» (HU23) mueve la reserva sin vo
 
 | Capa | Pieza | Qué hace |
 |---|---|---|
-| Dominio | `Reserva.cancelar(Solicitante solicitante, LocalDateTime ahora, ParametrosReserva parametros)` (P4) | Revisa, en orden: política 14, que siga CONFIRMADA (ERR-RES-14; el caso de uso ya lo revisó, pero así el método no depende de quién lo llame); política 15, que `solicitante.usuarioId()` sea `jugadorId` (ERR-RES-15); política 16 (RN-10, D06, PAR-RES-05), que `Duration.between(ahora, inicio())` sea **mayor** que `horasMinimasCancelacion` horas (ERR-RES-16; con exactamente 3 horas o con la reserva ya empezada, falla). Solo si pasa todo, política 19: `estado = CANCELADA`, `origenCancelacion = JUGADOR`, `fechaCancelacion = ahora` en Bogotá. `estado`, `origenCancelacion` y `fechaCancelacion` dejan de ser `final`, como `Cancha.estado` en HU10 |
+| Dominio | `Reserva.cancelar(Solicitante solicitante, LocalDateTime ahora, ParametrosReserva parametros)` (P4) | Revisa, en orden: política 14, que siga CONFIRMADA (ERR-RES-14; el caso de uso ya lo revisó, pero así el método no depende de quién lo llame); política 15, que `solicitante.usuarioId()` sea `jugadorId` (ERR-RES-15); política 16 (RN-10, D06, PAR-RES-05) con `sePuedeCancelarPorJugador`, que faltan **más** de `horasMinimasCancelacion` horas (ERR-RES-16; con exactamente 3 horas o con la reserva ya empezada, falla). Solo si pasa todo, política 19: `estado = CANCELADA`, `origenCancelacion = JUGADOR`, `fechaCancelacion = ahora` en Bogotá. `estado`, `origenCancelacion` y `fechaCancelacion` dejan de ser `final`, como `Cancha.estado` en HU10 |
 | Puerto de entrada | `CancelarReserva` con `Reserva ejecutar(UUID reservaId, Solicitante solicitante)` | Contrato del caso de uso |
 | Caso de uso | `CancelarReservaCasoUso`, con `TransactionOperations` como HU21 | En una transacción: (1) `ahora = LocalDateTime.now(reloj)`; (2) política 14, `buscarPorId` (si no existe, ERR-RES-14); (3) `reserva.cancelar(...)` con las políticas 14, 15, 16 y 19; (4) `cancelarSiSigueConfirmada(reserva)`; si devuelve falso, otra operación la cambió entre la lectura y la escritura y se lanza ERR-RES-14 (P3). No toma el turno de la cancha: cancelar libera una franja, no la ocupa, así que no puede crear un cruce. No envía correos (P2): HU25 los agrega después de la transacción (D15) |
 | Puerto de salida | `RepositorioReservas.buscarPorId(UUID)` → `Optional<Reserva>` y `boolean cancelarSiSigueConfirmada(Reserva)` | Nuevos |
@@ -76,6 +77,7 @@ No hace falta migración: la tabla ya tiene las columnas, los `CHECK` y la restr
 | CA3 | 422 `ERR-RES-16` con su texto del catálogo | `ca3Ca4Ca5LasReglasIncumplidasRespondenSuMensaje` (parametrizada) | REST |
 | CA3 | Con una reserva que empieza en 2 horas insertada por SQL: 422 `ERR-RES-16` y la fila sigue CONFIRMADA | `ca3FaltanDosHoras_422_ERR_RES_16` | Punta a punta |
 | CA4 | Reserva CANCELADA o NO_ASISTIO: ERR-RES-14 | `ca4NoConfirmada_ERR_RES_14` (parametrizada) | Dominio |
+| CA3 y CA5 | Si falla la política 15 o la 16, no se llama a `cancelarSiSigueConfirmada` | `ca3TresHorasOMenos_noSeGuarda` y `ca5OtroUsuario_noSeGuarda` | Caso de uso |
 | CA4 | No existe: ERR-RES-14 y no se actualiza nada. La actualización condicional devuelve falso (otra operación la cambió): ERR-RES-14 | `ca4NoExiste_ERR_RES_14` y `ca4CambiadaAlMismoTiempo_ERR_RES_14` | Caso de uso |
 | CA4 | Sobre una reserva ya CANCELADA, `cancelarSiSigueConfirmada` devuelve falso y no cambia el origen ni la fecha | `ca4CancelarSiSigueConfirmada_yaCancelada_devuelveFalso` | Persistencia |
 | CA4 | 404 `ERR-RES-14` por HTTP | `ca3Ca4Ca5LasReglasIncumplidasRespondenSuMensaje` | REST |
@@ -130,6 +132,6 @@ Para corregir en el Excel de origen (no se edita `docs/`):
 - Los correos de cancelación al jugador y al propietario (HU25, P2).
 - La cancelación del propietario por fuerza mayor, con justificación y hasta que empiece la reserva (HU32, políticas 17 y 18).
 - Cancelar desde el enlace del correo de confirmación de asistencia (HU26, `{enlaceCancelar}`).
-- La lista «Mis reservas» que trae los datos de CNF-RES-01 (HU23, en otra rama). Si HU23 también agrega `buscarPorId` a `RepositorioReservas`, al unir las ramas se queda uno solo.
+- La lista «Mis reservas» que trae los datos de CNF-RES-01 y el indicador `cancelable` (HU23, ya en `main`).
 - El texto de CNF-RES-01 en `catalogo-mensajes.properties`: el backend no lo usa; lo arma la pantalla.
 - La pantalla.

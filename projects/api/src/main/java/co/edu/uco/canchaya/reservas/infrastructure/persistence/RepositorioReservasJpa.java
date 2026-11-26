@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -159,6 +160,16 @@ class RepositorioReservasJpa implements RepositorioReservas {
 	@Transactional(readOnly = true)
 	public List<Reserva> deJugador(UUID jugadorId) {
 		return jpa.findByJugadorId(jugadorId).stream().map(ReservaEntidad::aDominio).toList();
+	}
+
+		@Override
+	public Optional<Reserva> buscarPorId(UUID id) {
+		throw new UnsupportedOperationException("HU24, tarea T3");
+	}
+
+	@Override
+	public boolean cancelarSiSigueConfirmada(Reserva reserva) {
+		throw new UnsupportedOperationException("HU24, tarea T3");
 	}
 
 	// Hibernate no saca el nombre de una restricción de exclusión, así que se mira el estado SQL
