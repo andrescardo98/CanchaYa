@@ -35,9 +35,10 @@ CanchaYa/
 │   ├── dominio/                    # Modelo de dominio enriquecido, un archivo por objeto
 │   ├── especificacion/             # Catálogos de mensajes y parámetros, aspectos generales
 │   ├── arquitectura/               # Drivers, tácticas, arquetipo y plataforma tecnológica
-│   └── diseno/                     # Diagramas de clases, componentes y modelo entidad relación
+│   ├── diseno/                     # Diagramas de clases, componentes y modelo entidad relación
+│   └── prototipos/                 # Capturas de las pantallas (celular y computador) y qué HU cubren
 ├── scripts/
-│   └── exportar_docs.py            # Regenera docs/ a partir de los Excel
+│   └── exportar_docs.py            # Regenera docs/ y el catálogo de mensajes del frontend
 ├── specs/                          # Especificación técnica de cada HU (escrita a mano)
 │   ├── README.md                   # Flujo, plantillas y estado de cada especificación
 │   └── HUnn-<nombre>/              # spec.md (contrato, CA → pruebas, preguntas) y tareas.md

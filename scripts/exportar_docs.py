@@ -14,7 +14,8 @@ Uso (desde la raíz del repositorio):
 Por defecto, la carpeta de documentos es ../Documentos (al lado del repositorio).
 
 Además de docs/, escribe el catálogo de mensajes que usa el frontend
-(projects/web/src/app/core/catalogo-mensajes.json).
+(projects/web/src/app/core/catalogo-mensajes.json) y copia las capturas de los
+prototipos a docs/prototipos/.
 """
 
 from __future__ import annotations
@@ -28,6 +29,7 @@ import warnings
 import zipfile
 from datetime import date
 from pathlib import Path
+from urllib.parse import quote
 
 import openpyxl
 
@@ -37,7 +39,7 @@ RAIZ_REPO = Path(__file__).resolve().parent.parent
 DOCS = RAIZ_REPO / "docs"
 CATALOGO_FRONTEND = RAIZ_REPO / "projects" / "web" / "src" / "app" / "core" / "catalogo-mensajes.json"
 CATALOGO_BACKEND = RAIZ_REPO / "projects" / "api" / "src" / "main" / "resources" / "catalogo-mensajes.properties"
-CARPETAS_GENERADAS = ("historias", "dominio", "especificacion", "arquitectura", "diseno")
+CARPETAS_GENERADAS = ("historias", "dominio", "especificacion", "arquitectura", "diseno", "prototipos")
 
 # Archivos que escribió esta corrida: al final se borran los generados que ya no salen.
 ESCRITOS: set[Path] = set()
@@ -260,6 +262,52 @@ def propiedades(ruta: Path) -> dict[str, str]:
             clave, valor = linea.split("=", 1)
             resultado[clave.strip()] = valor.strip()
     return resultado
+
+
+# --------------------------------------------------------------------------- prototipos
+
+
+def exportar_prototipos(origen: Path) -> None:
+    """Copia las capturas de los prototipos (celular y computador) y arma su índice.
+
+    El índice sale del Léame.txt de la carpeta, que dice qué HU cubre cada pantalla.
+    """
+    relativo = f"{APOYO}/Prototipos"
+    carpeta = origen / relativo
+    if not carpeta.is_dir():
+        print(f"Aviso: no encuentro {carpeta}; no se exportan los prototipos.")
+        return
+    destino = DOCS / "prototipos"
+    pantallas: dict[str, dict] = {}
+    for tamano in ("Celular", "Computador"):
+        for imagen in sorted((carpeta / tamano).glob("*.png")):
+            archivo = f"{nombre_archivo(imagen.stem)}.png"
+            copiar(imagen, destino / tamano.lower() / archivo, es_texto=False)
+            numero = imagen.stem.split(" ", 1)[0]
+            pantallas.setdefault(numero, {"nombre": imagen.stem.split(" ", 1)[-1], "hu": ""})
+            pantallas[numero][tamano] = f"{tamano.lower()}/{archivo}"
+
+    leame = carpeta / "Léame.txt"
+    if leame.exists():
+        for linea in leame.read_text(encoding="utf-8").splitlines():
+            encontrado = re.match(r"\s*(\d{2}) .*?\.{2,}\s*(HU\d+(?:, HU\d+)*)\s*$", linea)
+            if encontrado and encontrado[1] in pantallas:
+                pantallas[encontrado[1]]["hu"] = encontrado[2]
+
+    def enlace(p: dict, tamano: str) -> str:
+        return f"[{tamano}]({quote(p[tamano])})" if tamano in p else ""
+
+    filas = [[n, p["nombre"], p["hu"], enlace(p, "Celular"), enlace(p, "Computador")]
+             for n, p in sorted(pantallas.items())]
+    escribir(destino / "README.md", "\n".join([
+        "# Prototipos de pantalla\n",
+        AVISO.format(origen=relativo).replace("cambia el Excel", "cambia las capturas"),
+        "Prototipo de media fidelidad de las pantallas que citan las HU (fila «Prototipo» de "
+        "cada hoja HU). Cada pantalla está en dos tamaños: celular (390 px de ancho) y "
+        "computador (1366 px). Las pantallas se diseñan primero para el celular (AG-21). "
+        "HU22, HU25, HU26 y HU28 no tienen pantalla: solo envían correos.\n",
+        tabla(["N.º", "Pantalla", "HU", "Celular", "Computador"], filas),
+    ]))
 
 
 # --------------------------------------------------------------------------- historias de usuario
@@ -517,6 +565,8 @@ def main() -> None:
     ]:
         if (origen / fuente).exists():
             copiar(origen / fuente, DOCS / "diseno" / destino, es_texto=True)
+
+    exportar_prototipos(origen)
 
     # Lo que ya no sale de los Excel se borra; docs/README.md y docs/proyecto.md no se tocan.
     borrar_viejos()
