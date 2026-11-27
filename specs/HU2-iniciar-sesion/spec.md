@@ -1,6 +1,6 @@
 # HU2 · Iniciar sesión (solo la pantalla)
 
-**Estado:** Implementada (backend, antes de `specs/`) · Aprobada (pantalla, 26-nov-2026) · **HU:** [HU2](../../docs/historias/HU2.md) · **Módulo:** Identidad y acceso (`co.edu.uco.canchaya.identidad`) · **Alcance:** solo la pantalla
+**Estado:** Implementada (backend, antes de `specs/`) · Implementada (pantalla, 27-nov-2026; aprobada el 26-nov-2026) · **HU:** [HU2](../../docs/historias/HU2.md) · **Módulo:** Identidad y acceso (`co.edu.uco.canchaya.identidad`) · **Alcance:** solo la pantalla
 
 El backend se implementó antes de que existiera esta carpeta (PR de la rama `feat/HU2-iniciar-sesion`), así que esta especificación cubre **solo la pantalla** y el contrato se copia del código real. Es la primera pantalla del frontend: además del formulario, trae la sesión que necesitan las demás pantallas (guardar el token, enviarlo en cada petición y llevar al inicio de sesión cuando falta o venció).
 

@@ -85,7 +85,7 @@ Su backend se implementó antes de que existiera esta carpeta, así que no tiene
 
 | HU | Especificación | Estado |
 |---|---|---|
-| HU2 | [HU2-iniciar-sesion](HU2-iniciar-sesion/spec.md) (solo la pantalla) | Implementada (backend) · Aprobada (pantalla) |
+| HU2 | [HU2-iniciar-sesion](HU2-iniciar-sesion/spec.md) (solo la pantalla) | Implementada (backend) · Implementada (pantalla) |
 | HU8 | [HU8-modificar-escenario](HU8-modificar-escenario/spec.md) | Implementada |
 | HU9 | [HU9-modificar-cancha](HU9-modificar-cancha/spec.md) | Implementada |
 | HU10 | [HU10-cambiar-estado-cancha](HU10-cambiar-estado-cancha/spec.md) | Implementada |
