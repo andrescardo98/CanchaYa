@@ -57,6 +57,14 @@ Lo que se ve relacionado pero esta HU no pide (regla 5 de «Cómo trabajar una h
 - [ ] T5 · Verificación · ./mvnw verify y /pull-request
 ```
 
+## Preguntas pendientes para especificaciones futuras
+
+Preguntas que salieron antes de especificar la HU que las necesita. Cuando se escriba su `spec.md`, pasan a sus «Preguntas abiertas» y se borran de aquí.
+
+| HU | Pregunta |
+|---|---|
+| HU1 (pantalla) | ¿De dónde toma la pantalla el `{formatoEsperado}` de ERR-USU-13 para cada tipo de documento? Hoy está fijo en el enum `TipoDocumento` del dominio de identidad, no en `catalogo-mensajes.properties`, así que no llega a `catalogo-mensajes.json`. |
+
 ## Estado de las especificaciones
 
 | HU | Especificación | Estado |
