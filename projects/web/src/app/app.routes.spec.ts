@@ -18,7 +18,9 @@ describe('rutas', () => {
     expect(ruta('/administracion')?.canActivate).toContain(sesionGuard);
   });
 
-  it('AG-11: /canchas no exige sesión', () => {
+  it('AG-11: /canchas e /iniciar-sesion no exigen sesión', () => {
     expect(ruta('/canchas')?.canActivate).toBeUndefined();
+    expect(ruta('/iniciar-sesion')).toBeDefined();
+    expect(ruta('/iniciar-sesion')?.canActivate).toBeUndefined();
   });
 });
