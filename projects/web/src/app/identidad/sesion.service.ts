@@ -13,6 +13,9 @@ interface RespuestaInicioSesion {
   venceEn: string;
 }
 
+/** Pantalla de inicio de sesión. Allí llevan el interceptor (CA6) y el guard (CA5), con el aviso ERR-GEN-05 en el state. */
+export const RUTA_INICIO_SESION = '/iniciar-sesion';
+
 const CLAVE_TOKEN = 'canchaya.token';
 const CLAVE_ROL = 'canchaya.rol';
 
