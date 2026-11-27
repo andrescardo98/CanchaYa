@@ -22,7 +22,7 @@ Definido en el diseño arquitectónico: alternativa ALT-01 (D30) y plataforma te
 
 ## Cómo ejecutar en local
 
-**Requisitos:** Docker Desktop encendido y Java 21 (JDK). No hace falta instalar Maven: el backend trae su propio `mvnw`.
+**Requisitos:** Docker Desktop encendido, Java 21 (JDK) y Node.js 24 (LTS) con npm. No hace falta instalar Maven ni Angular CLI: el backend trae su propio `mvnw` y el frontend usa `npx ng`, con la versión de su `package.json`.
 
 1. Levanta la base de datos (PostgreSQL con PostGIS, puerto **5434**) y el buzón de correo de prueba (Mailpit), desde la raíz del repositorio:
 
@@ -39,13 +39,25 @@ Definido en el diseño arquitectónico: alternativa ALT-01 (D30) y plataforma te
 
 3. Comprueba que responde: <http://localhost:8080/actuator/health> debe mostrar `{"status":"UP"}`. Los correos que envía la aplicación se ven en <http://localhost:8025>.
 
-**Pruebas:** `./mvnw verify` desde `projects/api` (necesita Docker, porque las pruebas de base de datos usan Testcontainers).
+4. En otra terminal, ejecuta el frontend. La primera vez instala sus dependencias con `npm install`:
 
-Para apagar los servicios: `docker compose down` (conserva los datos) o `docker compose down -v` (los borra). Las variables de entorno, el usuario administrador de prueba y los demás comandos están en [projects/api/AGENTS.md](projects/api/AGENTS.md).
+   ```bash
+   cd projects/web
+   npm install
+   npx ng serve
+   ```
+
+   Abre <http://localhost:4200>. Las llamadas a `/api` pasan al backend del paso 2 por el proxy de desarrollo (`proxy.conf.json`), así que en local no hace falta CORS.
+
+**Pruebas:** `./mvnw verify` desde `projects/api` (necesita Docker, porque las pruebas de base de datos usan Testcontainers). En el frontend, desde `projects/web`: `npx ng test --watch=false` y `npx ng lint`.
+
+Para apagar los servicios: `docker compose down` (conserva los datos) o `docker compose down -v` (los borra). Las variables de entorno, el usuario administrador de prueba y los demás comandos están en [projects/api/AGENTS.md](projects/api/AGENTS.md); los del frontend, en [projects/web/AGENTS.md](projects/web/AGENTS.md).
 
 ## Despliegue
 
 Cada cambio que llega a `main` pasa por la integración continua (`.github/workflows/backend.yml`: compila, corre todas las pruebas y construye la imagen Docker). Render publica el backend automáticamente solo cuando esa revisión termina en verde. La base de datos está en Supabase y sus credenciales son variables secretas de Render: nunca se escriben en el repositorio (D35).
+
+El frontend tiene su propia integración continua (`.github/workflows/frontend.yml`: revisa el estilo, compila y corre las pruebas). Todavía no está publicado: irá en Render como Static Site, y antes hace falta CORS en el backend. Los pasos están en [projects/web/AGENTS.md](projects/web/AGENTS.md#despliegue-en-render-static-site-todavía-no-se-hace).
 
 ## Estructura del repositorio
 
@@ -62,7 +74,8 @@ CanchaYa/
 ├── docs/                     # Documentación del trabajo de grado en texto
 ├── scripts/                  # Utilidades (exportar la documentación)
 └── projects/                 # Proyectos de la aplicación, cada uno con su propia arquitectura
-    └── api/                  # Backend (Java 21 + Spring Boot)
+    ├── api/                  # Backend (Java 21 + Spring Boot)
+    └── web/                  # Frontend (Angular + Angular Material)
 ```
 
 El detalle de cada carpeta está en [AGENTS.md](AGENTS.md).

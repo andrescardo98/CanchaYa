@@ -23,7 +23,10 @@ CanchaYa/
 ├── .github/
 │   ├── pull_request_template.md    # Plantilla de pull request
 │   └── workflows/
-│       └── backend.yml             # CI: compila y prueba el backend en cada pull request
+│       ├── backend.yml             # CI: compila y prueba el backend en cada pull request
+│       ├── frontend.yml            # CI: revisa el estilo, compila y prueba el frontend
+│       └── sonarqube.yml           # Análisis de calidad y cobertura en SonarQube Cloud
+├── sonar-project.properties        # Configuración del análisis de SonarQube Cloud
 ├── docker-compose.yml              # Base de datos (PostGIS) y buzón de correo para desarrollo local
 ├── docs/                           # Documentación del trabajo de grado en texto (generada)
 │   ├── decisiones.md               # D01–D39: fuente de verdad
@@ -39,7 +42,8 @@ CanchaYa/
 │   ├── README.md                   # Flujo, plantillas y estado de cada especificación
 │   └── HUnn-<nombre>/              # spec.md (contrato, CA → pruebas, preguntas) y tareas.md
 └── projects/                       # Un proyecto por carpeta, cada uno con su propia arquitectura
-    └── api/                        # Backend: Java 21 + Spring Boot (Maven). Tiene su propio AGENTS.md
+    ├── api/                        # Backend: Java 21 + Spring Boot (Maven). Tiene su propio AGENTS.md
+    └── web/                        # Frontend: Angular + Angular Material (npm). Tiene su propio AGENTS.md
 ```
 
 | Ruta | Para qué sirve |
@@ -50,11 +54,12 @@ CanchaYa/
 | `.claude/` | Configuración de Claude Code del repositorio: permisos y skills, y más adelante agentes. |
 | `.github/pull_request_template.md` | Plantilla de los pull request: contexto, tipo de cambio e instrucciones de prueba. |
 | `.github/workflows/` | Integración continua (GitHub Actions). Un pull request con la CI en rojo no se une. |
+| `sonar-project.properties` | Qué analiza SonarQube Cloud (código, pruebas y reportes de cobertura de JaCoCo y Vitest). Lo usa `.github/workflows/sonarqube.yml`; el token va en el secreto `SONAR_TOKEN`. |
 | `docker-compose.yml` | Servicios para desarrollar en local: PostgreSQL con PostGIS (puerto 5434) y Mailpit (correos en <http://localhost:8025>). |
 | `docs/` | Copia en Markdown de los artefactos del trabajo de grado. **No se edita a mano**: se regenera con `scripts/exportar_docs.py`. Las excepciones son `docs/README.md` y `docs/proyecto.md`, que se escriben a mano. |
 | `scripts/` | Utilidades del repositorio que no son parte de la aplicación. |
 | `specs/` | El **cómo** de cada HU: contrato del servicio, diseño por capas, criterios → pruebas, preguntas abiertas y tareas. Se escribe a mano con el skill `especificar` y no repite lo que ya está en `docs/`: lo enlaza. El flujo está en [specs/README.md](specs/README.md). |
-| `projects/` | Proyectos de código, cada uno con su propia arquitectura. `api/` (el backend) ya existe; sus comandos y reglas están en [su AGENTS.md](projects/api/AGENTS.md). El frontend se agrega después. |
+| `projects/` | Proyectos de código, cada uno con su propia arquitectura. `api/` es el backend y `web/` el frontend; los comandos y las reglas de cada uno están en su propio AGENTS.md ([api](projects/api/AGENTS.md), [web](projects/web/AGENTS.md)). |
 
 ## Reglas para agentes
 
