@@ -42,13 +42,14 @@ jobs:
 
       - name: Instalar dependencias del frontend
         working-directory: projects/web
-        run: npm ci
+        # --ignore-scripts: no corre los scripts de instalación de las dependencias (riesgo de seguridad)
+        run: npm ci --ignore-scripts
 
       # Las rutas del reporte quedan relativas a projects/web; Sonar las necesita desde la raíz.
       - name: Probar el frontend con cobertura
         working-directory: projects/web
         run: |
-          npx ng test --watch=false --coverage --coverage-reporters=lcov
+          npm test -- --watch=false --coverage --coverage-reporters=lcov
           sed -i 's|^SF:|SF:projects/web/|' coverage/web/lcov.info
 
       - name: Guardar en caché los paquetes de Sonar
