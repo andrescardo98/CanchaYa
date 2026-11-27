@@ -31,6 +31,9 @@
 		<!-- Clave JWT solo para desarrollo local y pruebas. En Render va como variable secreta JWT_SECRETO (D35). -->
 		<jwt.secreto.local>clave-local-de-desarrollo-no-usar-en-render-0123456789</jwt.secreto.local>
 		<archunit.version>1.4.1</archunit.version>
+		<jacoco.version>0.8.16</jacoco.version>
+		<!-- JaCoCo llena argLine con su agente; vacío por si se corre sin JaCoCo -->
+		<argLine></argLine>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -138,12 +141,33 @@
 					</environmentVariables>
 				</configuration>
 			</plugin>
+			<!-- Cobertura de pruebas para SonarQube Cloud: deja target/site/jacoco/jacoco.xml al correr verify -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<id>preparar-agente</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>reporte</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<!-- Las pruebas corren con la zona horaria de la plataforma (D27) -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>-Duser.timezone=America/Bogota</argLine>
+					<argLine>@{argLine} -Duser.timezone=America/Bogota</argLine>
 					<environmentVariables>
 						<JWT_SECRETO>${jwt.secreto.local}</JWT_SECRETO>
 					</environmentVariables>
