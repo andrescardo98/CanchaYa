@@ -1,0 +1,48 @@
+# Integración continua del frontend: revisa el estilo (lint), compila y corre las pruebas
+# en cada pull request y en cada cambio a main. Si algo falla, el pull request queda en rojo
+# y no se debe unir.
+name: Frontend
+
+on:
+  pull_request:
+    paths:
+      - "projects/web/**"
+      - ".github/workflows/frontend.yml"
+  push:
+    branches: [main]
+    paths:
+      - "projects/web/**"
+      - ".github/workflows/frontend.yml"
+
+jobs:
+  revisar-compilar-y-probar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/web
+    env:
+      # Evita que Angular CLI pregunte si se pueden enviar estadísticas de uso.
+      NG_CLI_ANALYTICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Node.js 24 (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: projects/web/package-lock.json
+
+      # npm ci instala exactamente lo que dice package-lock.json (como un build reproducible de Maven).
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Revisar el estilo (lint)
+        run: npx ng lint
+
+      - name: Compilar
+        run: npx ng build
+
+      # Vitest corre las pruebas con jsdom, que simula el navegador sin abrir ninguno.
+      - name: Probar
+        run: npx ng test --watch=false
