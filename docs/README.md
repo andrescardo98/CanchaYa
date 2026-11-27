@@ -2,7 +2,7 @@
 
 Esta carpeta trae al repositorio, en texto, los artefactos de análisis y diseño del trabajo de grado. Así se pueden consultar mientras se programa, tanto tú como los agentes de IA, sin abrir los Excel.
 
-**Los Excel siguen siendo la fuente.** Todo lo que hay aquí, salvo este archivo y [proyecto.md](proyecto.md), lo genera `scripts/exportar_docs.py`. No lo edites a mano: cambia el Excel y vuelve a ejecutar el script (ver [Cómo actualizar](#cómo-actualizar)).
+**Los Excel siguen siendo la fuente.** Todo lo que hay aquí, salvo este archivo y [proyecto.md](proyecto.md), lo genera `scripts/exportar_docs.py`. El script también escribe el catálogo de mensajes del frontend (`projects/web/src/app/core/catalogo-mensajes.json`). No lo edites a mano: cambia el Excel y vuelve a ejecutar el script (ver [Cómo actualizar](#cómo-actualizar)).
 
 ## Qué consultar y cuándo
 
@@ -22,10 +22,11 @@ Esta carpeta trae al repositorio, en texto, los artefactos de análisis y diseñ
 | Clases, paquetes, atributos y métodos | [diseno/clases.md](diseno/clases.md) y [diseno/clases.mmd](diseno/clases.mmd) |
 | Componentes e interfaces entre módulos | [diseno/componentes.md](diseno/componentes.md) |
 | Tablas, columnas y restricciones de la base de datos | [diseno/entidad-relacion.md](diseno/entidad-relacion.md) y [diseno/entidad-relacion.mmd](diseno/entidad-relacion.mmd) |
+| Cómo se ve una pantalla en el celular y en el computador, y qué HU cubre | [prototipos/](prototipos/README.md) |
 
 **Diagramas.** Cada archivo muestra arriba de su hoja el diagrama que tiene pegado el Excel; las imágenes quedan en la carpeta `img/` de cada sección. El modelo de dominio muestra `Modelo de dominio Ampliado.drawio.png`. Del diagrama de clases y del modelo entidad relación también hay versión en texto (`.mmd`, Mermaid), que es la que mejor lee la IA.
 
-Las pantallas (prototipos en PNG) siguen en la carpeta de documentos, en `1.1.9.5. Artefactos apoyo/Prototipos`. Se traen al repositorio cuando empiece el frontend.
+**Prototipos.** Las capturas de `1.1.9.5. Artefactos apoyo/Prototipos` se copian a [prototipos/](prototipos/README.md), en `celular/` y `computador/`, con nombres sin espacios ni tildes (`01-registro-de-usuario.png`). El índice dice qué HU cubre cada pantalla y sale del `Léame.txt` de esa carpeta.
 
 ## Cómo actualizar
 

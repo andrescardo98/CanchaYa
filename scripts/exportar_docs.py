@@ -12,19 +12,24 @@ Uso (desde la raíz del repositorio):
     python scripts/exportar_docs.py [carpeta_documentos]
 
 Por defecto, la carpeta de documentos es ../Documentos (al lado del repositorio).
+
+Además de docs/, escribe el catálogo de mensajes que usa el frontend
+(projects/web/src/app/core/catalogo-mensajes.json) y copia las capturas de los
+prototipos a docs/prototipos/.
 """
 
 from __future__ import annotations
 
 import html
+import json
 import posixpath
 import re
-import shutil
 import sys
 import warnings
 import zipfile
 from datetime import date
 from pathlib import Path
+from urllib.parse import quote
 
 import openpyxl
 
@@ -32,6 +37,12 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 RAIZ_REPO = Path(__file__).resolve().parent.parent
 DOCS = RAIZ_REPO / "docs"
+CATALOGO_FRONTEND = RAIZ_REPO / "projects" / "web" / "src" / "app" / "core" / "catalogo-mensajes.json"
+CATALOGO_BACKEND = RAIZ_REPO / "projects" / "api" / "src" / "main" / "resources" / "catalogo-mensajes.properties"
+CARPETAS_GENERADAS = ("historias", "dominio", "especificacion", "arquitectura", "diseno", "prototipos")
+
+# Archivos que escribió esta corrida: al final se borran los generados que ya no salen.
+ESCRITOS: set[Path] = set()
 
 ESTRATEGICOS = "1. Artefactos proyecto/1.1. Artefactos estratégicos"
 TECNICOS = "1. Artefactos proyecto/1.2. Artefactos técnicos"
@@ -78,9 +89,39 @@ def filas_con_datos(ws):
             yield fila
 
 
-def escribir(ruta: Path, contenido: str) -> None:
+def guardar(ruta: Path, datos: bytes, es_texto: bool) -> None:
+    """Escribe el archivo solo si su contenido cambió.
+
+    En Windows, Git (core.autocrlf=true) deja los archivos de texto con CRLF al
+    descargarlos, aunque el repositorio los guarda con LF. Si el script los
+    reescribiera con LF, Git los marcaría como modificados sin que cambiara nada.
+    Por eso los textos se comparan sin tener en cuenta los finales de línea.
+    """
+    ESCRITOS.add(ruta.resolve())
+    if ruta.exists():
+        actual, nuevo = ruta.read_bytes(), datos
+        if es_texto:
+            actual, nuevo = actual.replace(b"\r\n", b"\n"), nuevo.replace(b"\r\n", b"\n")
+        if actual == nuevo:
+            return
     ruta.parent.mkdir(parents=True, exist_ok=True)
-    ruta.write_text(contenido.rstrip() + "\n", encoding="utf-8", newline="\n")
+    ruta.write_bytes(datos)
+
+
+def escribir(ruta: Path, contenido: str) -> None:
+    guardar(ruta, (contenido.rstrip() + "\n").encode("utf-8"), es_texto=True)
+
+
+def copiar(fuente: Path, destino: Path, es_texto: bool) -> None:
+    guardar(destino, fuente.read_bytes(), es_texto)
+
+
+def borrar_viejos() -> None:
+    """Borra los archivos generados en una corrida anterior que esta ya no produjo."""
+    for carpeta in CARPETAS_GENERADAS:
+        for ruta in (DOCS / carpeta).rglob("*"):
+            if ruta.is_file() and ruta.resolve() not in ESCRITOS:
+                ruta.unlink()
 
 
 def libro(origen: Path, relativo: str):
@@ -170,11 +211,103 @@ def exportar_libro(origen: Path, relativo: str, destino: Path, titulo: str,
         figuras = []
         for n, (media, datos) in enumerate(imagenes.get(ws.title, []), start=1):
             archivo = f"{destino.stem}-{nombre_archivo(ws.title)}-{n}{Path(media).suffix}"
-            (destino.parent / "img").mkdir(parents=True, exist_ok=True)
-            (destino.parent / "img" / archivo).write_bytes(datos)
+            guardar(destino.parent / "img" / archivo, datos, es_texto=False)
             figuras.append(f"![{ws.title}](img/{archivo})\n")
         partes.append(f"## {ws.title}\n\n" + "\n".join(figuras) + cuerpo)
     escribir(destino, "\n".join(partes))
+
+
+# --------------------------------------------------------------------------- catálogo para el frontend
+
+
+def exportar_mensajes_frontend(origen: Path, relativo: str) -> None:
+    """Escribe en el frontend los mensajes de tipo Usuario: código → texto con sus marcadores.
+
+    Angular lo importa al compilar (queda dentro del JavaScript), así que el texto está
+    disponible desde el primer momento y en las pruebas, sin pedirlo por HTTP.
+    """
+    ws = libro(origen, relativo)["Mensajes"]
+    filas = list(ws.iter_rows(values_only=True))
+    inicio = next(i for i, f in enumerate(filas) if f and texto(f[0]) == "Código")
+    columna = {texto(v): i for i, v in enumerate(filas[inicio]) if texto(v)}
+    mensajes = {}
+    for f in filas[inicio + 1 :]:
+        codigo = str(f[columna["Código"]] or "").strip()
+        if codigo and str(f[columna["Tipo"]] or "").strip() == "Usuario":
+            mensajes[codigo] = str(f[columna["Mensaje"]]).strip()
+    # El Excel no trae el nombre de cada campo ni su formato esperado: los tiene el backend
+    # (campo.*, formato.* y ERR-GEN-03.sin-minimo), y son los que usa ManejadorErrores.
+    backend = propiedades(CATALOGO_BACKEND)
+    mensajes["ERR-GEN-03.sin-minimo"] = backend["ERR-GEN-03.sin-minimo"]
+    contenido = {
+        "aviso": ("Archivo generado por scripts/exportar_docs.py. No lo edites a mano: cambia el "
+                  "origen y vuelve a ejecutar el script. Los mensajes salen de "
+                  f"{relativo}; los campos, los formatos y ERR-GEN-03.sin-minimo, de "
+                  "projects/api/src/main/resources/catalogo-mensajes.properties."),
+        "mensajes": mensajes,
+        "campos": {k.removeprefix("campo."): v for k, v in backend.items()
+                   if k.startswith("campo.")},
+        "formatos": {k.removeprefix("formato."): v for k, v in backend.items()
+                     if k.startswith("formato.")},
+    }
+    escribir(CATALOGO_FRONTEND, json.dumps(contenido, ensure_ascii=False, indent=2))
+
+
+def propiedades(ruta: Path) -> dict[str, str]:
+    """Lee un .properties sencillo en UTF-8: clave=valor, sin líneas partidas ni escapes."""
+    resultado = {}
+    for linea in ruta.read_text(encoding="utf-8").splitlines():
+        linea = linea.strip()
+        if linea and not linea.startswith(("#", "!")) and "=" in linea:
+            clave, valor = linea.split("=", 1)
+            resultado[clave.strip()] = valor.strip()
+    return resultado
+
+
+# --------------------------------------------------------------------------- prototipos
+
+
+def exportar_prototipos(origen: Path) -> None:
+    """Copia las capturas de los prototipos (celular y computador) y arma su índice.
+
+    El índice sale del Léame.txt de la carpeta, que dice qué HU cubre cada pantalla.
+    """
+    relativo = f"{APOYO}/Prototipos"
+    carpeta = origen / relativo
+    if not carpeta.is_dir():
+        print(f"Aviso: no encuentro {carpeta}; no se exportan los prototipos.")
+        return
+    destino = DOCS / "prototipos"
+    pantallas: dict[str, dict] = {}
+    for tamano in ("Celular", "Computador"):
+        for imagen in sorted((carpeta / tamano).glob("*.png")):
+            archivo = f"{nombre_archivo(imagen.stem)}.png"
+            copiar(imagen, destino / tamano.lower() / archivo, es_texto=False)
+            numero = imagen.stem.split(" ", 1)[0]
+            pantallas.setdefault(numero, {"nombre": imagen.stem.split(" ", 1)[-1], "hu": ""})
+            pantallas[numero][tamano] = f"{tamano.lower()}/{archivo}"
+
+    leame = carpeta / "Léame.txt"
+    if leame.exists():
+        for linea in leame.read_text(encoding="utf-8").splitlines():
+            encontrado = re.match(r"\s*(\d{2}) .*?\.{2,}\s*(HU\d+(?:, HU\d+)*)\s*$", linea)
+            if encontrado and encontrado[1] in pantallas:
+                pantallas[encontrado[1]]["hu"] = encontrado[2]
+
+    def enlace(p: dict, tamano: str) -> str:
+        return f"[{tamano}]({quote(p[tamano])})" if tamano in p else ""
+
+    filas = [[n, p["nombre"], p["hu"], enlace(p, "Celular"), enlace(p, "Computador")]
+             for n, p in sorted(pantallas.items())]
+    escribir(destino / "README.md", "\n".join([
+        "# Prototipos de pantalla\n",
+        AVISO.format(origen=relativo).replace("cambia el Excel", "cambia las capturas"),
+        "Prototipo de media fidelidad de las pantallas que citan las HU (fila «Prototipo» de "
+        "cada hoja HU). Cada pantalla está en dos tamaños: celular (390 px de ancho) y "
+        "computador (1366 px). Las pantallas se diseñan primero para el celular (AG-21). "
+        "HU22, HU25, HU26 y HU28 no tienen pantalla: solo envían correos.\n",
+        tabla(["N.º", "Pantalla", "HU", "Celular", "Computador"], filas),
+    ]))
 
 
 # --------------------------------------------------------------------------- historias de usuario
@@ -269,9 +402,14 @@ def exportar_dominio(origen: Path) -> None:
         "Referencia oficial del dominio: atributos, combinaciones únicas, responsabilidades y "
         "políticas (reglas de negocio) de cada objeto. Toda entidad lleva `id` UUID generado "
         "en el servidor y los atributos van en camelCase.\n",
-        tabla(["Objeto", "Descripción"],
-              [[f"[{o[0]}]({nombre_archivo(o[0])}.md)", o[1]] for o in objetos]),
     ]
+    # Diagrama del modelo de dominio: está como imagen suelta, no dentro del Excel.
+    imagen = f"{ESTRATEGICOS}/1.1.4. Modelo de dominio/Modelo de dominio Ampliado.drawio.png"
+    if (origen / imagen).exists():
+        copiar(origen / imagen, carpeta / "img" / "modelo-de-dominio.png", es_texto=False)
+        indice.append(f"![Modelo de dominio](img/modelo-de-dominio.png)\n\n_Imagen: `{imagen}`._\n")
+    indice.append(tabla(["Objeto", "Descripción"],
+                        [[f"[{o[0]}]({nombre_archivo(o[0])}.md)", o[1]] for o in objetos]))
     escribir(carpeta / "README.md", "\n".join(indice))
     for o in objetos:
         if o[0] in wb.sheetnames:
@@ -373,11 +511,7 @@ def main() -> None:
     if not (origen / "decisiones.md").exists():
         sys.exit(f"No encuentro decisiones.md en {origen}. Indica la carpeta de documentos.")
 
-    # Se borra lo generado antes para que no queden archivos viejos. docs/README.md se conserva.
-    DOCS.mkdir(exist_ok=True)
-    for carpeta in ("historias", "dominio", "especificacion", "arquitectura", "diseno"):
-        shutil.rmtree(DOCS / carpeta, ignore_errors=True)
-    shutil.copyfile(origen / "decisiones.md", DOCS / "decisiones.md")
+    copiar(origen / "decisiones.md", DOCS / "decisiones.md", es_texto=True)
 
     exportar_historias(origen)
     exportar_dominio(origen)
@@ -385,6 +519,7 @@ def main() -> None:
     exportar_libro(origen, f"{APOYO}/Catálogo de mensajes - CanchaYa.xlsx",
                    DOCS / "especificacion" / "mensajes.md", "Catálogo de mensajes",
                    tabulares=("Mensajes", "Plantillas de correo"))
+    exportar_mensajes_frontend(origen, f"{APOYO}/Catálogo de mensajes - CanchaYa.xlsx")
     exportar_libro(origen, f"{APOYO}/Catálogo de parámetros - CanchaYa.xlsx",
                    DOCS / "especificacion" / "parametros.md", "Catálogo de parámetros",
                    tabulares=("Parámetros",))
@@ -429,19 +564,12 @@ def main() -> None:
         (f"{det}/6. Modelo entidad relación/Modelo entidad relación - CanchaYa.mmd", "entidad-relacion.mmd"),
     ]:
         if (origen / fuente).exists():
-            shutil.copyfile(origen / fuente, DOCS / "diseno" / destino)
+            copiar(origen / fuente, DOCS / "diseno" / destino, es_texto=True)
 
-    # Diagrama del modelo de dominio: está como imagen suelta, no dentro del Excel.
-    imagen = f"{ESTRATEGICOS}/1.1.4. Modelo de dominio/Modelo de dominio Ampliado.drawio.png"
-    if (origen / imagen).exists():
-        (DOCS / "dominio" / "img").mkdir(exist_ok=True)
-        shutil.copyfile(origen / imagen, DOCS / "dominio" / "img" / "modelo-de-dominio.png")
-        indice = DOCS / "dominio" / "README.md"
-        texto_indice = indice.read_text(encoding="utf-8")
-        indice.write_text(texto_indice.replace(
-            "\n| Objeto |",
-            f"\n![Modelo de dominio](img/modelo-de-dominio.png)\n\n_Imagen: `{imagen}`._\n\n| Objeto |", 1),
-            encoding="utf-8", newline="\n")
+    exportar_prototipos(origen)
+
+    # Lo que ya no sale de los Excel se borra; docs/README.md y docs/proyecto.md no se tocan.
+    borrar_viejos()
 
     print(f"Documentos exportados en {DOCS}")
 

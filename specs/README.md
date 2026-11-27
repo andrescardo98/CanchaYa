@@ -1,6 +1,6 @@
 # Especificaciones técnicas
 
-Esta carpeta guarda **cómo** se construye cada historia de usuario. El **qué** ya está en `docs/` (HU, criterios de aceptación, dominio, mensajes, parámetros y decisiones) y no se repite aquí: se enlaza.
+Esta carpeta guarda **cómo** se construye cada historia de usuario, en el backend y en la pantalla. El **qué** ya está en `docs/` (HU, criterios de aceptación, dominio, mensajes, parámetros y decisiones) y no se repite aquí: se enlaza.
 
 A diferencia de `docs/`, esta carpeta **se escribe a mano** (con ayuda del skill `especificar`) y se revisa como cualquier código. Si una especificación contradice las decisiones D01–D39, mandan las decisiones.
 
@@ -8,11 +8,13 @@ A diferencia de `docs/`, esta carpeta **se escribe a mano** (con ayuda del skill
 
 | Paso | Qué se hace | Resultado |
 |---|---|---|
-| 1. Especificar | `/especificar HUnn`: el agente lee la HU y sus fuentes y escribe `spec.md` y `tareas.md` | Carpeta `specs/HUnn-<nombre>/` con estado **Borrador** |
+| 1. Especificar | `/especificar HUnn`: el agente decide el alcance (backend y pantalla, solo backend o solo pantalla), lee la HU, sus fuentes y su prototipo, y escribe `spec.md` y `tareas.md` | Carpeta `specs/HUnn-<nombre>/` con estado **Borrador** |
 | 2. Resolver preguntas | El desarrollador responde las «Preguntas abiertas». Las contradicciones con `docs/` se reportan y se corrigen en el Excel de origen | Sin preguntas bloqueantes |
 | 3. Aprobar | El desarrollador revisa el contrato y la tabla de criterios → pruebas, y cambia el estado a **Aprobada**. Esta aprobación reemplaza a la del plan en el chat (paso 1 de «Cómo trabajar una historia de usuario» en `AGENTS.md`) | `spec.md` aprobado |
-| 4. Implementar | Una tarea de `tareas.md` a la vez, por capas, con la prueba del criterio primero. Al terminar cada tarea se marca `[x]` y se explica | Código y pruebas |
-| 5. Verificar y abrir el PR | Cada CA tiene su prueba, `./mvnw verify` pasa y se usa `/pull-request` | Estado **Implementada** |
+| 4. Implementar | Una tarea de `tareas.md` a la vez, por capas (dominio → caso de uso → persistencia → REST → pantalla), con la prueba del criterio primero. Al terminar cada tarea se marca `[x]` y se explica | Código y pruebas |
+| 5. Verificar y abrir el PR | Cada CA tiene su prueba; pasa `./mvnw verify` si se tocó el backend, y `npx ng lint`, `npx ng test --watch=false` y `npx ng build` si se tocó el frontend; se usa `/pull-request` | Estado **Implementada** |
+
+**Alcance.** Una especificación puede cubrir el backend y la pantalla, solo el backend (HU que solo envían correos o corren solas) o solo la pantalla. Cuando el backend ya está implementado, la pantalla se agrega al `spec.md` que ya existe (con un estado para cada parte, por ejemplo `Implementada (backend) · Borrador (pantalla)`). Si la HU se hizo antes de que existiera esta carpeta, se escribe un `spec.md` nuevo de solo la pantalla, con el contrato **tomado del código real** y no inventado.
 
 Si al implementar aparece algo que la especificación no previó, primero se corrige `spec.md` y después el código. La especificación siempre describe lo que el código hace.
 
@@ -21,22 +23,31 @@ Si al implementar aparece algo que la especificación no previó, primero se cor
 ```markdown
 # HUnn · <Nombre de la HU>
 
-**Estado:** Borrador | Aprobada | Implementada · **HU:** [HUnn](../../docs/historias/HUnn.md) · **Módulo:** <módulo>
+**Estado:** Borrador | Aprobada | Implementada (uno por parte si hay dos: `Implementada (backend) · Borrador (pantalla)`) · **HU:** [HUnn](../../docs/historias/HUnn.md) · **Módulo:** <módulo> · **Alcance:** backend y pantalla | solo backend | solo pantalla
 
 ## Fuentes
-Hojas del dominio, mensajes, parámetros, aspectos generales y decisiones que aplican, con enlace.
+Hojas del dominio, mensajes, parámetros, aspectos generales, decisiones y prototipo que aplican, con enlace.
 
 ## Qué se construye
-Dos o tres frases: qué cambia para el usuario y qué parte queda para el frontend.
+Dos o tres frases: qué cambia para el usuario, en el backend y en la pantalla.
 
 ## Contrato del servicio
-Método y ruta, quién lo puede usar, entrada, respuesta exitosa y tabla código HTTP ↔ código de mensaje.
+Método y ruta, quién lo puede usar, entrada, respuesta exitosa y tabla código HTTP ↔ código de mensaje. Si el backend ya está implementado, se copia del código (controlador, records `Solicitud*` y `Respuesta*`, `ManejadorErrores`, `ConfiguracionSeguridad`) citando cada archivo.
 
 ## Diseño por capas
-Clases nuevas o que cambian, por capa (dominio, caso de uso, puertos, persistencia, REST), con la política que implementa cada una.
+Clases nuevas o que cambian, por capa (dominio, caso de uso, puertos, persistencia, REST), con la política que implementa cada una. En «solo pantalla»: «No cambia: el backend ya está», con el enlace al código.
+
+## Pantalla
+Se omite si la HU no tiene pantalla.
+- **Prototipo:** enlaces a celular y computador en [docs/prototipos/](../../docs/prototipos/README.md) y diferencias con la HU, si las hay.
+- **Ruta:** dirección en `app.routes.ts` y si exige sesión (AG-11).
+- **Componentes y servicio:** carpeta del área (`identidad/registro/`), componente, servicio HTTP que llama al contrato y piezas de Angular Material.
+- **Formulario:** validaciones que solo guían al usuario antes de enviar (AC-03.1), con el mensaje que muestra cada una (`MensajesService`, ERR-GEN-01 a 04).
+- **Respuestas del backend:** qué se muestra en cada caso del contrato (el `mensaje` de la `RespuestaError` tal como llega, en el campo si trae `campo`) y a dónde se va después del éxito.
+- **CA en la pantalla:** qué criterios se ven en la pantalla y con qué prueba de Vitest (`it('CAn: …')`, con `HttpTestingController`).
 
 ## Criterios de aceptación → pruebas
-| CA | Qué se verifica | Prueba | Capa |
+| CA | Qué se verifica | Prueba | Capa (Dominio, Caso de uso, Persistencia, REST, Punta a punta o Pantalla) |
 
 ## Preguntas abiertas
 Lo que falta decidir, contradicciones entre documentos y parámetros «Por definir». Cada una trae una recomendación y dice si bloquea.
@@ -54,8 +65,22 @@ Lo que se ve relacionado pero esta HU no pide (regla 5 de «Cómo trabajar una h
 - [ ] T2 · Caso de uso · ...
 - [ ] T3 · Persistencia · ...
 - [ ] T4 · REST · ...
-- [ ] T5 · Verificación · ./mvnw verify y /pull-request
+- [ ] T5 · Pantalla · <componente o servicio> (CAn)
+- [ ] T6 · Verificación · ./mvnw verify (si se tocó el backend); npx ng lint, npx ng test --watch=false y npx ng build (si se tocó el frontend); /pull-request
 ```
+
+## Pendientes para especificaciones futuras
+
+Propuestas y preguntas que salieron antes de especificar la HU que las necesita. Cuando se escriba su `spec.md` (en la rama de la HU), las propuestas se usan como punto de partida, las preguntas pasan a sus «Preguntas abiertas» y la fila se borra de aquí.
+
+### HU1 y HU2: solo la pantalla
+
+Su backend se implementó antes de que existiera esta carpeta, así que no tienen `spec.md`. Se propone una especificación de **solo la pantalla** para cada una, con `/especificar HUnn pantalla`, y el contrato copiado del código. Se recomienda empezar por HU2: trae la sesión que necesitan las demás pantallas, y al terminar el registro (HU1, CA11) se lleva al usuario a la pantalla de inicio de sesión.
+
+| HU | Carpeta | Contrato (del código) | Prototipo | Pruebas de pantalla | Preguntas para su `spec.md` |
+|---|---|---|---|---|---|
+| HU2 | `specs/HU2-iniciar-sesion/` | `POST /api/sesiones` (público): `SesionController`, `SolicitudInicioSesion` (`correoElectronico`, `contrasena`), `RespuestaInicioSesion` (`token`, `rol`, `venceEn`); ERR-USU-06/07 y ERR-USU-16 en `ManejadorErrores` | [02 Inicio de sesión](../docs/prototipos/README.md) | CA2 (validaciones antes de enviar), CA3, CA4 y CA7 (mensaje del backend tal como llega), CA5 y CA6 (guardar el token, llevar a la pantalla de inicio de sesión con ERR-GEN-05 y borrar el token vencido) | Dónde se guarda el token: se recomienda `localStorage`, porque CA1 dice que «se guarda en el dispositivo» y `sessionStorage` se borra al cerrar la pestaña; se confirma en el `spec.md`. La página de inicio de cada rol ya la dice la conversación de HU2 (jugador → búsqueda de canchas, administrador de cancha → sus escenarios, administrador del sistema → administración de la plataforma); la pregunta es qué hacer mientras esas pantallas no existan. CA5 y CA6 necesitan `SesionService`, un interceptor que agregue el token y un guard de rutas: van en esta HU. La lista «Usuarios de ejemplo» del prototipo no se construye. |
+| HU1 | `specs/HU1-registrar-usuario/` | `POST /api/usuarios` y `GET /api/usuarios/correo-disponible` (públicos): `UsuarioController`, `SolicitudRegistro` (validaciones con su código), `CorreoDisponible`, `RespuestaRegistro` con EXI-USU-01; ERR-USU-01 a 03 y 12 a 15 | [01 Registro de usuario](../docs/prototipos/README.md) | CA6 y CA7 (validar al salir del campo, con `MensajesService`), CA8 (correo repetido al salir del campo, con `correo-disponible`), CA2, CA9, CA10, CA12 y CA13 (mensajes junto al campo), CA1 y CA11 (EXI-USU-01 y paso a iniciar sesión) | De dónde toma la pantalla el `{formatoEsperado}` de ERR-USU-13 y la ayuda «Formato: de 6 a 10 dígitos» de cada tipo de documento: hoy está fijo en el enum `TipoDocumento` del dominio de identidad y no llega a `catalogo-mensajes.json`. El prototipo no muestra la declaración de autorización para TI (CA13): ¿aparece solo cuando se elige TI? La ayuda del celular del prototipo («+57 300 123 4567», con espacios) no coincide con `formato.numeroCelular` ni con la validación del backend, que no admite espacios. De dónde sale la lista de tipos de documento (fija en la pantalla o desde el backend). |
 
 ## Estado de las especificaciones
 

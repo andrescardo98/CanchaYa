@@ -41,7 +41,8 @@ El código siempre importa `environment.ts`; en `development`, `angular.json` lo
 ```
 src/
 ├── app/
-│   ├── core/              # Piezas compartidas, como transversal: modelos.ts (RespuestaError)
+│   ├── core/              # Piezas compartidas, como transversal: modelos.ts (RespuestaError),
+│   │                      # mensajes.service.ts y catalogo-mensajes.json (generado, no se edita)
 │   ├── identidad/         # Una carpeta por módulo del backend
 │   ├── ubicacion/
 │   ├── escenarios/
@@ -60,7 +61,7 @@ Cada pantalla va en la carpeta del área cuyo módulo del backend la atiende (`i
 ## Reglas
 
 1. **Ninguna regla de negocio va en el frontend (RT-01).** La disponibilidad, los límites, los permisos y los estados los decide el backend; la pantalla solo muestra lo que responde. Las validaciones de los formularios solo guían al usuario antes de enviar (AC-03.1): repiten las del backend, no las reemplazan.
-2. **No se escriben textos de mensajes a mano (regla 6 de la raíz).** Si el error viene del backend, se muestra el `mensaje` de la `RespuestaError` tal como llega. Los mensajes que detecta la pantalla antes de llamar al backend salen del catálogo por su código.
+2. **No se escriben textos de mensajes a mano (regla 6 de la raíz).** Si el error viene del backend, se muestra el `mensaje` de la `RespuestaError` tal como llega. Los mensajes que detecta la pantalla antes de llamar al backend salen del catálogo por su código, con `MensajesService` (`texto(codigo, ...parametros)`, y `obligatorio`, `formatoInvalido`, `longitud` y `rango` para ERR-GEN-01 a 04, que arman el mismo texto que el backend). Sus textos están en `core/catalogo-mensajes.json`, que genera `scripts/exportar_docs.py`: no se edita a mano.
 3. **Las fechas y horas se muestran en `America/Bogota` (D27)**, sin importar la zona horaria del dispositivo.
 4. **Las pantallas se diseñan primero para el celular** y después se adaptan al computador: todas deben funcionar en los dos (AG-21, táctica AC-03.2).
 5. **Cada CA de la pantalla tiene su prueba**, con el código del criterio en el nombre (`it('CA2: …')`). El backend se reemplaza con `HttpTestingController`.
