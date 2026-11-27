@@ -59,11 +59,14 @@ Lee `.github/pull_request_template.md` y respeta sus encabezados y su orden. Eli
 - Contrasta los tipos con el diff: si un commit `docs` cambia código, o hay cambios en contratos de API o migraciones sin `!`, avísale al usuario.
 
 **Instrucciones de prueba** — es la sección más importante: otro agente la va a seguir para verificar el pull request.
-- **Preparación**: comandos exactos para levantar lo necesario (base de datos, backend, frontend), datos de prueba y variables de entorno. Usa los comandos reales del proyecto (revisa `pom.xml`, `package.json`, `docker-compose.yml`); no supongas.
+- **Preparación**: comandos exactos para levantar lo necesario (base de datos, backend, frontend), datos de prueba y variables de entorno. Usa los comandos reales del proyecto (revisa `pom.xml`, `package.json`, `docker-compose.yml` y «Cómo ejecutar en local» del `README.md`); no supongas.
+  - Si el diff toca `projects/web/`, incluye levantar el frontend: `docker compose up -d` desde la raíz, el backend con `./mvnw spring-boot:run` desde `projects/api` (la pantalla lo llama por el proxy de `proxy.conf.json`) y, en otra terminal, desde `projects/web`, `npm install` (la primera vez o si cambió `package-lock.json`) y `npx ng serve`; la pantalla queda en <http://localhost:4200>. Di con qué usuario se entra si la pantalla exige sesión.
+  - Si el cambio del frontend no tiene pantalla que se pueda abrir (un servicio, una configuración), basta con las pruebas automatizadas; dilo.
 - **Verificación de criterios de aceptación**: una fila por criterio de la HU (`CA1`, `CA2`, …), con el texto del criterio, pasos concretos y reproducibles (pantalla, endpoint, petición HTTP o comando) y el resultado esperado observable (mensaje del catálogo por su código, código HTTP, dato persistido, correo enviado).
   - Incluye los caminos de error que exige el criterio, con el código del mensaje (`ERR-RES-nn`, etc.).
   - Si un criterio no queda cubierto por este pull request, dilo en la fila («No cubierto: se implementa en …»).
-- **Pruebas automatizadas**: los comandos que ejecutan las pruebas que agrega o afecta el cambio.
+  - Si el pull request trae la pantalla, los pasos de cada criterio se hacen en ella: qué ruta abrir (`http://localhost:4200/...`), qué escribir o pulsar y qué debe verse (el texto del mensaje con su código). Pide revisarla en tamaño celular (390 px de ancho, con las herramientas de desarrollo del navegador) y en computador (AG-21), comparándola con su prototipo de `docs/prototipos/`.
+- **Pruebas automatizadas**: los comandos que ejecutan las pruebas que agrega o afecta el cambio: `./mvnw verify` desde `projects/api` si toca el backend; `npx ng lint`, `npx ng test --watch=false` y `npx ng build` desde `projects/web` si toca el frontend.
 - **Fuera del alcance de esta verificación**: lo que no se probó y por qué, o «Nada».
 
 ### 4. Verificar la plantilla llena

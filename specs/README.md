@@ -1,6 +1,6 @@
 # Especificaciones técnicas
 
-Esta carpeta guarda **cómo** se construye cada historia de usuario. El **qué** ya está en `docs/` (HU, criterios de aceptación, dominio, mensajes, parámetros y decisiones) y no se repite aquí: se enlaza.
+Esta carpeta guarda **cómo** se construye cada historia de usuario, en el backend y en la pantalla. El **qué** ya está en `docs/` (HU, criterios de aceptación, dominio, mensajes, parámetros y decisiones) y no se repite aquí: se enlaza.
 
 A diferencia de `docs/`, esta carpeta **se escribe a mano** (con ayuda del skill `especificar`) y se revisa como cualquier código. Si una especificación contradice las decisiones D01–D39, mandan las decisiones.
 
@@ -8,11 +8,13 @@ A diferencia de `docs/`, esta carpeta **se escribe a mano** (con ayuda del skill
 
 | Paso | Qué se hace | Resultado |
 |---|---|---|
-| 1. Especificar | `/especificar HUnn`: el agente lee la HU y sus fuentes y escribe `spec.md` y `tareas.md` | Carpeta `specs/HUnn-<nombre>/` con estado **Borrador** |
+| 1. Especificar | `/especificar HUnn`: el agente decide el alcance (backend y pantalla, solo backend o solo pantalla), lee la HU, sus fuentes y su prototipo, y escribe `spec.md` y `tareas.md` | Carpeta `specs/HUnn-<nombre>/` con estado **Borrador** |
 | 2. Resolver preguntas | El desarrollador responde las «Preguntas abiertas». Las contradicciones con `docs/` se reportan y se corrigen en el Excel de origen | Sin preguntas bloqueantes |
 | 3. Aprobar | El desarrollador revisa el contrato y la tabla de criterios → pruebas, y cambia el estado a **Aprobada**. Esta aprobación reemplaza a la del plan en el chat (paso 1 de «Cómo trabajar una historia de usuario» en `AGENTS.md`) | `spec.md` aprobado |
-| 4. Implementar | Una tarea de `tareas.md` a la vez, por capas, con la prueba del criterio primero. Al terminar cada tarea se marca `[x]` y se explica | Código y pruebas |
-| 5. Verificar y abrir el PR | Cada CA tiene su prueba, `./mvnw verify` pasa y se usa `/pull-request` | Estado **Implementada** |
+| 4. Implementar | Una tarea de `tareas.md` a la vez, por capas (dominio → caso de uso → persistencia → REST → pantalla), con la prueba del criterio primero. Al terminar cada tarea se marca `[x]` y se explica | Código y pruebas |
+| 5. Verificar y abrir el PR | Cada CA tiene su prueba; pasa `./mvnw verify` si se tocó el backend, y `npx ng lint`, `npx ng test --watch=false` y `npx ng build` si se tocó el frontend; se usa `/pull-request` | Estado **Implementada** |
+
+**Alcance.** Una especificación puede cubrir el backend y la pantalla, solo el backend (HU que solo envían correos o corren solas) o solo la pantalla. Cuando el backend ya está implementado, la pantalla se agrega al `spec.md` que ya existe (con un estado para cada parte, por ejemplo `Implementada (backend) · Borrador (pantalla)`). Si la HU se hizo antes de que existiera esta carpeta, se escribe un `spec.md` nuevo de solo la pantalla, con el contrato **tomado del código real** y no inventado.
 
 Si al implementar aparece algo que la especificación no previó, primero se corrige `spec.md` y después el código. La especificación siempre describe lo que el código hace.
 
@@ -21,22 +23,31 @@ Si al implementar aparece algo que la especificación no previó, primero se cor
 ```markdown
 # HUnn · <Nombre de la HU>
 
-**Estado:** Borrador | Aprobada | Implementada · **HU:** [HUnn](../../docs/historias/HUnn.md) · **Módulo:** <módulo>
+**Estado:** Borrador | Aprobada | Implementada (uno por parte si hay dos: `Implementada (backend) · Borrador (pantalla)`) · **HU:** [HUnn](../../docs/historias/HUnn.md) · **Módulo:** <módulo> · **Alcance:** backend y pantalla | solo backend | solo pantalla
 
 ## Fuentes
-Hojas del dominio, mensajes, parámetros, aspectos generales y decisiones que aplican, con enlace.
+Hojas del dominio, mensajes, parámetros, aspectos generales, decisiones y prototipo que aplican, con enlace.
 
 ## Qué se construye
-Dos o tres frases: qué cambia para el usuario y qué parte queda para el frontend.
+Dos o tres frases: qué cambia para el usuario, en el backend y en la pantalla.
 
 ## Contrato del servicio
-Método y ruta, quién lo puede usar, entrada, respuesta exitosa y tabla código HTTP ↔ código de mensaje.
+Método y ruta, quién lo puede usar, entrada, respuesta exitosa y tabla código HTTP ↔ código de mensaje. Si el backend ya está implementado, se copia del código (controlador, records `Solicitud*` y `Respuesta*`, `ManejadorErrores`, `ConfiguracionSeguridad`) citando cada archivo.
 
 ## Diseño por capas
-Clases nuevas o que cambian, por capa (dominio, caso de uso, puertos, persistencia, REST), con la política que implementa cada una.
+Clases nuevas o que cambian, por capa (dominio, caso de uso, puertos, persistencia, REST), con la política que implementa cada una. En «solo pantalla»: «No cambia: el backend ya está», con el enlace al código.
+
+## Pantalla
+Se omite si la HU no tiene pantalla.
+- **Prototipo:** enlaces a celular y computador en [docs/prototipos/](../../docs/prototipos/README.md) y diferencias con la HU, si las hay.
+- **Ruta:** dirección en `app.routes.ts` y si exige sesión (AG-11).
+- **Componentes y servicio:** carpeta del área (`identidad/registro/`), componente, servicio HTTP que llama al contrato y piezas de Angular Material.
+- **Formulario:** validaciones que solo guían al usuario antes de enviar (AC-03.1), con el mensaje que muestra cada una (`MensajesService`, ERR-GEN-01 a 04).
+- **Respuestas del backend:** qué se muestra en cada caso del contrato (el `mensaje` de la `RespuestaError` tal como llega, en el campo si trae `campo`) y a dónde se va después del éxito.
+- **CA en la pantalla:** qué criterios se ven en la pantalla y con qué prueba de Vitest (`it('CAn: …')`, con `HttpTestingController`).
 
 ## Criterios de aceptación → pruebas
-| CA | Qué se verifica | Prueba | Capa |
+| CA | Qué se verifica | Prueba | Capa (Dominio, Caso de uso, Persistencia, REST, Punta a punta o Pantalla) |
 
 ## Preguntas abiertas
 Lo que falta decidir, contradicciones entre documentos y parámetros «Por definir». Cada una trae una recomendación y dice si bloquea.
@@ -54,7 +65,8 @@ Lo que se ve relacionado pero esta HU no pide (regla 5 de «Cómo trabajar una h
 - [ ] T2 · Caso de uso · ...
 - [ ] T3 · Persistencia · ...
 - [ ] T4 · REST · ...
-- [ ] T5 · Verificación · ./mvnw verify y /pull-request
+- [ ] T5 · Pantalla · <componente o servicio> (CAn)
+- [ ] T6 · Verificación · ./mvnw verify (si se tocó el backend); npx ng lint, npx ng test --watch=false y npx ng build (si se tocó el frontend); /pull-request
 ```
 
 ## Preguntas pendientes para especificaciones futuras
