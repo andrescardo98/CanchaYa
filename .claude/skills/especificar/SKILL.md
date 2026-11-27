@@ -39,7 +39,7 @@ Desde la raíz del repositorio:
 6. Las clases y los componentes del módulo en `docs/diseno/clases.md` y `docs/diseno/componentes.md`, y las tablas en `docs/diseno/entidad-relacion.md`.
 7. El código que ya existe en el módulo (`projects/api/src/main/java/co/edu/uco/canchaya/<modulo>/`): puertos, casos de uso, controladores, `ManejadorErrores` (códigos HTTP por mensaje), `ConfiguracionSeguridad` (rutas públicas) y `catalogo-mensajes.properties`. La especificación reutiliza lo que hay; no duplica.
 8. Las especificaciones ya aprobadas en `specs/`, para mantener el mismo estilo de contrato.
-9. Si `specs/README.md` tiene la HU en «Preguntas pendientes para especificaciones futuras», esas preguntas pasan a sus «Preguntas abiertas» y se borran de esa tabla.
+9. Si `specs/README.md` tiene la HU en «Pendientes para especificaciones futuras», la propuesta es el punto de partida, sus preguntas pasan a las «Preguntas abiertas» y la fila se borra de ahí.
 
 Si el alcance incluye la pantalla, además:
 
