@@ -1,19 +1,81 @@
-// Tema de Angular Material (Material 3). mat.theme() crea las variables CSS
-// (--mat-sys-*) que usan todos los componentes de Material.
-// Colores provisionales: los definitivos se ajustan con los prototipos.
+// Tema de Angular Material (Material 3) con la identidad visual del prototipo de media fidelidad
+// (docs/prototipos/). mat.theme() crea las variables CSS (--mat-sys-*) que usan todos los
+// componentes de Material; los valores exactos se tomaron de las capturas del prototipo.
 // Guía: https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
+@use '@fontsource-variable/plus-jakarta-sans';
+@use 'theme-colors' as colores;
+
+// Tipografía del prototipo, servida con la aplicación (sin pedirla a un tercero)
+$fuente: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
 
 html {
   height: 100%;
+
   @include mat.theme(
     (
+      // Paletas generadas con `ng generate @angular/material:theme-color` (_theme-colors.scss)
       color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
+        primary: colores.$primary-palette,
+        tertiary: colores.$tertiary-palette,
+        theme-type: light,
       ),
-      typography: Roboto,
+      typography: (
+        plain-family: $fuente,
+        brand-family: $fuente,
+        regular-weight: 400,
+        medium-weight: 600,
+        bold-weight: 700,
+      ),
       density: 0,
+    )
+  );
+
+  // Los colores exactos del prototipo. Las paletas generadas dan tonos cercanos pero no iguales
+  // (por ejemplo, el primario de la paleta es #006D30 y el del prototipo #03A14A).
+  @include mat.theme-overrides(
+    (
+      primary: #03a14a,
+      on-primary: #ffffff,
+      error: #e7000b,
+      surface: #f7fbfd,
+      surface-container-lowest: #ffffff,
+      surface-container-low: #f2f7fa,
+      on-surface: #04192e,
+      on-surface-variant: #5c6b7a,
+      outline: #d5dfe7,
+      outline-variant: #dee4e8,
+    )
+  );
+
+  // Botón relleno: verde, esquinas de 10 px y 42 px de alto
+  @include mat.button-overrides(
+    (
+      filled-container-shape: 10px,
+      filled-container-height: 42px,
+      filled-label-text-weight: 600,
+      filled-label-text-size: 15px,
+    )
+  );
+
+  // Campos: caja de 40 px con fondo claro, borde delgado y esquinas de 10 px
+  @include mat.form-field-overrides(
+    (
+      container-height: 40px,
+      container-vertical-padding: 8px,
+      outlined-container-shape: 10px,
+      outlined-outline-color: var(--mat-sys-outline),
+      outlined-hover-outline-color: var(--mat-sys-on-surface-variant),
+      outlined-focus-outline-width: 1px,
+      outlined-label-text-color: var(--mat-sys-on-surface),
+      outlined-hover-label-text-color: var(--mat-sys-on-surface),
+      outlined-focus-label-text-color: var(--mat-sys-on-surface),
+      outlined-error-label-text-color: var(--mat-sys-on-surface),
+      outlined-error-hover-label-text-color: var(--mat-sys-on-surface),
+      outlined-error-focus-label-text-color: var(--mat-sys-on-surface),
+      outlined-label-text-size: 14px,
+      outlined-label-text-populated-size: 14px,
+      outlined-label-text-weight: 500,
     )
   );
 }
@@ -28,5 +90,63 @@ body {
   font: var(--mat-sys-body-medium);
 
   margin: 0;
-  height: 100%;
+  min-height: 100%;
+}
+
+h1 {
+  font: var(--mat-sys-headline-medium);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+// --- Rótulo encima de la caja, como en el prototipo -----------------------------------------
+// Material pone el rótulo dentro del borde del campo (appearance outline). Con floatLabel
+// 'always' (app.config.ts) queda siempre arriba; aquí se saca de la caja, se deja en su tamaño
+// normal y se cierra el hueco que Material abre en el borde para el rótulo (notch).
+.mat-mdc-form-field.mat-form-field-appearance-outline {
+  padding-top: 26px;
+
+  .mat-mdc-text-field-wrapper {
+    background-color: var(--mat-sys-surface);
+    border-radius: 10px;
+  }
+
+  .mdc-notched-outline--notched .mdc-notched-outline__notch {
+    border-top-style: solid;
+    border-top-width: 1px;
+  }
+
+  .mat-mdc-text-field-wrapper,
+  .mat-mdc-form-field-flex,
+  .mdc-notched-outline,
+  .mdc-notched-outline__notch {
+    overflow: visible;
+  }
+
+  // Material recorta con clip-path lo que queda a la izquierda del hueco; el rótulo ahora se sale
+  .mdc-notched-outline__notch {
+    max-width: none;
+    clip-path: none;
+  }
+
+  // Material mueve el rótulo con esta variable y la declara con un selector de esta misma forma;
+  // aquí sube por encima de la caja, alineado con su borde izquierdo y sin achicarse
+  .mat-mdc-text-field-wrapper.mdc-text-field--outlined .mdc-notched-outline--upgraded .mdc-floating-label--float-above {
+    --mat-mdc-form-field-label-transform: translate(-16px, -40px) scale(1);
+  }
+
+  // Separación entre campos. El espacio del mensaje de error crece con su texto
+  // (subscriptSizing 'dynamic' en app.config.ts), así un mensaje largo no tapa el campo siguiente.
+  margin-bottom: 16px;
+
+  // El mensaje de error alineado con el rótulo y con la caja
+  .mat-mdc-form-field-hint-wrapper,
+  .mat-mdc-form-field-error-wrapper {
+    padding: 4px 0 0;
+  }
+
+  // El asterisco de los campos obligatorios, en rojo
+  .mat-mdc-form-field-required-marker {
+    color: var(--mat-sys-error);
+  }
 }

@@ -5,7 +5,7 @@ Reglas propias del frontend. Las generales (idioma, decisiones, mensajes, commit
 ## Tecnología
 
 - Angular 22 con TypeScript, sin `zone.js` (la pantalla se actualiza con signals) y con componentes *standalone* (sin `NgModule`).
-- Angular Material y Angular CDK 22 para las piezas de pantalla. El tema está en `src/styles.scss` (`mat.theme`); sus colores son provisionales hasta tener los prototipos.
+- Angular Material y Angular CDK 22 para las piezas de pantalla. El tema está en `src/styles.scss` (`mat.theme`) y sigue la identidad visual de los prototipos (`docs/prototipos/`): verde `#03A14A`, letra Plus Jakarta Sans (paquete `@fontsource-variable/plus-jakarta-sans`, servida con la aplicación) y campos con el rótulo encima de la caja. Las paletas salen de `src/_theme-colors.scss`, generado con `npx ng generate @angular/material:theme-color`; los colores exactos de las capturas van en `mat.theme-overrides`. Las pantallas usan las variables del tema (`var(--mat-sys-primary)`…), no colores fijos.
 - Pruebas con Vitest y jsdom (simula el navegador sin abrir ninguno). Revisión de estilo con angular-eslint, que incluye las reglas de accesibilidad de las plantillas.
 - Node.js 24 (LTS) y npm. Angular CLI no se instala global: se usa con `npx ng`, que toma la versión del `package.json`.
 
