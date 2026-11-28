@@ -1,0 +1,43 @@
+// Primero el celular (AG-21): la tarjeta ocupa el ancho. En el computador queda centrada
+// con un ancho máximo, como en el prototipo «02 Inicio de sesión».
+.inicio-sesion {
+  max-width: 400px;
+  margin: 0 auto;
+  padding-top: 16px;
+}
+
+h1 {
+  font: var(--mat-sys-headline-medium);
+  margin: 0 0 24px;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 24px;
+  background-color: var(--mat-sys-surface-container-lowest);
+}
+
+button {
+  width: 100%;
+}
+
+.aviso {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font: var(--mat-sys-body-medium);
+}
+
+.aviso--sesion {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.aviso--error {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}

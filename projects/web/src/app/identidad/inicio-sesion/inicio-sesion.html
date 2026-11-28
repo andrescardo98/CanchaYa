@@ -1,0 +1,39 @@
+<section class="inicio-sesion">
+  <h1>Iniciar sesión</h1>
+
+  @if (avisoSesion(); as texto) {
+    <p class="aviso aviso--sesion" role="status">{{ texto }}</p>
+  }
+
+  <form class="tarjeta" [formGroup]="formulario" (ngSubmit)="iniciarSesion()" novalidate>
+    <mat-form-field appearance="outline">
+      <mat-label>Correo electrónico</mat-label>
+      <input
+        matInput
+        formControlName="correoElectronico"
+        type="email"
+        autocomplete="username"
+        [errorStateMatcher]="soloTocados"
+      />
+      <mat-error>{{ mensajeError('correoElectronico') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Contraseña</mat-label>
+      <input
+        matInput
+        formControlName="contrasena"
+        type="password"
+        autocomplete="current-password"
+        [errorStateMatcher]="soloTocados"
+      />
+      <mat-error>{{ mensajeError('contrasena') }}</mat-error>
+    </mat-form-field>
+
+    @if (aviso(); as texto) {
+      <p class="aviso aviso--error" role="alert">{{ texto }}</p>
+    }
+
+    <button mat-flat-button type="submit" [disabled]="enviando()">Iniciar sesión</button>
+  </form>
+</section>
