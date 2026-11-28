@@ -1,6 +1,17 @@
-<!-- Página de marcador: se reemplaza cuando lleguen las primeras pantallas. -->
-<mat-toolbar>CanchaYa</mat-toolbar>
+<!-- Barra superior del prototipo. El menú de usuario y el modo oscuro son de HU4. -->
+<mat-toolbar class="barra">
+  <a class="marca" href="/" aria-label="CanchaYa">
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M12 7.6l3.3 2.4-1.3 3.9H10l-1.3-3.9z" fill="currentColor" />
+      </svg>
+    </span>
+    <span class="nombre">Cancha<span class="nombre__ya">Ya</span></span>
+  </a>
+</mat-toolbar>
 
 <main>
   <router-outlet />
 </main>
+
